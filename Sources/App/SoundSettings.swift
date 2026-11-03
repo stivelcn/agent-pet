@@ -3,7 +3,7 @@ import AgentPetCore
 
 /// Plays a sound when an agent finishes or needs input. Each event has its own
 /// on/off and sound choice (a built-in macOS system sound, or a custom file the
-/// user uploads). Custom files are copied into `~/.agentpet/sounds/`.
+/// user uploads). Custom files are copied into `AgentPetPaths.baseDir/sounds/`.
 @MainActor
 final class SoundSettings: ObservableObject {
     static let shared = SoundSettings()
@@ -25,7 +25,7 @@ final class SoundSettings: ObservableObject {
     }
 
     init() {
-        let d = UserDefaults.standard
+        let d = LocalPreferences.defaults
         waitingEnabled = (d.object(forKey: "agentpet.sound.waiting.on") as? Bool) ?? true
         doneEnabled = (d.object(forKey: "agentpet.sound.done.on") as? Bool) ?? true
         waitingCustomPath = d.string(forKey: "agentpet.sound.waiting.path") ?? ""
@@ -85,7 +85,7 @@ final class SoundSettings: ObservableObject {
     }
 
     private func save() {
-        let d = UserDefaults.standard
+        let d = LocalPreferences.defaults
         d.set(waitingEnabled, forKey: "agentpet.sound.waiting.on")
         d.set(doneEnabled, forKey: "agentpet.sound.done.on")
         d.set(waitingCustomPath, forKey: "agentpet.sound.waiting.path")

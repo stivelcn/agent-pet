@@ -1,19 +1,21 @@
-import XCTest
+import Testing
+import Foundation
 @testable import AgentPetCore
 
-final class TranscriptCostTests: XCTestCase {
+@Suite(.serialized)
+final class TranscriptCostTests {
 
     private var path: String!
 
-    override func setUp() {
-        super.setUp()
+    private func setUp() {
+
         path = NSTemporaryDirectory() + "agentpet-cost-\(UUID().uuidString).jsonl"
         TranscriptReader.clearCache()
     }
 
-    override func tearDown() {
+    private func tearDown() {
         try? FileManager.default.removeItem(atPath: path)
-        super.tearDown()
+
     }
 
     private func append(_ lines: [String]) {
@@ -37,7 +39,9 @@ final class TranscriptCostTests: XCTestCase {
         #"{"type":"assistant","message":{"model":"\#(model)","usage":{"input_tokens":\#(input),"output_tokens":\#(output),"cache_creation_input_tokens":\#(cacheCreate),"cache_read_input_tokens":\#(cacheRead)},"content":[{"type":"text","text":"hi"}]}}"#
     }
 
-    func testDeltaMatchesHandComputedFormula() {
+    @Test func testDeltaMatchesHandComputedFormula() {
+        setUp()
+        defer { tearDown() }
         append([
             assistantLine(input: 1_000, output: 250, cacheCreate: 500, cacheRead: 2_000, model: "claude-sonnet-4-6-20260115"),
         ])
@@ -49,21 +53,25 @@ final class TranscriptCostTests: XCTestCase {
             + 500.0 * 3.00 * 1.25
             + 2_000.0 * 3.00 * 0.1) / 1_000_000.0
 
-        XCTAssertNotNil(delta)
-        XCTAssertEqual(delta?.tokens, 1_250)
-        XCTAssertEqual(delta?.costUSD ?? -1, expectedCost, accuracy: 0.0000001)
+        #expect((delta) != nil)
+        #expect((delta?.tokens) == (1_250))
+        #expect(abs((delta?.costUSD ?? -1) - (expectedCost)) <= 0.0000001)
     }
 
-    func testSecondCallWithNoNewLinesReturnsZeroDelta() {
+    @Test func testSecondCallWithNoNewLinesReturnsZeroDelta() {
+        setUp()
+        defer { tearDown() }
         append([assistantLine(input: 500, output: 100)])
         _ = TranscriptReader.newUsageDelta(at: path)
 
         let secondDelta = TranscriptReader.newUsageDelta(at: path)
 
-        XCTAssertEqual(secondDelta, TranscriptReader.UsageDelta(tokens: 0, costUSD: 0))
+        #expect((secondDelta) == (TranscriptReader.UsageDelta(tokens: 0, costUSD: 0)))
     }
 
-    func testSumsTokensAndCostAcrossLinesWithDifferentModels() {
+    @Test func testSumsTokensAndCostAcrossLinesWithDifferentModels() {
+        setUp()
+        defer { tearDown() }
         append([
             assistantLine(input: 1_000, output: 500, model: "claude-opus-4-1"),
             assistantLine(input: 2_000, output: 1_000, model: "claude-sonnet-4-6-20260115"),
@@ -75,29 +83,33 @@ final class TranscriptCostTests: XCTestCase {
         let expectedCost = opusCost + sonnetCost
         let expectedTokens = (1_000 + 500) + (2_000 + 1_000)
 
-        XCTAssertNotNil(delta)
-        XCTAssertEqual(delta?.tokens, expectedTokens)
-        XCTAssertEqual(delta?.costUSD ?? -1, expectedCost, accuracy: 0.0000001)
+        #expect((delta) != nil)
+        #expect((delta?.tokens) == (expectedTokens))
+        #expect(abs((delta?.costUSD ?? -1) - (expectedCost)) <= 0.0000001)
     }
 
-    func testNewUsageDeltaForUnreadPathReturnsNil() {
+    @Test func testNewUsageDeltaForUnreadPathReturnsNil() {
+        setUp()
+        defer { tearDown() }
         let neverSeenPath = "/some/path/never/read/before-\(UUID().uuidString).jsonl"
-        XCTAssertNil(TranscriptReader.newUsageDelta(at: neverSeenPath))
+        #expect((TranscriptReader.newUsageDelta(at: neverSeenPath)) == nil)
     }
 
-    func testClearCacheResetsByteOffsetSoDeltaIsRecomputedFromStart() {
+    @Test func testClearCacheResetsByteOffsetSoDeltaIsRecomputedFromStart() {
+        setUp()
+        defer { tearDown() }
         append([assistantLine(input: 1_000, output: 250, model: "claude-sonnet-4-6-20260115")])
         let firstDelta = TranscriptReader.newUsageDelta(at: path)
 
-        XCTAssertNotNil(firstDelta)
-        XCTAssertNotEqual(firstDelta?.tokens, 0)
-        XCTAssertNotEqual(firstDelta?.costUSD, 0)
+        #expect((firstDelta) != nil)
+        #expect((firstDelta?.tokens) != (0))
+        #expect((firstDelta?.costUSD) != (0))
 
         TranscriptReader.clearCache()
 
         let secondDelta = TranscriptReader.newUsageDelta(at: path)
 
-        XCTAssertEqual(secondDelta?.tokens, firstDelta?.tokens)
-        XCTAssertEqual(secondDelta?.costUSD ?? -1, firstDelta?.costUSD ?? -2, accuracy: 0.0000001)
+        #expect((secondDelta?.tokens) == (firstDelta?.tokens))
+        #expect(abs((secondDelta?.costUSD ?? -1) - (firstDelta?.costUSD ?? -2)) <= 0.0000001)
     }
 }

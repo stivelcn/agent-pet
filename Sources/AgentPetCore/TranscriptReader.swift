@@ -233,7 +233,7 @@ public enum TranscriptReader {
     /// session id (`rollout-<ts>-<uuid>.jsonl`). Fallback: the most recently
     /// modified rollout whose `session_meta.cwd` matches `cwd`.
     public static func codexRolloutPath(sessionId: String, cwd: String?) -> String? {
-        let root = NSHomeDirectory() + "/.codex/sessions"
+        let root = CodexHookConfig.homeDirectory() + "/sessions"
         let fm = FileManager.default
         guard let en = fm.enumerator(atPath: root) else { return nil }
         var candidates: [(path: String, mtime: Date)] = []

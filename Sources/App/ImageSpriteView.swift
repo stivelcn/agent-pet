@@ -1,18 +1,16 @@
 import SwiftUI
 import AppKit
-import AgentPetCore
 
 /// Renders an imported spritesheet pet. The frame cycling runs in a CALayer
 /// (see `SpriteLayerNSView`), NOT a SwiftUI `TimelineView`: a SwiftUI timeline
 /// re-evaluates and re-renders the whole view tree every tick, and an
 /// always-on-screen pet (×every window) made that the dominant CPU cost.
 /// Swapping `layer.contents` on a timer animates in Core Animation instead, so
-/// SwiftUI does not redraw the sprite per frame. The only SwiftUI animation
-/// left here is the transient celebrate sparkle overlay (≈3s, mood `.celebrate`).
+/// SwiftUI does not redraw the sprite per frame. The renderer intentionally
+/// has no task-mood input or celebration overlay: all states stay restful.
 struct ImageSpriteView: View {
-    /// Frames of the clip bound to the current mood (resolved by the caller).
+    /// In-place idle/blink frames, resolved by the caller.
     let frames: [NSImage]
-    let mood: PetMood
     /// Sprite frame rate supplied by the caller (from `PetController.spriteFPS(forMood:)`).
     let fps: Double
     var size: CGFloat = 110
@@ -20,18 +18,6 @@ struct ImageSpriteView: View {
 
     var body: some View {
         ZStack {
-            // Sparkles only exist for `.celebrate`, and celebrate is a short
-            // transient — gate the (animated) overlay on it so idle/working
-            // states carry no perpetual SwiftUI animation at all.
-            // When animations are disabled, skip the celebrate overlay entirely.
-            if mood == .celebrate && animationsEnabled {
-                TimelineView(.periodic(from: .now, by: 1.0 / 8.0)) { context in
-                    MoodAccessories(mood: mood,
-                                    t: context.date.timeIntervalSinceReferenceDate,
-                                    size: size)
-                }
-            }
-
             if frames.isEmpty {
                 Image(systemName: "pawprint.fill").font(.system(size: 36))
             } else {

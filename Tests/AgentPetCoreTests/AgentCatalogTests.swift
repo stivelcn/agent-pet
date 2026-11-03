@@ -1,11 +1,13 @@
-import XCTest
+import Testing
+import Foundation
 @testable import AgentPetCore
 
-final class AgentCatalogTests: XCTestCase {
-    func testHookAgentsSupported() {
+@Suite(.serialized)
+final class AgentCatalogTests {
+    @Test func testHookAgentsSupported() {
         let byKind = Dictionary(uniqueKeysWithValues: AgentCatalog.all.map { ($0.kind, $0) })
-        XCTAssertEqual(byKind[.claude]?.isSupported, true)
-        XCTAssertEqual(byKind[.codex]?.isSupported, true)
-        XCTAssertEqual(byKind[.gemini]?.isSupported, true)
+        #expect((byKind[.claude]?.isSupported) == (true))
+        #expect((byKind[.codex]?.isSupported) == (true))
+        #expect((byKind[.gemini]?.isSupported) == (true))
     }
 }

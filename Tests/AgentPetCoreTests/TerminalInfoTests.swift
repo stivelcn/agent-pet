@@ -1,38 +1,39 @@
-import XCTest
+import Testing
+import Foundation
 @testable import AgentPetCore
 
-final class TerminalInfoTests: XCTestCase {
-    func testCaptureReadsTermProgramFromEnv() {
+@Suite(.serialized)
+final class TerminalInfoTests {
+    @Test func testCaptureReadsTermProgramFromEnv() {
         let c = TerminalInfo.capture(env: ["TERM_PROGRAM": "WarpTerminal"])
-        XCTAssertEqual(c.program, "WarpTerminal")
+        #expect((c.program) == ("WarpTerminal"))
     }
 
-    func testCaptureTreatsMissingTermProgramAsNil() {
-        XCTAssertNil(TerminalInfo.capture(env: [:]).program)
+    @Test func testCaptureTreatsMissingTermProgramAsNil() {
+        #expect((TerminalInfo.capture(env: [:]).program) == nil)
     }
 
-    func testCaptureTreatsEmptyTermProgramAsNil() {
-        XCTAssertNil(TerminalInfo.capture(env: ["TERM_PROGRAM": ""]).program,
-                     "an empty TERM_PROGRAM should disable the affordance, not enable it")
+    @Test func testCaptureTreatsEmptyTermProgramAsNil() {
+        #expect((TerminalInfo.capture(env: ["TERM_PROGRAM": ""]).program) == nil, Comment(rawValue: "an empty TERM_PROGRAM should disable the affordance, not enable it"))
     }
 
-    func testCaptureReadsWarpFocusURL() {
+    @Test func testCaptureReadsWarpFocusURL() {
         let c = TerminalInfo.capture(env: [
             "TERM_PROGRAM": "WarpTerminal",
             "WARP_FOCUS_URL": "warp://session/abc123",
         ])
-        XCTAssertEqual(c.focusURL, "warp://session/abc123")
+        #expect((c.focusURL) == ("warp://session/abc123"))
     }
 
-    func testCaptureFocusURLNilWhenAbsent() {
-        XCTAssertNil(TerminalInfo.capture(env: ["TERM_PROGRAM": "Apple_Terminal"]).focusURL)
+    @Test func testCaptureFocusURLNilWhenAbsent() {
+        #expect((TerminalInfo.capture(env: ["TERM_PROGRAM": "Apple_Terminal"]).focusURL) == nil)
     }
 
     /// `procInfo` must agree with `ps`, which it replaced for the ancestor walk.
-    func testProcInfoMatchesPS() throws {
+    @Test func testProcInfoMatchesPS() throws {
         let pid = getpid()
-        let info = try XCTUnwrap(TerminalInfo.procInfo(pid: pid))
-        XCTAssertEqual(info.ppid, getppid())
+        let info = try #require(TerminalInfo.procInfo(pid: pid))
+        #expect((info.ppid) == (getppid()))
 
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/bin/ps")
@@ -43,10 +44,10 @@ final class TerminalInfoTests: XCTestCase {
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         process.waitUntilExit()
         let ps = String(decoding: data, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
-        XCTAssertEqual(info.tty, ps == "??" ? nil : "/dev/\(ps)")
+        #expect((info.tty) == (ps == "??" ? nil : "/dev/\(ps)"))
     }
 
-    func testProcInfoNilForMissingProcess() {
-        XCTAssertNil(TerminalInfo.procInfo(pid: 99_999_999))
+    @Test func testProcInfoNilForMissingProcess() {
+        #expect((TerminalInfo.procInfo(pid: 99_999_999)) == nil)
     }
 }

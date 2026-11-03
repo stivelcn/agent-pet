@@ -9,7 +9,7 @@
 /* General / common */
 "Launch" = "启动";
 "Launch at login" = "登录时启动";
-"AgentPet starts automatically when you sign in." = "登录时自动启动 AgentPet。";
+"AgentPet starts automatically when you sign in." = "登录时自动启动 智能桌宠。";
 "Notifications" = "通知";
 "Show chat bubble" = "显示聊天气泡";
 "Messages" = "消息";
@@ -19,12 +19,12 @@
 "Reset to defaults" = "恢复默认";
 "Reset to default" = "恢复默认";
 "Sounds" = "声音";
-"Agent integrations" = "Agent 集成";
-"Hook installed" = "已安装 Hook";
+"Agent integrations" = "编程助手 集成";
+"Hook installed" = "已安装 回调";
 "Coming soon" = "即将推出";
 "Enable" = "启用";
 "Open Settings" = "打开设置";
-"Quit AgentPet" = "退出 AgentPet";
+"Quit AgentPet" = "退出 智能桌宠";
 "Upload…" = "上传…";
 "Default" = "默认";
 "Working" = "工作中";
@@ -35,21 +35,21 @@
 
 /* Bubble tab */
 "Bubble mode" = "气泡模式";
-"Multi-agent bubble" = "多 Agent 气泡";
+"Multi-agent bubble" = "多 编程助手 气泡";
 "Structured rows with icons, state dots, and activity messages." = "带图标、状态点和活动消息的结构化行。";
 "Appearance" = "外观";
 "Theme" = "主题";
 "Font size" = "字号";
 "Opacity" = "不透明度";
 "Show idle message" = "显示空闲消息";
-"The pet's chatter while no agent is running." = "没有 Agent 运行时宠物的碎碎念。";
+"The pet's chatter while no agent is running." = "没有 编程助手 运行时宠物的碎碎念。";
 "Display" = "显示";
 "Rows" = "行";
 "Sessions" = "会话";
 "Filter" = "筛选";
 "Include states" = "包含状态";
 "Which session states appear in the bubble." = "气泡中显示哪些会话状态。";
-"Visible agents" = "可见 Agent";
+"Visible agents" = "可见 编程助手";
 "Row content" = "行内容";
 "Preview" = "预览";
 "Presets" = "预设";
@@ -62,23 +62,23 @@
 "Style" = "样式";
 "Separator" = "分隔符";
 "State dot" = "状态点";
-"Agent icons" = "Agent 图标";
+"Agent icons" = "编程助手 图标";
 "Brand logos" = "品牌标志";
-"SF Symbols" = "SF Symbols";
+"SF Symbols" = "系统图标";
 "Change…" = "更改…";
 "Activity messages" = "活动消息";
 "Vocabulary" = "词汇风格";
 "Bubble messages" = "气泡消息";
 "Simple bubble" = "简单气泡";
-"All agents" = "所有 Agent";
-"Turn on multi-agent bubble above for per-agent rows with icons and activity." = "开启上方的多 Agent 气泡，即可为每个 Agent 显示带图标和活动的独立行。";
+"All agents" = "所有 编程助手";
+"Turn on multi-agent bubble above for per-agent rows with icons and activity." = "开启上方的多 编程助手 气泡，即可为每个 编程助手 显示带图标和活动的独立行。";
 
 /* About & Pet tab */
-"A desktop pet that watches your AI coding agents." = "盯着你的 AI 编码 Agent 的桌面宠物。";
+"A desktop pet that watches your AI coding agents." = "盯着你的 AI 编码 编程助手 的桌面宠物。";
 "Star on GitHub" = "在 GitHub 上点亮 Star";
 "Join the Discord" = "加入 Discord";
 "Buy me a coffee" = "请我喝杯咖啡";
-"If AgentPet helps your workflow, a star means a lot. Thank you!" = "如果 AgentPet 帮到了你，点个 Star 意义非凡。谢谢！";
+"If AgentPet helps your workflow, a star means a lot. Thank you!" = "如果 智能桌宠 帮到了你，点个星标 意义非凡。谢谢！";
 "Author" = "作者";
 "Version" = "版本";
 "Choose pet" = "选择宠物";
@@ -97,13 +97,13 @@
 "Carousel" = "轮播";
 "Compact" = "紧凑";
 "All sessions" = "所有会话";
-"Grouped by agent" = "按 Agent 分组";
+"Grouped by agent" = "按 编程助手 分组";
 "All states" = "所有状态";
 "Done and above" = "完成及以上";
 "Working & Waiting" = "工作中和等待中";
 "Working only" = "仅工作中";
 "One row at a time. Auto-cycles every 3 s — swipe or drag to browse." = "每次一行，每 3 秒自动轮换，可滑动或拖动浏览。";
-"One row per agent kind (×N when multiple)" = "每种 Agent 一行（多个时显示 ×N）";
+"One row per agent kind (×N when multiple)" = "每种 编程助手 一行（多个时显示 ×N）";
 "One row per session" = "每个会话一行";
 "Show every row at once, up to the max below." = "一次显示所有行，上限见下方。";
 "Summary header, first two rows, then fold the rest." = "摘要标题、前两行，其余折叠。";
@@ -111,7 +111,7 @@
 "Claude style" = "Claude 风格";
 "Flat color-coded circle" = "扁平彩色圆点";
 "Spinning ✻ asterisk while active" = "活动时旋转的 ✻ 星号";
-"Agent icon" = "Agent 图标";
+"Agent icon" = "编程助手 图标";
 "Chat title" = "聊天标题";
 "Project folder" = "项目文件夹";
 "Activity message" = "活动消息";
@@ -136,20 +136,20 @@
 /* Demo panel, notifications, sounds, footers */
 "Live preview" = "实时预览";
 "Hide live preview" = "隐藏实时预览";
-"Fire webhooks for many agents with your current settings" = "用当前设置为多个 Agent 触发 webhook";
-"Add webhook" = "添加 Webhook";
+"Fire webhooks for many agents with your current settings" = "用当前设置为多个 编程助手 触发 web回调";
+"Add webhook" = "添加 Web回调";
 "Add" = "添加";
 "Quick scenarios" = "快捷场景";
 "Spawn 3 working" = "生成 3 个工作中";
 "Finish all" = "全部完成";
 "Clear all" = "清除全部";
-"Active webhooks" = "活动 Webhook";
-"No webhooks yet. Add one from the right →" = "还没有 Webhook。从右侧添加 →";
+"Active webhooks" = "活动 Web回调";
+"No webhooks yet. Add one from the right →" = "还没有 Web回调。从右侧添加 →";
 "Preview mood" = "预览状态";
 "Shows your Simple-bubble message for each state." = "显示每个状态下你的简单气泡消息。";
-"Add agents here, then change each webhook's state or delete it in the list on the left." = "在此添加 Agent，然后在左侧列表中更改各 Webhook 的状态或删除它。";
-"Turn on Multi-agent bubble to add agents here. In Simple mode, use the Preview mood buttons on the left." = "开启多 Agent 气泡以在此添加 Agent。简单模式下，请使用左侧的预览状态按钮。";
-"Webhooks are for the multi-agent bubble." = "Webhook 用于多 Agent 气泡。";
+"Add agents here, then change each webhook's state or delete it in the list on the left." = "在此添加 编程助手，然后在左侧列表中更改各 Web回调 的状态或删除它。";
+"Turn on Multi-agent bubble to add agents here. In Simple mode, use the Preview mood buttons on the left." = "开启多 编程助手 气泡以在此添加 编程助手。简单模式下，请使用左侧的预览状态按钮。";
+"Webhooks are for the multi-agent bubble." = "Web回调 用于多 编程助手 气泡。";
 "Notifications on" = "通知已开启";
 "Notifications muted" = "通知已静音";
 "Notifications denied" = "通知被拒绝";
@@ -157,12 +157,12 @@
 "Enable notifications" = "启用通知";
 "Available once installed as AgentPet.app" = "以 AgentPet.app 安装后可用";
 "Turn on in System Settings to get alerts" = "在系统设置中开启以接收提醒";
-"Alerts when an agent finishes or needs input" = "Agent 完成或需要输入时提醒";
+"Alerts when an agent finishes or needs input" = "编程助手 完成或需要输入时提醒";
 "Muted, the toggle turns alerts back on" = "已静音，拨动开关重新开启提醒";
-"When an agent finishes" = "当 Agent 完成时";
-"When an agent needs input" = "当 Agent 需要输入时";
-"Per-agent overrides win over \"All agents\". A custom line replaces the live/theme text and the real pet honours it." = "针对单个 Agent 的设置优先于\"所有 Agent\"。自定义文案会替换实时/主题文本，真实宠物也会生效。";
-"Whimsical phrases shown while agents work, e.g. \"Brewing…\" or \"Compiling…\"." = "Agent 工作时显示的趣味短语，例如 \"Brewing…\" 或 \"Compiling…\"。";
+"When an agent finishes" = "当 编程助手 完成时";
+"When an agent needs input" = "当 编程助手 需要输入时";
+"Per-agent overrides win over \"All agents\". A custom line replaces the live/theme text and the real pet honours it." = "针对单个 编程助手 的设置优先于\"所有 编程助手\"。自定义文案会替换实时/主题文本，真实宠物也会生效。";
+"Whimsical phrases shown while agents work, e.g. \"Brewing…\" or \"Compiling…\"." = "编程助手 工作时显示的趣味短语，例如 \"Brewing…\" 或 \"Compiling…\"。";
 
 /* Pet chat & idle messages */
 "Thinking…" = "思考中…";
@@ -202,7 +202,7 @@
 "The build is quiet. Too quiet." = "构建很安静，安静得可疑。";
 "Ship something small. Future you is watching." = "发布点小东西吧，未来的你正看着呢。";
 "Your TODOs are pretending not to see us." = "你的 TODO 正假装没看见我们。";
-"No agents running. The keyboard has entered standby drama." = "没有 Agent 在跑，键盘开始上演待机大戏。";
+"No agents running. The keyboard has entered standby drama." = "没有 编程助手 在跑，键盘开始上演待机大戏。";
 "Turn coffee into code. Carefully." = "把咖啡变成代码，小心点。";
 "Open one file. Intimidate it professionally." = "打开一个文件，专业地震慑它。";
 "The repo is calm. Suspicious, but calm." = "仓库很平静。可疑，但平静。";
@@ -216,7 +216,7 @@
 "Language" = "语言";
 
 /* App: onboarding, create-pet, browser, menu */
-"A desktop pet that watches your AI coding agents. Two quick steps to get going." = "盯着你的 AI 编码 Agent 的桌面宠物。两步即可开始。";
+"A desktop pet that watches your AI coding agents. Two quick steps to get going." = "盯着你的 AI 编码 编程助手 的桌面宠物。两步即可开始。";
 "Added" = "已添加";
 "Browse pets" = "浏览宠物";
 "Cancel" = "取消";
@@ -225,29 +225,29 @@
 "Community" = "社区";
 "Create" = "创建";
 "Create pet" = "创建宠物";
-"Get alerted when an agent finishes or needs input." = "Agent 完成或需要输入时收到提醒。";
+"Get alerted when an agent finishes or needs input." = "编程助手 完成或需要输入时收到提醒。";
 "Get started" = "开始";
-"Install a hook so AgentPet can see when an agent works, finishes, or needs you." = "安装 hook，让 AgentPet 知道 Agent 何时工作、完成或需要你。";
+"Install a hook so AgentPet can see when an agent works, finishes, or needs you." = "安装 回调，让 智能桌宠 知道 编程助手 何时工作、完成或需要你。";
 "Loading pets…" = "正在加载宠物…";
-"Nothing running right now." = "当前没有运行中的 Agent。";
+"Nothing running right now." = "当前没有运行中的 编程助手。";
 "Pet info" = "宠物信息";
 "Pet size" = "宠物大小";
 "Retry" = "重试";
-"Sort by agent kind" = "按 Agent 类型排序";
+"Sort by agent kind" = "按 编程助手 类型排序";
 "Spritesheet" = "精灵图";
 "Use the same 8×9 transparent spritesheet format as downloaded pets." = "使用与下载宠物相同的 8×9 透明精灵图格式。";
-"Welcome to AgentPet" = "欢迎使用 AgentPet";
+"Welcome to AgentPet" = "欢迎使用 智能桌宠";
 
 /* Codex connection help */
 "Connect Codex" = "连接 Codex";
-"The hook is installed. Codex blocks unknown command hooks until you trust them once , a Codex security feature, not an AgentPet bug. Do this one time:" = "Hook 已安装。Codex 会拦截未知的命令 hook，直到你信任一次 , 这是 Codex 的安全机制，并非 AgentPet 的问题。只需操作一次：";
+"The hook is installed. Codex blocks unknown command hooks until you trust them once , a Codex security feature, not an AgentPet bug. Do this one time:" = "回调 已安装。Codex 会拦截未知的命令 回调，直到你信任一次 , 这是 Codex 的安全机制，并非 智能桌宠 的问题。只需操作一次：";
 "Open Terminal and run: codex (launches the Codex CLI)" = "打开终端并运行：codex（启动 Codex CLI）";
-"Type /hooks and press Enter to list the hooks." = "输入 /hooks 并回车以列出 hook。";
-"Press t to Trust all hooks." = "按 t 键信任所有 hook。";
+"Type /hooks and press Enter to list the hooks." = "输入 /hooks 并回车以列出 回调。";
+"Press t to Trust all hooks." = "按 t 键信任所有 回调。";
 "Quit and reopen Codex (both the CLI and the desktop app)." = "退出并重新打开 Codex（CLI 和桌面应用都要）。";
 "Run any prompt , your pet now shows the Codex session." = "运行任意提示 , 宠物就会显示 Codex 会话。";
 "Trust is shared, so trusting once in the CLI also covers the Codex desktop app. If /hooks shows nothing, add  [features] hooks = true  to ~/.codex/config.toml, then retry." = "信任是共享的，在 CLI 中信任一次，Codex 桌面应用也会生效。如果 /hooks 没有任何内容，请在 ~/.codex/config.toml 中添加  [features] hooks = true  后重试。";
-"Codex hooks docs" = "Codex hooks 文档";
+"Codex hooks docs" = "Codex 回调文档";
 "Got it" = "知道了";
 "How to connect Codex" = "如何连接 Codex";
 "Installed , needs a one-time trust (tap ?)" = "已安装 , 需要一次性信任（点击 ?）";
@@ -270,7 +270,7 @@
 "Starving" = "饿坏了";
 "Last fed %@" = "上次进食 %@";
 "%@ / %@ XP to next level" = "%@ / %@ 经验升级";
-"The pet eats real work: tokens burnt by your agents and finished sessions." = "宠物吃的是真实工作：Agent 消耗的 token 和完成的会话。";
+"The pet eats real work: tokens burnt by your agents and finished sessions." = "宠物吃的是真实工作：编程助手 消耗的 token 和完成的会话。";
 "Tokens eaten" = "已吃 token";
 "Full! The daily bowl is empty." = "吃饱啦！今天的碗空了。";
 "Sessions finished" = "完成的会话";
@@ -286,8 +286,8 @@
 "Connected" = "已连接";
 "Get it" = "去安装";
 "left" = "剩余";
-"Level up! Lv %d ⭐" = "升级啦！Lv %d ⭐";
-"Getting hungry… run an agent?" = "有点饿了……跑个 Agent 吧？";
+"Level up! Lv %d ⭐" = "升级啦！等级 %d ⭐";
+"Getting hungry… run an agent?" = "有点饿了……跑个 编程助手 吧？";
 "A little snack? One small task?" = "来点小零食？一个小任务就行？";
 "My tummy is rumbling…" = "肚子咕咕叫了……";
 "Feed me some tokens, please." = "请喂我一点 token 吧。";
@@ -347,7 +347,7 @@
 "%d meals" = "%d 餐";
 
 /* Care v5: native limits + to-next-level */
-"≈ %@ tokens to Lv %d" = "≈ %@ token 升到 Lv %d";
+"≈ %@ tokens to Lv %d" = "≈ %@ token 升到 等级 %d";
 "Subscription limits" = "订阅额度";
 "Show %@ in Limits" = "在额度中显示 %@";
 "Hidden providers stay out of the stats card and don't make your pet anxious." = "隐藏的服务不会出现在统计卡片中，也不会让宠物焦虑。";
@@ -363,7 +363,7 @@
 "resets in %dm" = "%d 分钟后重置";
 
 /* Coffee / donate */
-"Thanks for using AgentPet" = "感谢使用 AgentPet";
+"Thanks for using AgentPet" = "感谢使用 智能桌宠";
 "It's free and open source. If it makes your day a little nicer, a coffee is always appreciated, never expected." = "本应用免费开源。如果它让你的一天更愉快，一杯咖啡总是受欢迎的，但绝不强求。";
 "Quét mã bằng app ngân hàng bất kỳ" = "用任意银行 App 扫码";
 "Sao chép số tài khoản" = "复制账号";
@@ -396,12 +396,12 @@
 /* Reactive bubbles — daily tokens */
 "Burned quite a few tokens today~" = "今天烧了不少 token～";
 "Eaten a lot of tokens" = "吃了好多 token 了";
-"Token usage rising" = "Token 消耗上升中";
+"Token usage rising" = "token 消耗上升中";
 "Big appetite mode!" = "大胃王模式！";
 "Great appetite today~" = "今天胃口真好～";
-"Tokens going fast" = "Token 消耗得好快";
+"Tokens going fast" = "token 消耗得好快";
 "Token usage off the charts today 🔥" = "今天 token 用量爆炸 🔥";
-"Token burn is extreme!" = "Token 消耗超高！";
+"Token burn is extreme!" = "token 消耗超高！";
 "Heavy burn today" = "今天 burn 好猛";
 
 /* Reactive bubbles — session count */
@@ -409,7 +409,7 @@
 "Lots of agents at work" = "好多 agent 在干活";
 "Parallelism is up" = "并行度不低";
 "Command center mode 😳" = "指挥中心模式 😳";
-"So many sessions!" = "这么多 session！";
+"So many sessions!" = "这么多 会话！";
 "Full throttle" = "全力运转中";
 
 /* Reactive bubbles — hunger */
@@ -435,14 +435,14 @@
 "Unstoppable" = "无人能挡";
 
 /* Reactive bubbles — daily meals */
-"Lots of sessions today~" = "今天完成了好多 session～";
+"Lots of sessions today~" = "今天完成了好多 会话～";
 "Good productivity" = "效率不错";
 "Got quite a bit done" = "做了不少事";
-"Fifty sessions! Efficiency beast" = "五十个 session！效率怪物";
+"Fifty sessions! Efficiency beast" = "五十个 会话！效率怪物";
 "50+!" = "50+！";
 "Super productive" = "超高产";
 "Over 100! Not sleeping today?" = "破百！今天不睡了？";
-"100+ sessions!" = "100+ session！";
+"100+ sessions!" = "已完成 100 多个会话！";
 "Superhuman" = "超人来的";
 
 /* HUD footer */
@@ -456,9 +456,9 @@
 "First Meal" = "首次进食";
 "100 Sessions" = "100 次会话";
 "500 Sessions" = "500 次会话";
-"1M Tokens" = "1M Token";
-"10M Tokens" = "10M Token";
-"50M Tokens" = "50M Token";
+"1M Tokens" = "100 万 token";
+"10M Tokens" = "1000 万 token";
+"50M Tokens" = "5000 万 token";
 "Level 5" = "5 级";
 "Level 10" = "10 级";
 "Level 20" = "20 级";
@@ -487,7 +487,7 @@
 "Hover a badge to see how to unlock it" = "将鼠标悬停在徽章上查看解锁方式";
 "Add a project folder to give it its own pet." = "添加项目文件夹来分配专属宠物。";
 "Add project…" = "添加项目…";
-"Agents" = "Agent";
+"Agents" = "编程助手";
 "Animate pets" = "宠物动画";
 "Animation speed" = "动画速度";
 "Default pet" = "默认宠物";
@@ -503,7 +503,7 @@
 "Show a configured project's pet only while it's working; hide it when idle." = "仅在配置的项目运行时显示其宠物；空闲时隐藏。";
 "Spawn one pet per active project instead of one shared pet." = "为每个活动项目生成一个宠物，而非共用一个。";
 "Split pet" = "拆分宠物";
-"Sprite frame rate. Idle is always capped at 2 fps." = "精灵帧率。空闲时始终限制为 2 fps。";
+"Sprite frame rate. Idle is always capped at 2 fps." = "精灵帧率。空闲时始终限制为 2 帧/秒。";
 "Sync failed repeatedly. Re-link to retry." = "多次同步失败。请重新连接后重试。";
 "The home pet nudges you to rest after a work stretch." = "主宠物会在你工作一段时间后提醒休息。";
 "Turn off to freeze pet/bubble animation (lower CPU)." = "关闭以冻结宠物/气泡动画（降低 CPU）。";
@@ -519,10 +519,233 @@
 "Project names" = "项目名称";
 "No projects seen yet." = "尚未发现项目。";
 "Projects used in the last 7 days. Show a friendlier name instead of the folder name in the bubble and notifications. Leave empty to use the folder name." = "最近 7 天使用过的项目。在气泡和通知中显示更易读的名称，代替文件夹名。留空则使用文件夹名。";
-"By agent" = "按 Agent";
+"By agent" = "按 编程助手";
 "Today · Month" = "今天 · 本月";
 "1 session" = "1 个会话";
 "%d sessions" = "%d 个会话";
 "Show less" = "收起";
 "Show %d more" = "再显示 %d 项";
 "Limit" = "额度";
+
+"Local data" = "本机数据";
+
+"Pets, settings and growth stay on this Mac. No account or cloud sync is required." = "宠物、设置和成长记录仅存储在本机，不需要账户或云同步。";
+
+"Data folder" = "数据目录";
+
+"Preferences" = "配置域";
+
+"Usage comes from supported local agent logs and session events, not subscription balances." = "用量来自已支持的本地客户端日志和会话事件，不查询订阅余额。";
+
+"Third-party usage depends on what the client records. Additional client adapters are planned." = "第三方用量取决于客户端记录的内容；更多客户端适配将在后续补充。";
+
+"No pet selected — browse or create one" = "尚未选择宠物，可浏览图库或自行创建";
+
+"Development mode: agent hook configuration is disabled. Your existing clients are unchanged." = "本次启动已禁用客户端连接配置，现有客户端未被修改。";
+
+"Development builds do not change agent hooks by default. See LOCAL_DEVELOPMENT.md to opt in." = "当前启动方式已禁用自动连接，正常启动开发版即可启用。";
+
+"A local companion for your AI coding work." = "陪伴 AI 编程的本地桌面宠物。";
+
+"Manual updates only. No account, cloud sync or subscription polling." = "仅手动更新，不登录、不云同步、不轮询订阅额度。";
+
+"Acknowledgements" = "致谢";
+
+"Original AgentPet project (MIT)" = "原始 AgentPet 项目（MIT）";
+
+"Pet artwork keeps its own creator and license information." = "宠物素材保留各自的作者与授权信息。";
+
+"(empty)" = "（空）";
+
+"Add…" = "添加…";
+
+"Agent" = "编程助手";
+
+"AgentPet" = "智能桌宠";
+
+"Break reminder" = "休息提醒";
+
+"Configured projects" = "已配置的项目";
+
+"Delete this webhook" = "删除此回调地址";
+
+"Get" = "下载";
+
+"Give your companion a custom name. Clear it to use the original." = "给伙伴取个名字；留空则恢复原名。";
+
+"L" = "大";
+
+"M" = "中";
+
+"S" = "小";
+
+"Name" = "名称";
+
+"No pets installed." = "尚未安装宠物。";
+
+"On" = "开启";
+
+"Period" = "时间范围";
+
+"Pet display" = "宠物显示";
+
+"Remove project" = "移除项目";
+
+"Remove this project mapping" = "移除此项目的宠物关联";
+
+"Save" = "保存";
+
+"space" = "空格";
+
+"Pet name" = "宠物名称";
+
+"Search" = "搜索";
+
+"Description" = "介绍";
+
+"Choose Project Folder" = "选择项目文件夹";
+
+"Choose Spritesheet" = "选择宠物动画图集";
+
+"Choose" = "选择";
+
+"No image selected" = "尚未选择图片";
+
+"Could not create this pet. Check that the image is a valid spritesheet." = "无法创建宠物，请确认所选图片为有效的动画图集。";
+
+"Petdex is rate-limiting downloads right now. Wait a moment and tap Get again." = "宠物图库暂时限制了下载频率，请稍后点击“下载”重试。";
+
+"Could not download %@. Check your connection and try again." = "无法下载“%@”，请检查网络后重试。";
+
+"Max agent kinds: %d" = "最多显示 %d 类编程助手";
+
+"Max sessions: %d" = "最多显示 %d 个会话";
+
+"Icon for %@" = "%@ 的图标";
+
+"No agents running" = "暂无运行中的编程助手";
+
+"%d agents" = "%d 个编程助手";
+
+"%@ · %d running" = "%@ · %d 个正在工作";
+
+"By %@" = "作者：%@";
+
+"No \"needs input\" alerts (Windsurf has no such hook)" = "不支持“等待输入”提醒（Windsurf 未提供对应回调）";
+
+"No \"needs input\" alerts (Antigravity has no notification hook)" = "不支持“等待输入”提醒（Antigravity 未提供通知回调）";
+
+"Copilot CLI only (~/.copilot/hooks)" = "仅支持 Copilot 命令行客户端（~/.copilot/hooks）";
+
+"Hooks the default Kiro CLI agent" = "连接 Kiro 命令行客户端的默认助手";
+
+"Factory Droid CLI (~/.factory/hooks.json)" = "Factory Droid 命令行客户端（~/.factory/hooks.json）";
+
+"Pi (pi.dev) extension; no \"needs input\" alerts (Pi has no approval gate by default)" = "通过 Pi（pi.dev）扩展连接；默认不支持“等待输入”提醒";
+
+"xAI Grok Build CLI (~/.grok/hooks/agentpet.json)" = "xAI Grok Build 命令行客户端（~/.grok/hooks/agentpet.json）";
+
+"jcode lifecycle hooks (~/.jcode/config.toml)" = "jcode 运行状态回调（~/.jcode/config.toml）";
+
+/* Dynamic controls and gallery labels */
+"All" = "全部";
+"Characters" = "角色";
+"Creatures" = "生物";
+"Objects" = "物品";
+"Search pets" = "搜索宠物";
+"Search your pets" = "搜索我的宠物";
+"Sep" = "分隔";
+"community" = "社区";
+"Couldn't load the pet library. Check your connection." = "无法加载宠物库，请检查网络连接。";
+"Show pet" = "显示宠物";
+"Show count on menu bar" = "在菜单栏显示数量";
+"Show chat on menu bar" = "在菜单栏显示聊天";
+"Show bubble on menu bar" = "在菜单栏显示气泡";
+"Registered" = "已就绪";
+
+/* Pet tap reactions: normal, affectionate, and delighted */
+"Hehe~" = "嘿嘿～";
+"That tickles!" = "好痒呀！";
+"Hi there! 👋" = "你好呀！👋";
+"Oh! Hello~" = "哎呀，你来啦～";
+"*purrs*" = "呼噜呼噜～";
+"Nyaa~" = "喵呜～";
+"I love you! 💕" = "最喜欢你啦！💕";
+"More pets please!" = "再摸摸我嘛！";
+"Best human ever!" = "你对我最好啦！";
+"So happy~ ✨" = "好开心呀～✨";
+"MAXIMUM LOVE! 💖" = "喜欢你，满分！💖";
+"Can't stop smiling! 🥰" = "开心得合不拢嘴啦！🥰";
+"I'm gonna melt~" = "被你摸得心都化啦～";
+
+/* Quiet companion animation */
+"Quiet animations use 1–2 fps; sleepy uses 1 fps." = "原地小动作每秒 1–2 帧，困倦时放慢到每秒 1 帧。";
+"Quiet companion" = "安静陪伴";
+"Only in-place idle and blinking, even when tasks finish. No running, jumping, or tap bouncing." = "只保留原地待机、眨眼，任务完成也保持安静。不跑动、不跳跃，点击时也不弹跳。";
+"Task tracking and status messages stay active. Sleepy playback is slower." = "任务记录和状态提示照常工作，困倦时动作会更慢。";
+
+// Local token usage history
+"View usage statistics" = "查看 token 用量统计";
+"View statistics" = "查看统计";
+"By day" = "按日";
+"By month" = "按月";
+"Month" = "月份";
+"Year" = "年份";
+"Unknown project" = "未识别项目";
+"token usage statistics" = "token 用量统计";
+"Local · Auto-updating" = "本机记录 · 自动更新";
+"Today token" = "今日 token";
+"This month token" = "本月 token";
+"Recorded token total" = "累计已记录 token";
+"Recorded completions" = "累计完成次数";
+"Completion events reported by connected agents, not unique conversations." = "按助手上报的任务完成事件累计，不等同于独立会话数。";
+"Time grouping" = "统计方式";
+"All recorded clients" = "所有已记录的客户端";
+"No recorded token data" = "暂无 token 记录";
+"Completions" = "完成次数";
+"token trend" = "token 用量趋势";
+"Click a bar or date to inspect its clients and projects. — means no recorded token data, not zero usage." = "点击柱形或日期查看对应的客户端与项目。“—”表示没有 token 记录，不代表用量为零。";
+"Clients and projects" = "客户端与项目";
+"Show entire period" = "查看整个时段";
+"Client / Project" = "客户端 / 项目";
+"Daily details" = "每日明细";
+"Monthly details" = "每月明细";
+"Date" = "日期";
+"No records" = "暂无记录";
+"Companion growth" = "宠物成长记录";
+"Pet received %@ token" = "已获得 %@ token";
+"Pet meals: %@" = "已吃 %@ 餐";
+"Pet growth belongs to this companion only. Usage statistics above cover all locally recorded clients; their totals may differ." = "成长记录只属于这只宠物；上方用量统计包含本机已记录的所有客户端，两者总数可能不同。";
+"Recorded dates: %@ – %@" = "已有记录日期：%@ 至 %@";
+"Only locally collected usage is shown, not a provider bill or your full account history. Previously deleted or uncollected records cannot be recovered here. Daily and monthly aggregates are kept locally going forward." = "仅展示本机已采集的用量，不是服务商账单或账号全部历史。此前未采集或已清理的记录无法在这里恢复；从现在起，日/月汇总会在本机持续保存。";
+"Some clients report completions without token counts. — means unavailable. Completion counts track reported task-finished events, not unique conversations." = "部分客户端仅提供完成次数，没有提供 token 数量，此时显示“—”。完成次数按助手报告的任务完成事件累计，不等同于独立会话数。";
+"No usage records in this period" = "这个时段暂无用量记录";
+"Use a connected agent as usual. Reported usage will appear here automatically; no manual import is needed." = "照常使用已连接的编程助手即可。上报的用量会自动显示在这里，无需手动导入。";
+"Coding agent" = "编程助手";
+"Other agents" = "其他助手";
+
+// Daily token calendar heatmap
+"Ending month" = "截至月份";
+"Daily activity" = "每日用量";
+"Past three months" = "最近三个月";
+"Each square is a day. Darker blue means more token; gray means no recorded token data, not zero usage." = "每天一格，蓝色越深表示 token 越多；灰色表示没有 token 记录，不代表用量为 0。";
+"Hover for usage · Click for details" = "悬停查看用量 · 点击查看明细";
+"No token record" = "未记录";
+"Less usage" = "少";
+"More usage" = "多";
+"Blue intensity represents token usage" = "蓝色深浅表示 token 用量";
+"Selected day" = "已选中日期";
+
+/* Persistent completion reminders */
+"Done ✅" = "干完了 ✅";
+"%d tasks are done" = "有 %d 个任务干完了";
+"Click to choose a conversation" = "点击选择要查看的会话";
+"Open the completed conversation" = "打开已完成的会话";
+"Completed conversations" = "已完成的会话";
+"Dismiss this completion reminder" = "关闭这条完成提醒";
+"Open this agent conversation" = "打开此编程助手会话";
+"The client is open, but this conversation could not be located. Reminder kept." = "已打开客户端，但暂时无法定位到这个会话。提醒已保留。";
+"This client has not provided a conversation location. Reminder kept." = "此客户端暂未提供会话定位信息。提醒已保留。";
+"Could not open this conversation. Check that the client is installed and the session still exists. Reminder kept." = "未能打开会话，请检查客户端是否已安装、会话是否仍存在。提醒已保留。";
+"Completion reminders could not be saved or restored. They remain visible in this run." = "完成提醒未能保存或恢复；新提醒在本次运行中仍可查看。";
+"Conversation" = "会话";

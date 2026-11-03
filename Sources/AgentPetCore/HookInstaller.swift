@@ -9,7 +9,7 @@ public enum HookInstallerError: LocalizedError, Equatable {
     public var errorDescription: String? {
         switch self {
         case .unreadableSettings(let path):
-            return "\(path) is not valid JSON; fix or remove it and try again."
+            return "配置格式不正确，请检查后重试：\(path)"
         }
     }
 }
@@ -50,7 +50,7 @@ public enum HookInstaller {
         var settings = settings
         var hooks = settings["hooks"] as? [String: Any] ?? [:]
         for event in events {
-            var groups = (hooks[event] as? [[String: Any]] ?? []).filter { !groupIsOurs($0) }
+            var groups = removingOurHandlers(from: hooks[event] as? [[String: Any]] ?? [])
             groups.append(["hooks": [["type": "command", "command": command]]])
             hooks[event] = groups
         }
@@ -63,11 +63,22 @@ public enum HookInstaller {
         guard var hooks = settings["hooks"] as? [String: Any] else { return settings }
         for event in events {
             guard let groups = hooks[event] as? [[String: Any]] else { continue }
-            let kept = groups.filter { !groupIsOurs($0) }
+            let kept = removingOurHandlers(from: groups)
             if kept.isEmpty { hooks.removeValue(forKey: event) } else { hooks[event] = kept }
         }
         if hooks.isEmpty { settings.removeValue(forKey: "hooks") } else { settings["hooks"] = hooks }
         return settings
+    }
+
+    private static func removingOurHandlers(from groups: [[String: Any]]) -> [[String: Any]] {
+        groups.compactMap { group in
+            guard let handlers = group["hooks"] as? [[String: Any]], groupIsOurs(group) else { return group }
+            let kept = handlers.filter { !(($0["command"] as? String).map(isOurs) ?? false) }
+            guard !kept.isEmpty else { return nil }
+            var result = group
+            result["hooks"] = kept
+            return result
+        }
     }
 
     private static func groupIsOurs(_ group: [String: Any]) -> Bool {

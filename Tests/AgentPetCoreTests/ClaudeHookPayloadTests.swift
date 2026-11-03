@@ -1,190 +1,193 @@
-import XCTest
+import Testing
+import Foundation
 @testable import AgentPetCore
 
-final class ClaudeHookPayloadTests: XCTestCase {
+@Suite(.serialized)
+final class ClaudeHookPayloadTests {
     private let now = Date(timeIntervalSince1970: 100)
 
     private func payload(_ json: String) -> ClaudeHookPayload? {
         ClaudeHookPayload.decode(from: Data(json.utf8))
     }
 
-    func testDecodesSessionStart() {
+    @Test func testDecodesSessionStart() {
         let event = payload(#"{"session_id":"abc","cwd":"/Users/x/proj","hook_event_name":"SessionStart"}"#)?
             .makeEvent(now: now)
-        XCTAssertEqual(event?.sessionId, "abc")
-        XCTAssertEqual(event?.project, "/Users/x/proj")
-        XCTAssertEqual(event?.eventName, "SessionStart")
-        XCTAssertEqual(event?.agentKind, .claude)
+        #expect((event?.sessionId) == ("abc"))
+        #expect((event?.project) == ("/Users/x/proj"))
+        #expect((event?.eventName) == ("SessionStart"))
+        #expect((event?.agentKind) == (.claude))
     }
 
-    func testDecodesNotificationWithMessage() {
+    @Test func testDecodesNotificationWithMessage() {
         let p = payload(#"{"session_id":"s","cwd":"/p","hook_event_name":"Notification","message":"needs permission"}"#)
         let event = p?.makeEvent(now: now)
-        XCTAssertEqual(event?.message, "needs permission")
-        XCTAssertEqual(StateMapper.state(for: .claude, eventName: event!.eventName), .waiting)
+        #expect((event?.message) == ("needs permission"))
+        #expect((StateMapper.state(for: .claude, eventName: event!.eventName)) == (.waiting))
     }
 
-    func testIgnoresUnknownFields() {
+    @Test func testIgnoresUnknownFields() {
         // Real Claude payloads carry extra keys (transcript_path, stop_hook_active, ...).
         let event = payload(#"{"session_id":"s","hook_event_name":"Stop","transcript_path":"/t","stop_hook_active":false}"#)?
             .makeEvent(now: now)
-        XCTAssertEqual(event?.eventName, "Stop")
-        XCTAssertNil(event?.project)
+        #expect((event?.eventName) == ("Stop"))
+        #expect((event?.project) == nil)
     }
 
-    func testNilWhenMissingEssentialFields() {
-        XCTAssertNil(payload(#"{"cwd":"/p"}"#)?.makeEvent(now: now))
-        XCTAssertNil(payload("not json"))
+    @Test func testNilWhenMissingEssentialFields() {
+        #expect((payload(#"{"cwd":"/p"}"#)?.makeEvent(now: now)) == nil)
+        #expect((payload("not json")) == nil)
     }
 
     // MARK: - model field
 
-    func testDecodesModelDisplayName() {
+    @Test func testDecodesModelDisplayName() {
         let json = #"{"session_id":"s","hook_event_name":"Stop","model":{"id":"claude-sonnet-4-6-20250514","display_name":"Sonnet 4.6"}}"#
         let event = payload(json)?.makeEvent(now: now)
-        XCTAssertEqual(event?.model, "Sonnet 4.6")
+        #expect((event?.model) == ("Sonnet 4.6"))
     }
 
-    func testFallsBackToModelIdWhenNoDisplayName() {
+    @Test func testFallsBackToModelIdWhenNoDisplayName() {
         let json = #"{"session_id":"s","hook_event_name":"Stop","model":{"id":"gpt-5.1"}}"#
         let event = payload(json)?.makeEvent(now: now)
-        XCTAssertEqual(event?.model, "gpt-5.1")
+        #expect((event?.model) == ("gpt-5.1"))
     }
 
-    func testDecodesBareStringModel() {
+    @Test func testDecodesBareStringModel() {
         let json = #"{"session_id":"s","hook_event_name":"Stop","model":"some-model"}"#
         let event = payload(json)?.makeEvent(now: now)
-        XCTAssertEqual(event?.model, "some-model")
+        #expect((event?.model) == ("some-model"))
     }
 
-    func testNilModelWhenAbsent() {
+    @Test func testNilModelWhenAbsent() {
         let json = #"{"session_id":"s","hook_event_name":"Stop"}"#
         let event = payload(json)?.makeEvent(now: now)
-        XCTAssertNil(event?.model)
+        #expect((event?.model) == nil)
     }
 
-    func testMalformedModelDoesNotBreakDecode() {
+    @Test func testMalformedModelDoesNotBreakDecode() {
         // model is a number, not an object/string — must not fail the whole payload.
         let json = #"{"session_id":"s","hook_event_name":"Stop","model":123}"#
         let event = payload(json)?.makeEvent(now: now)
-        XCTAssertEqual(event?.eventName, "Stop", "payload must still decode")
-        XCTAssertNil(event?.model)
+        #expect((event?.eventName) == ("Stop"), Comment(rawValue: "payload must still decode"))
+        #expect((event?.model) == nil)
     }
 
     // MARK: - Other agents routed through ClaudeHookPayload (claudeNested style)
 
-    func testCodexPreToolUseActivityMessage() {
+    @Test func testCodexPreToolUseActivityMessage() {
         let json = #"{"session_id":"cx1","cwd":"/proj","hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":"npm test"}}"#
         let event = payload(json)?.makeEvent(now: now, kind: .codex)
-        XCTAssertEqual(event?.agentKind, .codex)
-        XCTAssertTrue(ActivityTheme.chef.running.contains(event?.message ?? ""), "got \(event?.message ?? "nil")")
+        #expect((event?.agentKind) == (.codex))
+        #expect(ActivityTheme.chef.running.contains(event?.message ?? ""), Comment(rawValue: "got \(event?.message ?? "nil")"))
     }
 
-    func testGeminiBeforeToolActivityMessage() {
+    @Test func testGeminiBeforeToolActivityMessage() {
         let json = #"{"session_id":"gm1","cwd":"/proj","hook_event_name":"BeforeTool","tool_name":"run_shell_command","tool_input":{"command":"ls"}}"#
         let event = payload(json)?.makeEvent(now: now, kind: .gemini)
-        XCTAssertEqual(event?.agentKind, .gemini)
-        XCTAssertTrue(ActivityTheme.chef.running.contains(event?.message ?? ""), "got \(event?.message ?? "nil")")
+        #expect((event?.agentKind) == (.gemini))
+        #expect(ActivityTheme.chef.running.contains(event?.message ?? ""), Comment(rawValue: "got \(event?.message ?? "nil")"))
     }
 
     // MARK: - approval gating (PreToolUse + Bash)
 
-    func testPreToolUseBashPopulatesApprovalFields() {
+    @Test func testPreToolUseBashPopulatesApprovalFields() {
         let json = #"{"session_id":"s","cwd":"/proj","hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":"npm test"}}"#
         let event = payload(json)?.makeEvent(now: now, gatedTools: ["Bash"])
-        XCTAssertNotNil(event?.approvalRequestId, "must generate a request id for a gated tool")
-        XCTAssertEqual(event?.toolName, "Bash")
-        XCTAssertEqual(event?.toolSummary, "npm test")
+        #expect((event?.approvalRequestId) != nil, Comment(rawValue: "must generate a request id for a gated tool"))
+        #expect((event?.toolName) == ("Bash"))
+        #expect((event?.toolSummary) == ("npm test"))
     }
 
-    func testPreToolUseBashTruncatesSummaryTo80Characters() {
+    @Test func testPreToolUseBashTruncatesSummaryTo80Characters() {
         let longCommand = String(repeating: "a", count: 200)
         let json = #"{"session_id":"s","cwd":"/proj","hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":"\#(longCommand)"}}"#
         let event = payload(json)?.makeEvent(now: now, gatedTools: ["Bash"])
-        XCTAssertEqual(event?.toolSummary?.count, 80, "summary must be truncated to 80 chars")
+        #expect((event?.toolSummary?.count) == (80), Comment(rawValue: "summary must be truncated to 80 chars"))
     }
 
-    func testPreToolUseBashWithNoCommandFallsBackToToolName() {
+    @Test func testPreToolUseBashWithNoCommandFallsBackToToolName() {
         let json = #"{"session_id":"s","cwd":"/proj","hook_event_name":"PreToolUse","tool_name":"Bash"}"#
         let event = payload(json)?.makeEvent(now: now, gatedTools: ["Bash"])
-        XCTAssertEqual(event?.toolSummary, "Bash", "no command in tool_input -> summary falls back to tool name")
+        #expect((event?.toolSummary) == ("Bash"), Comment(rawValue: "no command in tool_input -> summary falls back to tool name"))
     }
 
-    func testPreToolUseNonGatedToolLeavesApprovalFieldsNil() {
+    @Test func testPreToolUseNonGatedToolLeavesApprovalFieldsNil() {
         let json = #"{"session_id":"s","cwd":"/proj","hook_event_name":"PreToolUse","tool_name":"Read","tool_input":{"file_path":"/x"}}"#
         let event = payload(json)?.makeEvent(now: now, gatedTools: ["Bash"])
-        XCTAssertNil(event?.approvalRequestId, "Read is not in the gated tool whitelist")
-        XCTAssertNil(event?.toolName)
-        XCTAssertNil(event?.toolSummary)
+        #expect((event?.approvalRequestId) == nil, Comment(rawValue: "Read is not in the gated tool whitelist"))
+        #expect((event?.toolName) == nil)
+        #expect((event?.toolSummary) == nil)
     }
 
-    func testEmptyGatedToolsDisablesApprovalEvenForBash() {
+    @Test func testEmptyGatedToolsDisablesApprovalEvenForBash() {
         let json = #"{"session_id":"s","cwd":"/proj","hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":"npm test"}}"#
         let event = payload(json)?.makeEvent(now: now, gatedTools: [])
-        XCTAssertNil(event?.approvalRequestId, "empty whitelist means the gate is off")
-        XCTAssertNil(event?.toolName)
-        XCTAssertNil(event?.toolSummary)
+        #expect((event?.approvalRequestId) == nil, Comment(rawValue: "empty whitelist means the gate is off"))
+        #expect((event?.toolName) == nil)
+        #expect((event?.toolSummary) == nil)
     }
 
-    func testNonPreToolUseEventLeavesApprovalFieldsNilEvenForBash() {
+    @Test func testNonPreToolUseEventLeavesApprovalFieldsNilEvenForBash() {
         let json = #"{"session_id":"s","cwd":"/proj","hook_event_name":"Stop","tool_name":"Bash","tool_input":{"command":"npm test"}}"#
         let event = payload(json)?.makeEvent(now: now, gatedTools: ["Bash"])
-        XCTAssertNil(event?.approvalRequestId, "only PreToolUse should ever trigger gating")
-        XCTAssertNil(event?.toolName)
-        XCTAssertNil(event?.toolSummary)
+        #expect((event?.approvalRequestId) == nil, Comment(rawValue: "only PreToolUse should ever trigger gating"))
+        #expect((event?.toolName) == nil)
+        #expect((event?.toolSummary) == nil)
     }
 
-    func testPreToolUseBashForNonClaudeKindLeavesApprovalFieldsNil() {
+    @Test func testPreToolUseBashForNonClaudeKindLeavesApprovalFieldsNil() {
         let json = #"{"session_id":"s","cwd":"/proj","hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":"npm test"}}"#
 
         let codexEvent = payload(json)?.makeEvent(now: now, kind: .codex, gatedTools: ["Bash"])
-        XCTAssertNil(codexEvent?.approvalRequestId, "approval gating is a Claude-only contract")
-        XCTAssertNil(codexEvent?.toolName)
-        XCTAssertNil(codexEvent?.toolSummary)
+        #expect((codexEvent?.approvalRequestId) == nil, Comment(rawValue: "approval gating is a Claude-only contract"))
+        #expect((codexEvent?.toolName) == nil)
+        #expect((codexEvent?.toolSummary) == nil)
 
         let droidEvent = payload(json)?.makeEvent(now: now, kind: .droid, gatedTools: ["Bash"])
-        XCTAssertNil(droidEvent?.approvalRequestId, "approval gating is a Claude-only contract")
-        XCTAssertNil(droidEvent?.toolName)
-        XCTAssertNil(droidEvent?.toolSummary)
+        #expect((droidEvent?.approvalRequestId) == nil, Comment(rawValue: "approval gating is a Claude-only contract"))
+        #expect((droidEvent?.toolName) == nil)
+        #expect((droidEvent?.toolSummary) == nil)
     }
 }
 
 // MARK: - ApprovalGateConfig (opt-in whitelist file)
 
-final class ApprovalGateConfigTests: XCTestCase {
-    func testMissingConfigMeansGateOff() {
+@Suite(.serialized)
+final class ApprovalGateConfigTests {
+    @Test func testMissingConfigMeansGateOff() {
         let missing = NSTemporaryDirectory() + "agentpet-missing-\(UUID().uuidString).json"
-        XCTAssertEqual(ApprovalGateConfig.gatedTools(path: missing), [])
+        #expect((ApprovalGateConfig.gatedTools(path: missing)) == ([]))
     }
 
-    func testValidConfigEnablesListedTools() throws {
+    @Test func testValidConfigEnablesListedTools() throws {
         let path = NSTemporaryDirectory() + "agentpet-gate-\(UUID().uuidString).json"
         try #"{"tools":["Bash","Write"]}"#.write(toFile: path, atomically: true, encoding: .utf8)
         defer { try? FileManager.default.removeItem(atPath: path) }
-        XCTAssertEqual(ApprovalGateConfig.gatedTools(path: path), ["Bash", "Write"])
+        #expect((ApprovalGateConfig.gatedTools(path: path)) == (["Bash", "Write"]))
     }
 
-    func testMalformedConfigMeansGateOff() throws {
+    @Test func testMalformedConfigMeansGateOff() throws {
         let path = NSTemporaryDirectory() + "agentpet-gate-\(UUID().uuidString).json"
         try "not json".write(toFile: path, atomically: true, encoding: .utf8)
         defer { try? FileManager.default.removeItem(atPath: path) }
-        XCTAssertEqual(ApprovalGateConfig.gatedTools(path: path), [])
+        #expect((ApprovalGateConfig.gatedTools(path: path)) == ([]))
     }
 
-    func testSetEnabledWritesFileAndIsEnabledReadsIt() {
+    @Test func testSetEnabledWritesFileAndIsEnabledReadsIt() {
         let path = NSTemporaryDirectory() + "agentpet-gate-\(UUID().uuidString).json"
         defer { try? FileManager.default.removeItem(atPath: path) }
         ApprovalGateConfig.setEnabled(true, path: path)
-        XCTAssertTrue(ApprovalGateConfig.isEnabled(path: path))
-        XCTAssertEqual(ApprovalGateConfig.gatedTools(path: path), ["Bash"])
+        #expect(ApprovalGateConfig.isEnabled(path: path))
+        #expect((ApprovalGateConfig.gatedTools(path: path)) == (["Bash"]))
     }
 
-    func testSetEnabledFalseRemovesFile() {
+    @Test func testSetEnabledFalseRemovesFile() {
         let path = NSTemporaryDirectory() + "agentpet-gate-\(UUID().uuidString).json"
         ApprovalGateConfig.setEnabled(true, path: path)
-        XCTAssertTrue(FileManager.default.fileExists(atPath: path))
+        #expect(FileManager.default.fileExists(atPath: path))
         ApprovalGateConfig.setEnabled(false, path: path)
-        XCTAssertFalse(FileManager.default.fileExists(atPath: path))
-        XCTAssertFalse(ApprovalGateConfig.isEnabled(path: path))
+        #expect(!(FileManager.default.fileExists(atPath: path)))
+        #expect(!(ApprovalGateConfig.isEnabled(path: path)))
     }
 }

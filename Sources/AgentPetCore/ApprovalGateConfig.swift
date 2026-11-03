@@ -1,7 +1,7 @@
 import Foundation
 
 /// Opt-in whitelist for the bubble approval gate: the gate stays OFF unless
-/// `~/.agentpet/approval-gate.json` exists with `{"tools": ["Bash", ...]}`.
+/// `AgentPetPaths.baseDir/approval-gate.json` exists with `{"tools": ["Bash", ...]}`.
 public enum ApprovalGateConfig {
     public static var defaultPath: String {
         (AgentPetPaths.baseDir as NSString).appendingPathComponent("approval-gate.json")

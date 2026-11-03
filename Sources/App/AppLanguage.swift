@@ -1,3 +1,4 @@
+import AgentPetCore
 import SwiftUI
 import Foundation
 import ObjectiveC
@@ -41,10 +42,10 @@ final class AppLanguage: ObservableObject {
         var label: String {
             switch self {
             case .system: return NSLocalizedString("System", comment: "language option")
-            case .en:     return "English"
-            case .vi:     return "Tiếng Việt"
+            case .en:     return "英语"
+            case .vi:     return "越南语"
             case .zh:     return "简体中文"
-            case .zhHant: return "繁體中文"
+            case .zhHant: return "繁体中文"
             }
         }
     }
@@ -53,14 +54,14 @@ final class AppLanguage: ObservableObject {
 
     @Published var lang: Lang {
         didSet {
-            UserDefaults.standard.set(lang.rawValue, forKey: Self.key)
+            LocalPreferences.defaults.set(lang.rawValue, forKey: Self.key)
             apply()
             PetController.shared.relocalize()
         }
     }
 
     private init() {
-        lang = Lang(rawValue: UserDefaults.standard.string(forKey: Self.key) ?? "") ?? .system
+        lang = Lang(rawValue: LocalPreferences.defaults.string(forKey: Self.key) ?? "") ?? .zh
         apply()
     }
 

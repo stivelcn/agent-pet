@@ -10,7 +10,6 @@ struct SettingsDemoPanel: View {
     @ObservedObject private var pet = PetController.shared
     @ObservedObject private var imagePets = ImagePetStore.shared
     @ObservedObject private var bubble = BubbleSettings.shared
-    @ObservedObject private var bindings = PetBindingsStore.shared
     // Observed so editing custom messages updates the preview bubble live.
     @ObservedObject private var chat = ChatSettings.shared
     @ObservedObject private var bubbleMsgs = BubbleMessages.shared
@@ -151,8 +150,7 @@ struct SettingsDemoPanel: View {
 
     @ViewBuilder private var petSprite: some View {
         if let pack {
-            let clip = bindings.clipIndex(packId: pack.id, clipCount: pack.clipCount, mood: mood)
-            ImageSpriteView(frames: pack.clip(clip), mood: mood,
+            ImageSpriteView(frames: pack.restingFrames,
                             fps: pet.spriteFPS(forMood: mood),
                             size: min(max(pet.petPoint, 80), 120))
                 .environment(\.animationsEnabled, pet.animationsEnabled)
@@ -215,11 +213,11 @@ struct SettingsDemoPanel: View {
     private func statePicker(for s: AgentSession) -> some View {
         Menu {
             ForEach(editableStates, id: \.self) { st in
-                Button(st.rawValue.capitalized) { setSessionState(s.id, st) }
+                Button(LocalizedStringKey(st.rawValue.capitalized)) { setSessionState(s.id, st) }
             }
         } label: {
             HStack(spacing: 3) {
-                Text(s.state.rawValue).font(.caption2.weight(.semibold))
+                Text(LocalizedStringKey(s.state.rawValue.capitalized)).font(.caption2.weight(.semibold))
                 Image(systemName: "chevron.down").font(.system(size: 7, weight: .bold))
             }
             .padding(.horizontal, 7).padding(.vertical, 2)
@@ -369,10 +367,10 @@ struct SettingsDemoPanel: View {
 
     private func sampleTitle(_ kind: AgentKind) -> String? {
         switch kind {
-        case .claude: return "Fix the login redirect"
-        case .codex: return "Add pagination to /pets"
-        case .gemini: return "Tune the ranking model"
-        case .cursor: return "Refactor the gallery grid"
+        case .claude: return "修复登录跳转"
+        case .codex: return "为 /pets 添加分页"
+        case .gemini: return "调整排序模型"
+        case .cursor: return "重构图库布局"
         default: return nil
         }
     }
@@ -389,10 +387,10 @@ struct SettingsDemoPanel: View {
                 eventName: "PreToolUse", sessionId: "demo-\(kind.rawValue)",
                 toolName: tool, toolInput: ToolActivityInput(filePath: path),
                 explicitMessage: nil
-            ) ?? "Working…"
-        case .waiting:    return "Waiting for your input"
+            ) ?? "正在工作…"
+        case .waiting:    return "等待你的输入"
         case .done:       return NSLocalizedString("Done", comment: "pet mood")
-        case .registered: return "Starting up…"
+        case .registered: return "正在启动…"
         case .idle:       return nil
         }
     }

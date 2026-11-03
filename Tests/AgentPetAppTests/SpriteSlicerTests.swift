@@ -1,4 +1,5 @@
-import XCTest
+import Testing
+import Foundation
 import CoreGraphics
 @testable import agentpet
 
@@ -74,69 +75,64 @@ private func makeSynthesisSheet() -> CGImage {
 
 // MARK: - Tests
 
-final class SpriteSlicerTests: XCTestCase {
+@Suite(.serialized)
+final class SpriteSlicerTests {
 
     // MARK: 1. Grid detection
 
-    func test_slice_detects_grid_rows_and_columns() {
+    @Test func test_slice_detects_grid_rows_and_columns() {
         let sheet = makeSynthesisSheet()
         let clips = SpriteSlicer.slice(sheet)
 
-        XCTAssertEqual(clips.count, 2, "Should detect 2 row bands")
+        #expect((clips.count) == (2), Comment(rawValue: "Should detect 2 row bands"))
         for (i, clip) in clips.enumerated() {
-            XCTAssertEqual(clip.count, 3, "Row \(i) should contain 3 frames")
+            #expect((clip.count) == (3), Comment(rawValue: "Row \(i) should contain 3 frames"))
             for (j, frame) in clip.enumerated() {
-                XCTAssertEqual(frame.width, 20,  "Row \(i) col \(j) width should be 20 px")
-                XCTAssertEqual(frame.height, 24, "Row \(i) col \(j) height should be 24 px")
+                #expect((frame.width) == (20), Comment(rawValue: "Row \(i) col \(j) width should be 20 px"))
+                #expect((frame.height) == (24), Comment(rawValue: "Row \(i) col \(j) height should be 24 px"))
             }
         }
     }
 
     // MARK: 2. Pixel content preservation
 
-    func test_slice_frames_preserve_pixel_content() {
+    @Test func test_slice_frames_preserve_pixel_content() {
         let sheet = makeSynthesisSheet()
         let clips = SpriteSlicer.slice(sheet)
 
         // Collect all 6 frames (order may vary) and verify each has a non-transparent centre.
         let allFrames = clips.flatMap { $0 }
-        XCTAssertEqual(allFrames.count, 6, "Expected 6 frames total")
+        #expect((allFrames.count) == (6), Comment(rawValue: "Expected 6 frames total"))
 
         for (i, frame) in allFrames.enumerated() {
             let rgba = centerPixelRGBA(of: frame)
-            XCTAssertGreaterThan(rgba.a, 200,
-                "Frame \(i) centre pixel should be opaque, got alpha=\(rgba.a)")
+            #expect((rgba.a) > (200), Comment(rawValue: "Frame \(i) centre pixel should be opaque, got alpha=\(rgba.a)"))
         }
 
         // Verify diverse hues are present across frames.
         let dominantChannels = Set(allFrames.map { dominantChannel(of: $0) })
-        XCTAssertGreaterThanOrEqual(dominantChannels.count, 3,
-            "Expected diverse pixel colours across 6 frames, got \(dominantChannels)")
+        #expect((dominantChannels.count) >= (3), Comment(rawValue: "Expected diverse pixel colours across 6 frames, got \(dominantChannels)"))
     }
 
     // MARK: 3. Backing-store ownership (RED -- MUST FAIL with current code)
 
-    func test_slice_frames_own_their_backing_store() {
+    @Test func test_slice_frames_own_their_backing_store() {
         let sheet = makeSynthesisSheet()
         let clips = SpriteSlicer.slice(sheet)
 
         for (rowIdx, clip) in clips.enumerated() {
             for (colIdx, frame) in clip.enumerated() {
                 let expectedBytesPerRow = frame.width * 4
-                XCTAssertEqual(
-                    frame.bytesPerRow,
-                    expectedBytesPerRow,
-                    "Row \(rowIdx) col \(colIdx): bytesPerRow should be \(expectedBytesPerRow) " +
+                #expect((frame.bytesPerRow) == (expectedBytesPerRow), Comment(rawValue: "Row \(rowIdx) col \(colIdx): bytesPerRow should be \(expectedBytesPerRow) " +
                     "(frame owns its backing store), but got \(frame.bytesPerRow) " +
-                    "(parent sheet stride -- indicates cropping(to:) view is still alive)"
-                )
+                    "(parent sheet stride -- indicates cropping(to:) view is still alive)"))
             }
         }
     }
 
     // MARK: 4. Fully transparent image -> empty result
 
-    func test_slice_returns_empty_for_fully_transparent_image() {
+    @Test func test_slice_returns_empty_for_fully_transparent_image() {
         let ctx = CGContext(
             data: nil,
             width: 60,
@@ -150,7 +146,7 @@ final class SpriteSlicerTests: XCTestCase {
         let blankSheet = ctx.makeImage()!
 
         let clips = SpriteSlicer.slice(blankSheet)
-        XCTAssertTrue(clips.isEmpty, "Fully transparent sheet should produce no clips")
+        #expect(clips.isEmpty, Comment(rawValue: "Fully transparent sheet should produce no clips"))
     }
 }
 

@@ -4,9 +4,7 @@ import PackageDescription
 let package = Package(
     name: "AgentPet",
     platforms: [.macOS(.v13)],
-    dependencies: [
-        .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.0"),
-    ],
+    dependencies: [],
     targets: [
         .target(
             name: "AgentPetCore",
@@ -14,7 +12,7 @@ let package = Package(
         ),
         .executableTarget(
             name: "agentpet",
-            dependencies: ["AgentPetCore", .product(name: "Sparkle", package: "Sparkle")],
+            dependencies: ["AgentPetCore"],
             path: "Sources/App",
             resources: [.copy("Resources/donate-vietqr.png")]
         ),
@@ -28,5 +26,6 @@ let package = Package(
             dependencies: ["agentpet"],
             path: "Tests/AgentPetAppTests"
         ),
-    ]
+    ],
+    swiftLanguageModes: [.v6]
 )

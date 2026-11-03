@@ -16,6 +16,6 @@ jobs:
       - name: Show Swift version
         run: swift --version
       - name: Build
-        run: swift build
+        run: ./scripts/dev.sh build
       - name: Test
-        run: swift test
+        run: ./scripts/test.sh

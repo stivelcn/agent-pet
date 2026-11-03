@@ -294,8 +294,8 @@ struct BubbleSettingsView: View {
     }
 
     private var maxRowsLabel: String {
-        let noun = settings.sessionGrouping == .byKind ? "agent kinds" : "sessions"
-        return "Max \(noun): \(settings.maxSessions)"
+        let key = settings.sessionGrouping == .byKind ? "Max agent kinds: %d" : "Max sessions: %d"
+        return String(format: NSLocalizedString(key, comment: ""), settings.maxSessions)
     }
 
     // MARK: - 3. Row layout — preview + tokens
@@ -688,7 +688,7 @@ struct IconPickerPopover: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Icon for \(kindName)")
+            Text(String(format: NSLocalizedString("Icon for %@", comment: ""), kindName))
                 .font(.headline)
                 .padding([.horizontal, .top])
                 .padding(.bottom, 8)

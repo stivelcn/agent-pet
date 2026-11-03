@@ -1,33 +1,35 @@
-import XCTest
+import Testing
+import Foundation
 @testable import AgentPetCore
 
-final class MoodResolverTests: XCTestCase {
+@Suite(.serialized)
+final class MoodResolverTests {
     private func session(_ state: AgentState, id: String) -> AgentSession {
         AgentSession(id: id, agentKind: .claude, state: state, source: .hook,
                      updatedAt: Date(timeIntervalSince1970: 0))
     }
 
-    func testEmptyIsIdle() {
-        XCTAssertEqual(MoodResolver.aggregate([]), .idle)
+    @Test func testEmptyIsIdle() {
+        #expect((MoodResolver.aggregate([])) == (.idle))
     }
 
-    func testWorkingWins() {
+    @Test func testWorkingWins() {
         let sessions = [session(.working, id: "a"), session(.waiting, id: "b"), session(.done, id: "c")]
-        XCTAssertEqual(MoodResolver.aggregate(sessions), .working, "running work is prioritised")
+        #expect((MoodResolver.aggregate(sessions)) == (.working), Comment(rawValue: "running work is prioritised"))
     }
 
-    func testWaitingBeatsDone() {
-        XCTAssertEqual(MoodResolver.aggregate([session(.done, id: "a"), session(.waiting, id: "b")]), .waiting)
+    @Test func testWaitingBeatsDone() {
+        #expect((MoodResolver.aggregate([session(.done, id: "a"), session(.waiting, id: "b")])) == (.waiting))
     }
 
-    func testRegisteredIsNotWorking() {
+    @Test func testRegisteredIsNotWorking() {
         // An agent that is merely open (registered) but not doing anything keeps
         // the pet idle, not "working".
-        XCTAssertEqual(MoodResolver.aggregate([session(.registered, id: "a")]), .idle)
-        XCTAssertEqual(MoodResolver.aggregate([session(.registered, id: "a"), session(.working, id: "b")]), .working)
+        #expect((MoodResolver.aggregate([session(.registered, id: "a")])) == (.idle))
+        #expect((MoodResolver.aggregate([session(.registered, id: "a"), session(.working, id: "b")])) == (.working))
     }
 
-    func testDoneOnly() {
-        XCTAssertEqual(MoodResolver.aggregate([session(.done, id: "a"), session(.idle, id: "b")]), .done)
+    @Test func testDoneOnly() {
+        #expect((MoodResolver.aggregate([session(.done, id: "a"), session(.idle, id: "b")])) == (.done))
     }
 }

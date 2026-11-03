@@ -1,3 +1,9 @@
+> **AgentPet Local — 本地自用分支（macOS）**
+>
+> 本分支不接原作者自动更新、不登录/云同步；开发版与正式版的数据互相隔离。
+> 开发、测试、手动 DMG 分发请先阅读 [LOCAL_DEVELOPMENT.md](LOCAL_DEVELOPMENT.md)。
+> 下方保留上游项目介绍与致谢；其中原版下载、云端和自动更新说明不适用于此分支。
+
 <div align="center">
   <img src="assets/banner.png" alt="AgentPet" width="100%" />
   <p>
@@ -185,10 +191,10 @@ curl -fsSL https://agentpet.thenightwatcher.online/install.sh | sh
 ### Build from source (macOS)
 
 ```bash
-git clone https://github.com/ntd4996/agentpet.git
-cd agentpet
-./scripts/build-app.sh release
-open build/AgentPet.app
+# Run from this local fork
+./scripts/dev.sh run
+# Manual distribution, when needed:
+# ./scripts/release.sh universal
 ```
 
 Requires Xcode 16 / Swift 6. The Windows app lives under [`windows/`](windows/) (Tauri + Rust).

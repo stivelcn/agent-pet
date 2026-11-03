@@ -34,13 +34,13 @@ import AgentPetCore
     }
 
     private func load() {
-        guard let data = UserDefaults.standard.data(forKey: Self.key),
+        guard let data = LocalPreferences.defaults.data(forKey: Self.key),
               let decoded = try? JSONDecoder().decode([ProjectPetMapping].self, from: data) else { return }
         mappings = decoded
     }
     private func save() {
         if let data = try? JSONEncoder().encode(mappings) {
-            UserDefaults.standard.set(data, forKey: Self.key)
+            LocalPreferences.defaults.set(data, forKey: Self.key)
         }
     }
 }

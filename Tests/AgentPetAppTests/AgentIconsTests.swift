@@ -1,20 +1,22 @@
-import XCTest
+import Testing
+import Foundation
 @testable import agentpet
 
 @MainActor
-final class AgentIconsTests: XCTestCase {
+@Suite(.serialized)
+final class AgentIconsTests {
     /// Every kind offered in the brand-logo picker must actually decode to an
     /// image; a kind listed there without artwork would show a blank cell.
-    func testEveryBrandKindHasAnImage() {
+    @Test func testEveryBrandKindHasAnImage() {
         for kind in AgentIcons.brandKinds {
-            XCTAssertNotNil(AgentIcons.image(for: kind), "\(kind.rawValue) has no brand image")
+            #expect((AgentIcons.image(for: kind)) != nil, Comment(rawValue: "\(kind.rawValue) has no brand image"))
         }
     }
 
-    func testJcodeLogoDecodesAtEmbeddedSize() throws {
-        let img = try XCTUnwrap(AgentIcons.image(for: .jcode))
-        let rep = try XCTUnwrap(img.representations.first)
-        XCTAssertEqual(rep.pixelsWide, 64)
-        XCTAssertEqual(rep.pixelsHigh, 64)
+    @Test func testJcodeLogoDecodesAtEmbeddedSize() throws {
+        let img = try #require(AgentIcons.image(for: .jcode))
+        let rep = try #require(img.representations.first)
+        #expect((rep.pixelsWide) == (64))
+        #expect((rep.pixelsHigh) == (64))
     }
 }

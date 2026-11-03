@@ -3,15 +3,15 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>en</string>
+	<string>zh-Hans</string>
 	<key>CFBundleDisplayName</key>
-	<string>AgentPet</string>
+	<string>智能桌宠</string>
 	<key>CFBundleExecutable</key>
 	<string>agentpet</string>
 	<key>CFBundleIconFile</key>
 	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.agentpet.app</string>
+	<string>local.agentpet</string>
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>en</string>
@@ -20,24 +20,13 @@
 		<string>zh-Hant</string>
 	</array>
 	<key>CFBundleName</key>
-	<string>AgentPet</string>
+	<string>智能桌宠</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.17.4</string>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLName</key>
-			<string>com.agentpet.app</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>agentpet</string>
-			</array>
-		</dict>
-	</array>
+	<string>0.1.0</string>
 	<key>CFBundleVersion</key>
-	<string>1.17.4</string>
+	<string>0.1.0</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>13.0</string>
 	<key>LSUIElement</key>
@@ -53,11 +42,7 @@
 	<string>MIT License</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
-	<key>SUEnableAutomaticChecks</key>
-	<true/>
-	<key>SUFeedURL</key>
-	<string>https://ntd4996.github.io/agentpet/appcast.xml</string>
-	<key>SUPublicEDKey</key>
-	<string>2wE8euYD3TUI39c6UhWHbYlhHpXkeM5NiJTJywrm0xQ=</string>
+	<key>AgentPetDevelopmentBuild</key>
+	<false/>
 </dict>
 </plist>

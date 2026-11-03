@@ -47,8 +47,8 @@ struct ProjectPetsView: View {
 
     private func addProject() {
         let panel = NSOpenPanel()
-        panel.title = "Choose Project Folder"
-        panel.prompt = "Add"
+        panel.title = NSLocalizedString("Choose Project Folder", comment: "")
+        panel.prompt = NSLocalizedString("Add", comment: "")
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.allowsMultipleSelection = false

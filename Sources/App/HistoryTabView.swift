@@ -101,7 +101,7 @@ private struct SummaryBar: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 16) {
-                Label("\(records.count) sessions", systemImage: "clock.arrow.circlepath")
+                Label(String(format: NSLocalizedString("%d sessions", comment: ""), records.count), systemImage: "clock.arrow.circlepath")
                     .font(.caption).foregroundStyle(.secondary)
                 Label(formatBarDuration(totalDuration), systemImage: "timer")
                     .font(.caption).foregroundStyle(.secondary)
@@ -146,7 +146,7 @@ private struct DaySectionHeader: View {
         HStack {
             Text(date, style: .date)
             Spacer()
-            Text("\(count) session\(count == 1 ? "" : "s")")
+            Text(String(format: NSLocalizedString("%d sessions", comment: ""), count))
                 .foregroundStyle(.secondary)
         }
         .font(.caption)
@@ -191,7 +191,7 @@ private struct SessionRow: View {
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
                 if let tokens = record.tokenCount {
-                    Text("\(tokens)t")
+                    Text(verbatim: "\(tokens) token")
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                 }
@@ -206,8 +206,8 @@ private struct SessionRow: View {
 private func formatBarDuration(_ interval: TimeInterval) -> String {
     let h = Int(interval) / 3600
     let m = (Int(interval) % 3600) / 60
-    if h > 0 { return "\(h)h \(m)m" }
-    return "\(m)m"
+    if h > 0 { return "\(h)小时 \(m)分钟" }
+    return "\(m)分钟"
 }
 
 private func formatRowDuration(_ interval: TimeInterval) -> String {

@@ -18,7 +18,17 @@ public enum EventCoding {
 
 /// Default on-disk locations used by both the daemon and the CLI helper.
 public enum AgentPetPaths {
-    public static var baseDir: String { NSHomeDirectory() + "/.agentpet" }
+    public static func baseDirectory(home: String, development: Bool, override: String? = nil) -> String {
+        if let override, override.hasPrefix("/"), !override.isEmpty {
+            return URL(fileURLWithPath: override, isDirectory: true).standardizedFileURL.path
+        }
+        return home + (development ? "/.agentpet-local-dev" : "/.agentpet-local")
+    }
+
+    public static var baseDir: String {
+        baseDirectory(home: NSHomeDirectory(), development: LocalConfiguration.isDevelopment,
+                      override: ProcessInfo.processInfo.environment["AGENTPET_DATA_DIR"])
+    }
     public static var socketPath: String { baseDir + "/agentpet.sock" }
     public static var queueDir: String { baseDir + "/queue" }
 }

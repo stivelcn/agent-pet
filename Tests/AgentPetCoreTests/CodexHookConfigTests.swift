@@ -1,53 +1,55 @@
-import XCTest
+import Testing
+import Foundation
 @testable import AgentPetCore
 
-final class CodexHookConfigTests: XCTestCase {
-    func testEmptyConfigAddsFeaturesTable() {
+@Suite(.serialized)
+final class CodexHookConfigTests {
+    @Test func testEmptyConfigAddsFeaturesTable() {
         let out = CodexHookConfig.enableHooks(in: "")
-        XCTAssertEqual(out, "\n[features]\nhooks = true\n")
-        XCTAssertTrue(CodexHookConfig.alreadyEnabled(out!))
+        #expect((out) == ("\n[features]\nhooks = true\n"))
+        #expect(CodexHookConfig.alreadyEnabled(out!))
     }
 
-    func testAlreadyEnabledHooksIsNoOp() {
-        XCTAssertNil(CodexHookConfig.enableHooks(in: "[features]\nhooks = true\n"))
+    @Test func testAlreadyEnabledHooksIsNoOp() {
+        #expect((CodexHookConfig.enableHooks(in: "[features]\nhooks = true\n")) == nil)
     }
 
-    func testCodexHooksAliasAloneStillAddsModernKey() {
+    @Test func testCodexHooksAliasAloneStillAddsModernKey() {
         // `codex_hooks` is a deprecated alias recent Codex (Desktop 5.x) ignores,
         // so a config with only that must still get a real `hooks = true`.
         let out = CodexHookConfig.enableHooks(in: "[features]\ncodex_hooks = true\n")
-        XCTAssertNotNil(out)
-        XCTAssertTrue(out!.contains("hooks = true"))
-        XCTAssertTrue(CodexHookConfig.alreadyEnabled(out!))
+        #expect((out) != nil)
+        #expect(out!.contains("hooks = true"))
+        #expect(CodexHookConfig.alreadyEnabled(out!))
     }
 
-    func testFlipsHooksFalseToTrue() {
+    @Test func testFlipsHooksFalseToTrue() {
         let out = CodexHookConfig.enableHooks(in: "[features]\nhooks = false\n")
-        XCTAssertEqual(out, "[features]\nhooks = true\n")
+        #expect((out) == ("[features]\nhooks = true\n"))
     }
 
-    func testFlipsCodexHooksFalseToTrueWithoutDuplicate() {
+    @Test func testFlipsCodexHooksFalseToTrueWithoutDuplicate() {
         let out = CodexHookConfig.enableHooks(in: "[features]\ncodex_hooks = false\n")!
-        XCTAssertEqual(out.components(separatedBy: "true").count - 1, 1, "exactly one truthy flag, no duplicate")
-        XCTAssertTrue(CodexHookConfig.alreadyEnabled(out))
+        #expect((out.components(separatedBy: "true").count - 1) == (1), Comment(rawValue: "exactly one truthy flag, no duplicate"))
+        #expect(CodexHookConfig.alreadyEnabled(out))
     }
 
-    func testInsertsUnderExistingFeaturesPreservingOtherKeys() {
+    @Test func testInsertsUnderExistingFeaturesPreservingOtherKeys() {
         let out = CodexHookConfig.enableHooks(in: "model = \"o3\"\n\n[features]\nweb_search = true\n")!
-        XCTAssertTrue(out.contains("hooks = true"))
-        XCTAssertTrue(out.contains("web_search = true"), "existing key kept")
-        XCTAssertTrue(out.contains("model = \"o3\""), "unrelated key kept")
-        XCTAssertTrue(CodexHookConfig.alreadyEnabled(out))
+        #expect(out.contains("hooks = true"))
+        #expect(out.contains("web_search = true"), Comment(rawValue: "existing key kept"))
+        #expect(out.contains("model = \"o3\""), Comment(rawValue: "unrelated key kept"))
+        #expect(CodexHookConfig.alreadyEnabled(out))
     }
 
-    func testAppendsFeaturesWhenAbsentPreservingContent() {
+    @Test func testAppendsFeaturesWhenAbsentPreservingContent() {
         let out = CodexHookConfig.enableHooks(in: "model = \"o3\"")!
-        XCTAssertTrue(out.contains("model = \"o3\""))
-        XCTAssertTrue(out.contains("[features]"))
-        XCTAssertTrue(out.contains("hooks = true"))
+        #expect(out.contains("model = \"o3\""))
+        #expect(out.contains("[features]"))
+        #expect(out.contains("hooks = true"))
     }
 
-    func testCommentedFlagIsNotTreatedAsEnabled() {
-        XCTAssertFalse(CodexHookConfig.alreadyEnabled("# hooks = true\n"))
+    @Test func testCommentedFlagIsNotTreatedAsEnabled() {
+        #expect(!(CodexHookConfig.alreadyEnabled("# hooks = true\n")))
     }
 }

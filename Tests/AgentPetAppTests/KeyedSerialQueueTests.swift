@@ -1,9 +1,11 @@
-import XCTest
+import Testing
+import Foundation
 import AgentPetCore
 @testable import agentpet
 
 @MainActor
-final class KeyedSerialQueueTests: XCTestCase {
+@Suite(.serialized)
+final class KeyedSerialQueueTests {
     /// Lets a test hold a job open until it says so.
     @MainActor private final class Gate {
         private var continuation: CheckedContinuation<Void, Never>?
@@ -24,7 +26,7 @@ final class KeyedSerialQueueTests: XCTestCase {
         for _ in 0..<20 { await Task.yield() }
     }
 
-    func testSameKeyRunsInSubmissionOrder() async {
+    @Test func testSameKeyRunsInSubmissionOrder() async {
         let q = KeyedSerialQueue()
         let gate = Gate()
         var order: [Int] = []
@@ -32,38 +34,38 @@ final class KeyedSerialQueueTests: XCTestCase {
         q.enqueue("s") { order.append(2) }
         q.enqueue("s") { order.append(3) }
         await settle()
-        XCTAssertEqual(order, [], "later jobs must wait for the first")
+        #expect((order) == ([]), Comment(rawValue: "later jobs must wait for the first"))
         gate.open()
         await settle()
-        XCTAssertEqual(order, [1, 2, 3])
+        #expect((order) == ([1, 2, 3]))
     }
 
-    func testDifferentKeysDoNotWaitOnEachOther() async {
+    @Test func testDifferentKeysDoNotWaitOnEachOther() async {
         let q = KeyedSerialQueue()
         let gate = Gate()
         var ran: [String] = []
         q.enqueue("slow") { await gate.wait(); ran.append("slow") }
         q.enqueue("other") { ran.append("other") }
         await settle()
-        XCTAssertEqual(ran, ["other"])
+        #expect((ran) == (["other"]))
         gate.open()
         await settle()
-        XCTAssertEqual(ran, ["other", "slow"])
+        #expect((ran) == (["other", "slow"]))
     }
 
-    func testFinishedKeysAreDropped() async {
+    @Test func testFinishedKeysAreDropped() async {
         let q = KeyedSerialQueue()
         for i in 0..<50 { q.enqueue("s\(i)") {} }
         q.enqueue("s0") {}
         await settle()
-        XCTAssertEqual(q.pendingKeys, 0)
+        #expect((q.pendingKeys) == (0))
     }
 
     /// Session A has a slow scan queued first. Session B starts, spends tokens in
     /// its first turn, and ends the turn while A is still scanning. With one
     /// global chain B's baseline was taken after the turn and the turn fed 0;
     /// per session, B's baseline is taken as soon as B's own jobs run.
-    func testSlowScanOfOneSessionDoesNotSwallowAnotherSessionsFirstTurn() async {
+    @Test func testSlowScanOfOneSessionDoesNotSwallowAnotherSessionsFirstTurn() async {
         let q = KeyedSerialQueue()
         let gate = Gate()
         var tracker = JcodeUsageTracker()
@@ -78,12 +80,12 @@ final class KeyedSerialQueueTests: XCTestCase {
         await settle()
         gate.open()
         await settle()
-        XCTAssertEqual(fed, 100)
+        #expect((fed) == (100))
     }
 
     /// forget runs behind the session's pending reads, so a read in flight cannot
     /// put the entry back afterwards.
-    func testForgetQueuedBehindPendingReadLeavesNoEntry() async {
+    @Test func testForgetQueuedBehindPendingReadLeavesNoEntry() async {
         let q = KeyedSerialQueue()
         let gate = Gate()
         var tracker = JcodeUsageTracker()
@@ -92,6 +94,6 @@ final class KeyedSerialQueueTests: XCTestCase {
         await settle()
         gate.open()
         await settle()
-        XCTAssertFalse(tracker.isTracking("s"))
+        #expect(!(tracker.isTracking("s")))
     }
 }

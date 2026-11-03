@@ -17,17 +17,17 @@ final class PetCareController: ObservableObject {
     private static let legacyKey = "agentpet.care.v1"
 
     init() {
-        if let data = UserDefaults.standard.data(forKey: Self.storageKey),
+        if let data = LocalPreferences.defaults.data(forKey: Self.storageKey),
            let saved = try? JSONDecoder().decode([String: PetCareState].self, from: data) {
             states = saved
-        } else if let data = UserDefaults.standard.data(forKey: Self.legacyKey),
+        } else if let data = LocalPreferences.defaults.data(forKey: Self.legacyKey),
                   let old = try? JSONDecoder().decode(PetCareState.self, from: data) {
             // v1 kept a single global state: hand it to the selected pet.
-            if let id = UserDefaults.standard.string(forKey: "agentpet.selectedPetID") {
+            if let id = LocalPreferences.defaults.string(forKey: "agentpet.selectedPetID") {
                 states = [id: old]
                 persist()
             }
-            UserDefaults.standard.removeObject(forKey: Self.legacyKey)
+            LocalPreferences.defaults.removeObject(forKey: Self.legacyKey)
         }
     }
 
@@ -103,7 +103,6 @@ final class PetCareController: ObservableObject {
         guard s != states[petID] else { return }
         states[petID] = s
         persist()
-        CareSyncController.shared.scheduleSync()
         let levelAfter = PetCare.level(forXP: s.xp)
         if levelAfter > levelBefore {
             let line = String(
@@ -137,42 +136,9 @@ final class PetCareController: ObservableObject {
     /// All achievements unlocked by the currently selected pet.
     var achievements: Set<Achievement> { current.unlockedAchievements ?? [] }
 
-    /// Merges cloud care stats (from another device) into local pets. Grow-only:
-    /// counters take the max, achievements union, so a restore never undoes
-    /// progress made on either machine. Silent (no celebrate flashes). Returns
-    /// how many pets changed.
-    @discardableResult
-    func mergeFromCloud(_ pets: [CareSyncController.CloudPet]) -> Int {
-        var changed = 0
-        for c in pets {
-            let original = states[c.id]
-            let achievements = Set((c.achievements ?? []).compactMap { Achievement(rawValue: $0) })
-            // Skip pets the cloud has no progress for that we don't already track:
-            // restoring an empty state would just add clutter and inflate the count.
-            let cloudHasProgress = c.xp > 0 || c.tokens > 0 || c.meals > 0 || !achievements.isEmpty
-            if original == nil && !cloudHasProgress { continue }
-            let cloud = PetCare.CloudCareStats(
-                xp: c.xp, tokens: c.tokens, meals: c.meals, streak: c.streak,
-                lastFedAt: c.lastFedAt.map { Date(timeIntervalSince1970: TimeInterval($0)) },
-                achievements: achievements
-            )
-            let merged = PetCare.merging(original, with: cloud, now: Date())
-            if merged != original {
-                states[c.id] = merged
-                changed += 1
-            }
-            // Restore a custom name only when this machine hasn't named the pet.
-            if let name = c.name, !name.isEmpty, ImagePetStore.shared.nameOverrides[c.id] == nil {
-                ImagePetStore.shared.rename(c.id, to: name)
-            }
-        }
-        if changed > 0 { persist() }
-        return changed
-    }
-
     private func persist() {
         if let data = try? JSONEncoder().encode(states) {
-            UserDefaults.standard.set(data, forKey: Self.storageKey)
+            LocalPreferences.defaults.set(data, forKey: Self.storageKey)
         }
     }
 }
@@ -212,9 +178,6 @@ enum CareChat {
             pool += hungry.map { NSLocalizedString($0, comment: "hungry pet line") }
         default:
             break
-        }
-        if OpenUsageClient.shared.limitLow || NativeUsageProbe.shared.limitLow {
-            pool += anxious.map { NSLocalizedString($0, comment: "limit anxiety line") }
         }
         return pool
     }

@@ -48,14 +48,14 @@ final class PetBindingsStore: ObservableObject {
     private func key(_ packId: String) -> String { "agentpet.bindings.\(packId)" }
 
     private func load(_ packId: String) -> PetBindings? {
-        guard let data = UserDefaults.standard.data(forKey: key(packId)),
+        guard let data = LocalPreferences.defaults.data(forKey: key(packId)),
               let map = try? JSONDecoder().decode([String: Int].self, from: data) else { return nil }
         return PetBindings(byMood: map)
     }
 
     private func save(_ packId: String, _ bindings: PetBindings) {
         if let data = try? JSONEncoder().encode(bindings.byMood) {
-            UserDefaults.standard.set(data, forKey: key(packId))
+            LocalPreferences.defaults.set(data, forKey: key(packId))
         }
     }
 }

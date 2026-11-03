@@ -1,221 +1,223 @@
-import XCTest
+import Testing
+import Foundation
 @testable import agentpet
 
 @MainActor
-final class ReactiveEngineTests: XCTestCase {
+@Suite(.serialized)
+final class ReactiveEngineTests {
 
     private func makeEngine() -> ReactiveEngine {
         ReactiveEngine()
     }
 
-    func testRateLimitAbove50PercentIsSilent() {
+    @Test func testRateLimitAbove50PercentIsSilent() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .rateLimit, value: 0.6)
-        XCTAssertNil(result)
+        #expect((result) == nil)
     }
 
-    func testRateLimitBetween15And50PercentIsLow() {
+    @Test func testRateLimitBetween15And50PercentIsLow() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .rateLimit, value: 0.30)
-        XCTAssertNotNil(result)
+        #expect((result) != nil)
     }
 
-    func testRateLimitBetween5And15PercentIsHigh() {
+    @Test func testRateLimitBetween5And15PercentIsHigh() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .rateLimit, value: 0.10)
-        XCTAssertNotNil(result)
+        #expect((result) != nil)
     }
 
-    func testRateLimitBelow5PercentIsCritical() {
+    @Test func testRateLimitBelow5PercentIsCritical() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .rateLimit, value: 0.03)
-        XCTAssertNotNil(result)
+        #expect((result) != nil)
     }
 
-    func testRateLimitNilValueReturnsSilent() {
+    @Test func testRateLimitNilValueReturnsSilent() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .rateLimit, value: nil as Double?)
-        XCTAssertNil(result)
+        #expect((result) == nil)
     }
 
-    func testDailyTokensBelow1MIsSilent() {
+    @Test func testDailyTokensBelow1MIsSilent() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .dailyTokens, value: 800_000)
-        XCTAssertNil(result)
+        #expect((result) == nil)
     }
 
-    func testDailyTokensBetween1MAnd3MIsLow() {
+    @Test func testDailyTokensBetween1MAnd3MIsLow() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .dailyTokens, value: 2_000_000)
-        XCTAssertNotNil(result)
+        #expect((result) != nil)
     }
 
-    func testDailyTokensBetween3MAnd6MIsMid() {
+    @Test func testDailyTokensBetween3MAnd6MIsMid() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .dailyTokens, value: 4_500_000)
-        XCTAssertNotNil(result)
+        #expect((result) != nil)
     }
 
-    func testDailyTokensAbove6MIsHigh() {
+    @Test func testDailyTokensAbove6MIsHigh() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .dailyTokens, value: 7_000_000)
-        XCTAssertNotNil(result)
+        #expect((result) != nil)
     }
 
-    func testSessionCount1To4IsSilent() {
+    @Test func testSessionCount1To4IsSilent() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .sessionCount, value: 3)
-        XCTAssertNil(result)
+        #expect((result) == nil)
     }
 
-    func testSessionCount5To7IsLow() {
+    @Test func testSessionCount5To7IsLow() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .sessionCount, value: 6)
-        XCTAssertNotNil(result)
+        #expect((result) != nil)
     }
 
-    func testSessionCount8OrMoreIsHigh() {
+    @Test func testSessionCount8OrMoreIsHigh() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .sessionCount, value: 8)
-        XCTAssertNotNil(result)
+        #expect((result) != nil)
     }
 
-    func testHungerFullIsSilent() {
+    @Test func testHungerFullIsSilent() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .hunger, value: PetHunger.full)
-        XCTAssertNil(result)
+        #expect((result) == nil)
     }
 
-    func testHungerSatisfiedIsSilent() {
+    @Test func testHungerSatisfiedIsSilent() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .hunger, value: PetHunger.satisfied)
-        XCTAssertNil(result)
+        #expect((result) == nil)
     }
 
-    func testHungerPeckishIsLow() {
+    @Test func testHungerPeckishIsLow() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .hunger, value: PetHunger.peckish)
-        XCTAssertNotNil(result)
+        #expect((result) != nil)
     }
 
-    func testHungerHungryIsMid() {
+    @Test func testHungerHungryIsMid() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .hunger, value: PetHunger.hungry)
-        XCTAssertNotNil(result)
+        #expect((result) != nil)
     }
 
-    func testHungerStarvingIsHigh() {
+    @Test func testHungerStarvingIsHigh() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .hunger, value: PetHunger.starving)
-        XCTAssertNotNil(result)
+        #expect((result) != nil)
     }
 
-    func testStreak1To3IsSilent() {
+    @Test func testStreak1To3IsSilent() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .streak, value: 2)
-        XCTAssertNil(result)
+        #expect((result) == nil)
     }
 
-    func testStreak4To6IsLow() {
+    @Test func testStreak4To6IsLow() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .streak, value: 5)
-        XCTAssertNotNil(result)
+        #expect((result) != nil)
     }
 
-    func testStreak7To13IsMid() {
+    @Test func testStreak7To13IsMid() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .streak, value: 10)
-        XCTAssertNotNil(result)
+        #expect((result) != nil)
     }
 
-    func testStreak14OrMoreIsHigh() {
+    @Test func testStreak14OrMoreIsHigh() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .streak, value: 14)
-        XCTAssertNotNil(result)
+        #expect((result) != nil)
     }
 
-    func testDailyMealsBelow20IsSilent() {
+    @Test func testDailyMealsBelow20IsSilent() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .dailyMeals, value: 10)
-        XCTAssertNil(result)
+        #expect((result) == nil)
     }
 
-    func testDailyMeals20To50IsLow() {
+    @Test func testDailyMeals20To50IsLow() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .dailyMeals, value: 35)
-        XCTAssertNotNil(result)
+        #expect((result) != nil)
     }
 
-    func testDailyMeals50To100IsMid() {
+    @Test func testDailyMeals50To100IsMid() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .dailyMeals, value: 75)
-        XCTAssertNotNil(result)
+        #expect((result) != nil)
     }
 
-    func testDailyMeals100OrMoreIsHigh() {
+    @Test func testDailyMeals100OrMoreIsHigh() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .dailyMeals, value: 100)
-        XCTAssertNotNil(result)
+        #expect((result) != nil)
     }
 
-    func testSameMetricBlockedWithin600Seconds() {
+    @Test func testSameMetricBlockedWithin600Seconds() {
         let engine = makeEngine()
         let now = Date(timeIntervalSince1970: 1_000_000)
         let first = engine.evaluate(metric: .dailyTokens, value: 2_000_000, now: now)
-        XCTAssertNotNil(first)
+        #expect((first) != nil)
         let secondNow = now.addingTimeInterval(599)
         let second = engine.evaluate(metric: .dailyTokens, value: 2_000_000, now: secondNow)
-        XCTAssertNil(second)
+        #expect((second) == nil)
     }
 
-    func testSameMetricAllowedAfter600Seconds() {
+    @Test func testSameMetricAllowedAfter600Seconds() {
         let engine = makeEngine()
         let now = Date(timeIntervalSince1970: 1_000_000)
         engine.evaluate(metric: .dailyTokens, value: 2_000_000, now: now)
         let laterNow = now.addingTimeInterval(600)
         let result = engine.evaluate(metric: .dailyTokens, value: 2_000_000, now: laterNow)
-        XCTAssertNotNil(result)
+        #expect((result) != nil)
     }
 
-    func testCrossMetricBlockedWithin30Seconds() {
+    @Test func testCrossMetricBlockedWithin30Seconds() {
         let engine = makeEngine()
         let now = Date(timeIntervalSince1970: 1_000_000)
         engine.evaluate(metric: .dailyTokens, value: 2_000_000, now: now)
         let laterNow = now.addingTimeInterval(29)
         let result = engine.evaluate(metric: .sessionCount, value: 6, now: laterNow)
-        XCTAssertNil(result)
+        #expect((result) == nil)
     }
 
-    func testCrossMetricAllowedAfter30Seconds() {
+    @Test func testCrossMetricAllowedAfter30Seconds() {
         let engine = makeEngine()
         let now = Date(timeIntervalSince1970: 1_000_000)
         engine.evaluate(metric: .dailyTokens, value: 2_000_000, now: now)
         let laterNow = now.addingTimeInterval(30)
         let result = engine.evaluate(metric: .sessionCount, value: 6, now: laterNow)
-        XCTAssertNotNil(result)
+        #expect((result) != nil)
     }
 
-    func testSameMetricGateTakesPriorityOverCrossMetricGate() {
+    @Test func testSameMetricGateTakesPriorityOverCrossMetricGate() {
         let engine = makeEngine()
         let now = Date(timeIntervalSince1970: 1_000_000)
         engine.evaluate(metric: .dailyTokens, value: 2_000_000, now: now)
         let laterNow = now.addingTimeInterval(35)
         let result = engine.evaluate(metric: .dailyTokens, value: 2_000_000, now: laterNow)
-        XCTAssertNil(result)
+        #expect((result) == nil)
     }
 
-    func testHungerDailyLimitBlocksThirdTriggerSameDay() {
+    @Test func testHungerDailyLimitBlocksThirdTriggerSameDay() {
         let engine = makeEngine()
         let base = Date(timeIntervalSince1970: 1_750_000_000)
         let t1 = engine.evaluate(metric: .hunger, value: PetHunger.hungry, now: base)
-        XCTAssertNotNil(t1)
+        #expect((t1) != nil)
         let t2 = engine.evaluate(metric: .hunger, value: PetHunger.hungry, now: base.addingTimeInterval(600))
-        XCTAssertNotNil(t2)
+        #expect((t2) != nil)
         let t3 = engine.evaluate(metric: .hunger, value: PetHunger.hungry, now: base.addingTimeInterval(1200))
-        XCTAssertNil(t3)
+        #expect((t3) == nil)
     }
 
-    func testHungerDailyLimitResetsNextDay() {
+    @Test func testHungerDailyLimitResetsNextDay() {
         let engine = makeEngine()
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
@@ -225,37 +227,37 @@ final class ReactiveEngineTests: XCTestCase {
         engine.evaluate(metric: .hunger, value: PetHunger.hungry, now: day1)
         engine.evaluate(metric: .hunger, value: PetHunger.hungry, now: day1.addingTimeInterval(600))
         let blocked = engine.evaluate(metric: .hunger, value: PetHunger.hungry, now: day1.addingTimeInterval(1200))
-        XCTAssertNil(blocked)
+        #expect((blocked) == nil)
         let tomorrow = engine.evaluate(metric: .hunger, value: PetHunger.hungry, now: day2)
-        XCTAssertNotNil(tomorrow)
+        #expect((tomorrow) != nil)
     }
 
-    func testSilentTierReturnsNil() {
+    @Test func testSilentTierReturnsNil() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .rateLimit, value: 0.9)
-        XCTAssertNil(result)
+        #expect((result) == nil)
     }
 
-    func testNonSilentTierReturnsNonNilString() {
+    @Test func testNonSilentTierReturnsNonNilString() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .streak, value: 14)
-        XCTAssertNotNil(result)
-        XCTAssertFalse(result?.isEmpty ?? true)
+        #expect((result) != nil)
+        #expect(!(result?.isEmpty ?? true))
     }
 
-    func testNilValueReturnsNil() {
+    @Test func testNilValueReturnsNil() {
         let engine = makeEngine()
         let result = engine.evaluate(metric: .rateLimit, value: nil as Double?)
-        XCTAssertNil(result)
+        #expect((result) == nil)
     }
 
-    func testCooldownBlockReturnsNil() {
+    @Test func testCooldownBlockReturnsNil() {
         let engine = makeEngine()
         let now = Date(timeIntervalSince1970: 1_000_000)
         let first = engine.evaluate(metric: .streak, value: 14, now: now)
-        XCTAssertNotNil(first)
+        #expect((first) != nil)
         let second = engine.evaluate(metric: .streak, value: 14, now: now.addingTimeInterval(1))
-        XCTAssertNil(second)
+        #expect((second) == nil)
     }
 }
 

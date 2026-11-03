@@ -5,18 +5,11 @@ import AgentPetCore
 /// lifetime totals, and where the food data comes from.
 struct CareTabView: View {
     @ObservedObject private var care = PetCareController.shared
-    @ObservedObject private var usage = OpenUsageClient.shared
-    @ObservedObject private var probe = NativeUsageProbe.shared
-    @ObservedObject private var visibility = UsageVisibility.shared
-    @ObservedObject private var sync = CareSyncController.shared
     @ObservedObject private var pet = PetController.shared
     @ObservedObject private var imagePets = ImagePetStore.shared
-    @Environment(\.openURL) private var openURL
 
     /// Ticks so hunger and "today" counters stay fresh while the panel is open.
     @State private var now = Date()
-    /// Transient result of a manual cloud restore.
-    @State private var restoreNote: String?
     private let tick = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
     private static let stageIcons = ["leaf.fill", "pawprint.fill", "binoculars.fill", "shield.fill", "crown.fill"]
@@ -150,124 +143,21 @@ struct CareTabView: View {
                 }
             }
 
-            Section {
-                if sync.linked {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 2) {
-                            if let login = sync.linkedLogin, !login.isEmpty {
-                                Text(String(format: NSLocalizedString("Connected as %@", comment: ""), login))
-                            } else {
-                                Text("Connected to your profile")
-                            }
-                            if let note = restoreNote {
-                                Text(note).font(.caption).foregroundStyle(.secondary)
-                            } else if let at = sync.lastSyncAt {
-                                Text(String(format: NSLocalizedString("Last synced %@", comment: ""),
-                                            at.formatted(.relative(presentation: .named))))
-                                    .font(.caption).foregroundStyle(.secondary)
-                            } else {
-                                Text("Your companions appear on your profile page.")
-                                    .font(.caption).foregroundStyle(.secondary)
-                            }
-                        }
-                        Spacer()
-                        Button("Restore") {
-                            restoreNote = NSLocalizedString("Restoring…", comment: "")
-                            Task {
-                                let n = await sync.restore(manual: true)
-                                restoreNote = n > 0
-                                    ? String(format: NSLocalizedString("Restored %d pet(s) from the cloud.", comment: ""), n)
-                                    : NSLocalizedString("Already up to date.", comment: "")
-                            }
-                        }
-                        .controlSize(.small)
-                        .disabled(sync.restoring)
-                        Button("Open profile") {
-                            openURL(URL(string: "https://agentpet.thenightwatcher.online/profile")!)
-                        }
-                        .controlSize(.small)
-                        Button("Disconnect") { sync.disconnect() }.controlSize(.small)
-                    }
-                } else {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Show your companions on your web profile")
-                            Text("Your browser opens GitHub sign-in; the app links automatically.")
-                                .font(.caption).foregroundStyle(.secondary)
-                            if let err = sync.lastError {
-                                Text(err).font(.caption).foregroundStyle(.red)
-                            }
-                        }
-                        Spacer()
-                        Button {
-                            sync.beginLink()
-                        } label: {
-                            Label("Sign in with GitHub", systemImage: "person.crop.circle.badge.checkmark")
-                        }
-                    }
-                }
-            } header: {
-                Text("Web profile")
-            } footer: {
-                Text("Connecting is optional. Your pet, its level and all stats live on this Mac whether or not you sign in, nothing leaves your machine until you connect.")
+            Section("Local data") {
+                Text("Pets, settings and growth stay on this Mac. No account or cloud sync is required.")
+                LabeledContent("Data folder", value: AgentPetPaths.baseDir)
+                    .textSelection(.enabled)
             }
 
-            Section {
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Claude Code transcripts")
-                        Text("Token usage is read locally when a turn ends.")
-                            .font(.caption).foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    Text("Active").font(.caption).bold().foregroundStyle(.green)
-                }
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Subscription limits")
-                        Text(probe.providers.isEmpty
-                             ? "Read directly from your Claude Code / Codex sign-ins. None found yet."
-                             : "Read directly from your Claude Code / Codex sign-ins.")
-                            .font(.caption).foregroundStyle(.secondary)
-                        // Inside this row, not a row of its own: a Form row added or
-                        // removed when `lost` flips kept its old height and drew over
-                        // the toggle below it.
-                        if usage.lost {
-                            Label("OpenUsage isn't responding, so the providers only it supplies are hidden.",
-                                  systemImage: "exclamationmark.triangle")
-                                .font(.caption).foregroundStyle(.orange)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
-                    Spacer()
-                    if !probe.providers.isEmpty {
-                        Text("Active").font(.caption).bold().foregroundStyle(.green)
-                    }
-                }
-                ForEach(NativeUsageProbe.combined()) { p in
-                    VStack(alignment: .leading, spacing: 4) {
-                        Toggle(isOn: visibility.binding(for: p.id)) {
-                            Text(String(format: NSLocalizedString("Show %@ in Limits", comment: "per-provider toggle"), p.displayName))
-                                .font(.caption)
-                        }
-                        .toggleStyle(.switch).controlSize(.mini)
-                        if visibility.isVisible(p.id) {
-                            LimitWindowsView(provider: p, tint: stageColor, compact: false)
-                        }
-                    }
-                    .padding(.vertical, 2)
-                }
-            } header: {
-                Text("Food sources")
-            } footer: {
-                Text("Hidden providers stay out of the stats card and don't make your pet anxious.")
+            Section("Food sources") {
+                Text("Usage comes from supported local agent logs and session events, not subscription balances.")
+                Text("Third-party usage depends on what the client records. Additional client adapters are planned.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)
         .onAppear {
             care.refreshDay()
-            probe.poll()
-            usage.poll()
         }
         .onReceive(tick) { date in
             now = date

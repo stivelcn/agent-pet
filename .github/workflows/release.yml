@@ -1,43 +1,25 @@
-name: Release
+name: Manual local DMG build
 
+# No tag-triggered releases and no publishing to GitHub Releases.
 on:
-  push:
-    tags: ["v*"]
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  release:
-    name: Build & publish DMG
+  build:
+    name: Build DMG artifact (not notarized)
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
-
       - name: Select Xcode 16 (Swift 6)
         run: sudo xcode-select -s /Applications/Xcode_16.app
-
-      - name: Import Developer ID certificate
-        if: ${{ env.CERT != '' }}
-        uses: apple-actions/import-codesign-certs@v3
+      - name: Build universal local DMG
+        run: ./scripts/ci-dmg.sh universal
+      - name: Save build artifact
+        uses: actions/upload-artifact@v4
         with:
-          p12-file-base64: ${{ secrets.MACOS_CERT_P12 }}
-          p12-password: ${{ secrets.MACOS_CERT_PASSWORD }}
-        env:
-          CERT: ${{ secrets.MACOS_CERT_P12 }}
-
-      - name: Build DMG (sign + notarize if secrets present)
-        run: ./scripts/ci-dmg.sh
-        env:
-          SIGN_IDENTITY: ${{ secrets.MACOS_SIGN_IDENTITY }}
-          AC_API_KEY_P8: ${{ secrets.AC_API_KEY_P8 }}
-          AC_KEY_ID: ${{ secrets.AC_KEY_ID }}
-          AC_ISSUER_ID: ${{ secrets.AC_ISSUER_ID }}
-
-      - name: Publish to GitHub Release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 \
-            || gh release create "$GITHUB_REF_NAME" --title "AgentPet $GITHUB_REF_NAME" --generate-notes
-          gh release upload "$GITHUB_REF_NAME" build/*.dmg --clobber
+          name: AgentPet-Local-DMG
+          path: build/AgentPet-Local-*.dmg
+          retention-days: 7

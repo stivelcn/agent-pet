@@ -1,27 +1,29 @@
-import XCTest
+import Testing
+import Foundation
 @testable import AgentPetCore
 
 /// Hook integration tests for the Factory Droid CLI (`droid`). Droid uses the
 /// same nested `~/.factory/hooks.json` shape and snake_case stdin payload as
 /// Claude Code, so it reuses the claudeNested installer and ClaudeHookPayload.
-final class DroidHookTests: XCTestCase {
+@Suite(.serialized)
+final class DroidHookTests {
 
     private func tmp(_ name: String) -> String {
         NSTemporaryDirectory() + "agentpet-test-\(UUID().uuidString)/\(name)"
     }
 
-    func testDroidSpec() {
+    @Test func testDroidSpec() {
         let spec = AgentHooks.spec(for: .droid)!
-        XCTAssertEqual(spec.style, .claudeNested)
-        XCTAssertTrue(spec.settingsPath.hasSuffix("/.factory/hooks.json"))
+        #expect((spec.style) == (.claudeNested))
+        #expect(spec.settingsPath.hasSuffix("/.factory/hooks.json"))
         // Notification is Droid's permission/approval (human-in-the-loop) signal.
-        XCTAssertTrue(spec.events.contains("Notification"))
-        XCTAssertTrue(spec.events.contains("PreToolUse"))
-        XCTAssertTrue(spec.events.contains("Stop"))
-        XCTAssertTrue(spec.events.contains("SessionEnd"))
+        #expect(spec.events.contains("Notification"))
+        #expect(spec.events.contains("PreToolUse"))
+        #expect(spec.events.contains("Stop"))
+        #expect(spec.events.contains("SessionEnd"))
     }
 
-    func testDroidInstallShapeAndRoundTrip() throws {
+    @Test func testDroidInstallShapeAndRoundTrip() throws {
         let spec = AgentHooks.spec(for: .droid)!
         let path = tmp("hooks.json")
         let cmd = "\"/x/agentpet\" hook --agent droid"
@@ -30,15 +32,15 @@ final class DroidHookTests: XCTestCase {
         // Nested Claude shape: hooks -> Notification -> [{ hooks: [{type, command}] }].
         let groups = (json["hooks"] as? [String: Any])?["Notification"] as? [[String: Any]]
         let inner = groups?.first?["hooks"] as? [[String: Any]]
-        XCTAssertEqual(inner?.first?["type"] as? String, "command")
-        XCTAssertTrue((inner?.first?["command"] as? String ?? "").contains("agentpet"))
-        XCTAssertTrue(HookInstaller.isInstalledOnDisk(path: path, events: spec.events, style: .claudeNested))
+        #expect((inner?.first?["type"] as? String) == ("command"))
+        #expect((inner?.first?["command"] as? String ?? "").contains("agentpet"))
+        #expect(HookInstaller.isInstalledOnDisk(path: path, events: spec.events, style: .claudeNested))
         try HookInstaller.uninstallFromDisk(path: path, events: spec.events, style: .claudeNested)
-        XCTAssertFalse(HookInstaller.isInstalledOnDisk(path: path, events: spec.events, style: .claudeNested))
+        #expect(!(HookInstaller.isInstalledOnDisk(path: path, events: spec.events, style: .claudeNested)))
         try? FileManager.default.removeItem(atPath: (path as NSString).deletingLastPathComponent)
     }
 
-    func testDroidInstallPreservesForeignHooks() throws {
+    @Test func testDroidInstallPreservesForeignHooks() throws {
         let spec = AgentHooks.spec(for: .droid)!
         let path = tmp("hooks.json")
         // A user's own Notification hook must survive install + uninstall.
@@ -48,38 +50,38 @@ final class DroidHookTests: XCTestCase {
         try HookInstaller.uninstallFromDisk(path: path, events: spec.events, style: .claudeNested)
         let notif = ((try HookInstaller.readSettings(path: path))["hooks"] as? [String: Any])?["Notification"] as? [[String: Any]]
         let cmds = notif?.compactMap { ($0["hooks"] as? [[String: Any]])?.first?["command"] as? String } ?? []
-        XCTAssertEqual(cmds, ["say hi"], "foreign Notification hook preserved after our round-trip")
+        #expect((cmds) == (["say hi"]), Comment(rawValue: "foreign Notification hook preserved after our round-trip"))
         try? FileManager.default.removeItem(atPath: (path as NSString).deletingLastPathComponent)
     }
 
-    func testDroidStates() {
-        XCTAssertEqual(StateMapper.state(for: .droid, eventName: "SessionStart"), .registered)
-        XCTAssertEqual(StateMapper.state(for: .droid, eventName: "UserPromptSubmit"), .working)
-        XCTAssertEqual(StateMapper.state(for: .droid, eventName: "PreToolUse"), .working)
-        XCTAssertEqual(StateMapper.state(for: .droid, eventName: "Notification"), .waiting)
-        XCTAssertEqual(StateMapper.state(for: .droid, eventName: "Stop"), .done)
+    @Test func testDroidStates() {
+        #expect((StateMapper.state(for: .droid, eventName: "SessionStart")) == (.registered))
+        #expect((StateMapper.state(for: .droid, eventName: "UserPromptSubmit")) == (.working))
+        #expect((StateMapper.state(for: .droid, eventName: "PreToolUse")) == (.working))
+        #expect((StateMapper.state(for: .droid, eventName: "Notification")) == (.waiting))
+        #expect((StateMapper.state(for: .droid, eventName: "Stop")) == (.done))
         // SubagentStop must not flip a finished session back to working.
-        XCTAssertNil(StateMapper.state(for: .droid, eventName: "SubagentStop"))
+        #expect((StateMapper.state(for: .droid, eventName: "SubagentStop")) == nil)
     }
 
-    func testDroidSessionEnd() {
-        XCTAssertTrue(StateMapper.isSessionEnd(for: .droid, eventName: "SessionEnd"))
-        XCTAssertFalse(StateMapper.isSessionEnd(for: .droid, eventName: "Stop"))
+    @Test func testDroidSessionEnd() {
+        #expect(StateMapper.isSessionEnd(for: .droid, eventName: "SessionEnd"))
+        #expect(!(StateMapper.isSessionEnd(for: .droid, eventName: "Stop")))
     }
 
-    func testDroidPayloadDecodesWithKind() {
+    @Test func testDroidPayloadDecodesWithKind() {
         let data = Data(#"{"session_id":"d1","cwd":"/proj","hook_event_name":"Notification","message":"Droid needs your permission to run a command","permission_mode":"off"}"#.utf8)
         let event = HookPayload.event(forAgent: .droid, stdin: data, now: Date())
-        XCTAssertEqual(event?.agentKind, .droid)
-        XCTAssertEqual(event?.eventName, "Notification")
-        XCTAssertEqual(event?.sessionId, "d1")
-        XCTAssertEqual(event?.project, "/proj")
+        #expect((event?.agentKind) == (.droid))
+        #expect((event?.eventName) == ("Notification"))
+        #expect((event?.sessionId) == ("d1"))
+        #expect((event?.project) == ("/proj"))
     }
 
-    func testDroidInCatalog() {
+    @Test func testDroidInCatalog() {
         let droid = AgentCatalog.all.first { $0.kind == .droid }
-        XCTAssertNotNil(droid)
-        XCTAssertTrue(droid?.isSupported ?? false)
-        XCTAssertEqual(droid?.displayName, "Factory Droid")
+        #expect((droid) != nil)
+        #expect(droid?.isSupported ?? false)
+        #expect((droid?.displayName) == ("Factory Droid"))
     }
 }

@@ -1,3 +1,4 @@
+import AgentPetCore
 import Foundation
 import UserNotifications
 
@@ -21,7 +22,7 @@ final class NotificationManager {
 
     /// Whether the user wants notifications shown (defaults to on).
     var userEnabled: Bool {
-        (UserDefaults.standard.object(forKey: Self.enabledKey) as? Bool) ?? true
+        (LocalPreferences.defaults.object(forKey: Self.enabledKey) as? Bool) ?? true
     }
 
     func notify(title: String, body: String) {

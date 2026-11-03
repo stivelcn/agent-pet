@@ -41,7 +41,8 @@ public enum StateMapper {
             case "SessionStart": return .registered
             case "UserPromptSubmit", "PreToolUse", "PostToolUse", "SubagentStart": return .working
             case "PermissionRequest": return .waiting
-            case "Stop", "SubagentStop": return .done
+            case "Stop": return .done
+            case "SubagentStop": return nil
             default: return nil
             }
         case .gemini:
@@ -56,7 +57,8 @@ public enum StateMapper {
             switch eventName {
             case "sessionStart": return .registered
             case "beforeSubmitPrompt", "preToolUse", "beforeShellExecution": return .working
-            case "stop", "subagentStop", "sessionEnd": return .done
+            case "stop", "sessionEnd": return .done
+            case "subagentStop": return nil
             default: return nil
             }
         case .windsurf:

@@ -3,7 +3,7 @@ import SwiftUI
 import AgentPetCore
 
 /// The pet's right-click HUD: the companion's stats plus a compact footer with
-/// Settings / Updates / Quit (the same actions as the menu bar popover).
+/// Settings / Quit (the same actions as the menu bar popover).
 struct PetStatsView: View {
     /// The pet whose stats to show. `nil` resolves to the globally selected pet
     /// (preserves today's right-click-on-the-single-pet behaviour).
@@ -11,10 +11,7 @@ struct PetStatsView: View {
     @ObservedObject private var care = PetCareController.shared
     @ObservedObject private var pet = PetController.shared
     @ObservedObject private var imagePets = ImagePetStore.shared
-    @ObservedObject private var usage = OpenUsageClient.shared
     @ObservedObject private var usageStore = ProjectUsageStore.shared
-    @ObservedObject private var updater = UpdaterController.shared
-    @State private var updateLabel: String?
     @State private var hoveredAchievement: Achievement?
 
     private static let stageColors: [Color] = [.green, .teal, .blue, .purple, .orange]
@@ -46,7 +43,6 @@ struct PetStatsView: View {
             trendBlock(state)
             costBlock
             AgentUsageRows(limit: 3)
-            usageBlock
             if let last = state.lastFedAt {
                 HStack {
                     Text("Last fed").font(.system(size: 10)).foregroundStyle(.white.opacity(0.4))
@@ -65,7 +61,7 @@ struct PetStatsView: View {
         .noFocusRing()
     }
 
-    // MARK: - Footer (Settings / Updates / Quit)
+    // MARK: - Footer (Settings / Quit)
 
     private var footer: some View {
         VStack(spacing: 8) {
@@ -74,13 +70,6 @@ struct PetStatsView: View {
                 footButton(icon: "gearshape", label: "Settings") {
                     PetWindowController.shared.closeStatsPopover()
                     SettingsWindowController.shared.show()
-                }
-                footButton(icon: "arrow.triangle.2.circlepath",
-                           label: updateLabel ?? NSLocalizedString("Updates", comment: ""),
-                           badge: updater.updatePending) {
-                    updateLabel = NSLocalizedString("Checking…", comment: "")
-                    UpdaterController.shared.checkForUpdates()
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) { updateLabel = nil }
                 }
                 Spacer()
                 footButton(icon: "power", label: "Quit") {
@@ -99,7 +88,7 @@ struct PetStatsView: View {
                         Circle().fill(Color.orange).frame(width: 5, height: 5).offset(x: 3, y: -3)
                     }
                 }
-                Text(verbatim: label)
+                Text(NSLocalizedString(label, comment: "Pet menu action"))
             }
             .font(.system(size: 11, weight: .medium))
             .foregroundStyle(.white.opacity(0.8))
@@ -125,7 +114,7 @@ struct PetStatsView: View {
                 Text(imagePets.displayName(for: resolvedPetID))
                     .font(.system(size: 14, weight: .bold)).foregroundStyle(.white)
                 HStack(spacing: 6) {
-                    Text(verbatim: "Lv \(level)")
+                    Text(verbatim: "等级 \(level)")
                         .font(.system(size: 12, weight: .bold)).foregroundStyle(stageColor)
                     StageBadge(stageIndex: stageIndex, size: 16)
                     Text(NSLocalizedString(stageKey, comment: "stage"))
@@ -154,7 +143,7 @@ struct PetStatsView: View {
         return VStack(alignment: .leading, spacing: 4) {
             ProgressView(value: levelProgress).tint(stageColor).controlSize(.small)
             HStack {
-                Text(verbatim: "\(CareFormat.plain(inLevel)) / \(CareFormat.plain(span)) XP")
+                Text(verbatim: "\(CareFormat.plain(inLevel)) / \(CareFormat.plain(span)) 经验")
                     .font(.system(size: 10)).foregroundStyle(.white.opacity(0.45))
                 Spacer()
                 Text(verbatim: "\(Int((levelProgress * 100).rounded()))%")
@@ -308,33 +297,6 @@ struct PetStatsView: View {
 
     private static func costString(_ usd: Double) -> String {
         String(format: "$%.2f", usd)
-    }
-
-    // MARK: - Usage / limits
-
-    @ObservedObject private var probe = NativeUsageProbe.shared
-    @ObservedObject private var visibility = UsageVisibility.shared
-    @State private var limitsExpanded = false
-    /// Providers shown before "Show more": each has one bar per window, so the
-    /// card gets tall quickly on a small screen.
-    private static let collapsedProviders = 2
-
-    @ViewBuilder private var usageBlock: some View {
-        let providers = visibility.visible(NativeUsageProbe.combined())
-        if !providers.isEmpty {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Limits")
-                    .font(.system(size: 9, weight: .semibold)).tracking(0.8)
-                    .foregroundStyle(.white.opacity(0.35))
-                let shown = limitsExpanded ? providers : Array(providers.prefix(Self.collapsedProviders))
-                ForEach(shown) { p in
-                    LimitWindowsView(provider: p, tint: stageColor)
-                }
-                if providers.count > Self.collapsedProviders {
-                    ShowMoreButton(expanded: $limitsExpanded, hidden: providers.count - shown.count)
-                }
-            }
-        }
     }
 
     // MARK: - Derived

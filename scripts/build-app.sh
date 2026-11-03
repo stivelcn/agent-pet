@@ -1,61 +1,54 @@
 #!/usr/bin/env bash
-# Assembles AgentPet.app from a release build so it runs as a proper menu bar
-# app (bundle id, LSUIElement, working notifications). Ad-hoc signed for local
-# testing. Notarization + DMG + Homebrew are issue #13.
+# Build a local app bundle. Debug is native/incremental; universal is opt-in.
 set -euo pipefail
-
 cd "$(dirname "$0")/.."
-ROOT="$(pwd)"
-APP="$ROOT/build/AgentPet.app"
-CONFIG="${1:-release}"
+ROOT="$PWD"
+CONFIG="${1:-debug}"
+ARCH="${2:-native}"
+case "$CONFIG" in
+    debug) NAME="AgentPet Local Dev"; IDENTIFIER="local.agentpet.dev"; DISPLAY_NAME="智能桌宠（开发版）"; DEVELOPMENT=true ;;
+    release) NAME="AgentPet Local"; IDENTIFIER="local.agentpet"; DISPLAY_NAME="智能桌宠"; DEVELOPMENT=false ;;
+    *) echo "Usage: $0 [debug|release] [native|universal]" >&2; exit 2 ;;
+esac
+case "$ARCH" in
+    native) ARCHS=(--arch "$(uname -m)") ;;
+    universal) ARCHS=(--arch arm64 --arch x86_64) ;;
+    *) echo "Architecture must be native or universal" >&2; exit 2 ;;
+esac
 
-# Build a universal binary (Apple Silicon + Intel) so the app runs on both.
-# Apple Silicon machines still run the native arm64 slice, unchanged.
-ARCHS=(--arch arm64 --arch x86_64)
-
-echo "Building ($CONFIG, universal arm64 + x86_64)..."
-swift build -c "$CONFIG" "${ARCHS[@]}"
-BINDIR="$(swift build -c "$CONFIG" "${ARCHS[@]}" --show-bin-path)"
-
-echo "Assembling $APP ..."
-rm -rf "$APP"
-mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-
-cp "$BINDIR/agentpet" "$APP/Contents/MacOS/agentpet"
-cp "$ROOT/scripts/AppInfo.plist" "$APP/Contents/Info.plist"
-# Sparkle compares the appcast's sparkle:version against the installed
-# CFBundleVersion, and the appcast publishes the marketing version. Force
-# CFBundleVersion == CFBundleShortVersionString so they can never drift (which
-# would make Sparkle offer the same update forever).
-SHORT_VERSION="$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$APP/Contents/Info.plist")"
-/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $SHORT_VERSION" "$APP/Contents/Info.plist"
-[ -f "$ROOT/scripts/AppIcon.icns" ] && cp "$ROOT/scripts/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
-
-# Localizations (en/vi/zh-Hans). Copied into the .app so Bundle.main picks the
-# user's system language automatically for SwiftUI Text + NSLocalizedString.
-if [ -d "$ROOT/Localizations" ]; then
-    for lproj in "$ROOT/Localizations"/*.lproj; do
-        [ -d "$lproj" ] && cp -R "$lproj" "$APP/Contents/Resources/"
-    done
+echo "正在构建 $DISPLAY_NAME ($CONFIG, $ARCH)..."
+"$ROOT/scripts/swiftpm.sh" build -c "$CONFIG" "${ARCHS[@]}"
+BINDIR="$("$ROOT/scripts/swiftpm.sh" build -c "$CONFIG" "${ARCHS[@]}" --show-bin-path)"
+mkdir -p "$ROOT/build"
+STAGE="$(mktemp -d "$ROOT/build/.app-stage.XXXXXX")"
+trap 'rm -rf "$STAGE"' EXIT
+APP="$ROOT/build/$NAME.app"
+STAGED="$STAGE/$NAME.app"
+mkdir -p "$STAGED/Contents/MacOS" "$STAGED/Contents/Resources"
+cp "$BINDIR/agentpet" "$STAGED/Contents/MacOS/agentpet"
+cp "$ROOT/scripts/AppInfo.plist" "$STAGED/Contents/Info.plist"
+PLIST="$STAGED/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier $IDENTIFIER" "$PLIST"
+/usr/libexec/PlistBuddy -c "Set :CFBundleName $DISPLAY_NAME" "$PLIST"
+/usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName $DISPLAY_NAME" "$PLIST"
+/usr/libexec/PlistBuddy -c "Set :AgentPetDevelopmentBuild $DEVELOPMENT" "$PLIST"
+if [ -f "$ROOT/scripts/AppIcon.icns" ]; then
+    cp "$ROOT/scripts/AppIcon.icns" "$STAGED/Contents/Resources/AppIcon.icns"
 fi
-
-# The agentpet target now ships a resource (the donate QR), so SwiftPM emits
-# AgentPet_agentpet.bundle. Copy it so Bundle.module resolves inside the .app.
+for lproj in "$ROOT/Localizations/"*.lproj; do
+    [ ! -d "$lproj" ] || cp -R "$lproj" "$STAGED/Contents/Resources/"
+done
 if [ -d "$BINDIR/AgentPet_agentpet.bundle" ]; then
-    cp -R "$BINDIR/AgentPet_agentpet.bundle" "$APP/Contents/Resources/"
+    cp -R "$BINDIR/AgentPet_agentpet.bundle" "$STAGED/Contents/Resources/"
 fi
 
-# Bundle Sparkle.framework (auto-update). SwiftPM links it via @rpath but does
-# not place it inside a hand-assembled .app, so we copy it into Frameworks and
-# point the binary's rpath there. ditto preserves the framework symlinks.
-mkdir -p "$APP/Contents/Frameworks"
-ditto "$BINDIR/Sparkle.framework" "$APP/Contents/Frameworks/Sparkle.framework"
-install_name_tool -add_rpath "@executable_path/../Frameworks" "$APP/Contents/MacOS/agentpet" 2>/dev/null || true
-
-# Ad-hoc sign for local testing (release.sh re-signs with a Developer ID).
-# Sign the framework first (inside-out) so the outer app signature is valid.
-codesign --force --sign - "$APP/Contents/Frameworks/Sparkle.framework" || true
-codesign --force --sign - "$APP" || echo "warning: codesign failed (continuing unsigned)"
-
-echo "Done: $APP"
-echo "Run with: open \"$APP\"   (or: \"$APP/Contents/MacOS/agentpet\")"
+# Local ad-hoc signing, not Developer ID distribution or notarization.
+# A signing/build failure never replaces the last working application.
+codesign --force --sign - "$STAGED"
+codesign --verify --deep --strict "$STAGED"
+if [ -e "$APP" ]; then mv "$APP" "$STAGE/previous.app"; fi
+if ! mv "$STAGED" "$APP"; then
+    [ ! -e "$STAGE/previous.app" ] || mv "$STAGE/previous.app" "$APP"
+    exit 1
+fi
+echo "构建完成：$APP"

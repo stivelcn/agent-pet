@@ -1,86 +1,89 @@
-import XCTest
+import Testing
+import Foundation
 @testable import AgentPetCore
 
-final class StateMapperTests: XCTestCase {
-    func testClaudeEventMapping() {
-        XCTAssertEqual(StateMapper.state(for: .claude, eventName: "SessionStart"), .registered)
-        XCTAssertEqual(StateMapper.state(for: .claude, eventName: "UserPromptSubmit"), .working)
-        XCTAssertEqual(StateMapper.state(for: .claude, eventName: "PreToolUse"), .working)
-        XCTAssertEqual(StateMapper.state(for: .claude, eventName: "PostToolUse"), .working)
-        XCTAssertEqual(StateMapper.state(for: .claude, eventName: "Notification"), .waiting)
-        XCTAssertEqual(StateMapper.state(for: .claude, eventName: "Stop"), .done)
-        XCTAssertNil(StateMapper.state(for: .claude, eventName: "SubagentStop"),
-                     "a subagent finishing mid-task must not change the main session's state")
+@Suite(.serialized)
+final class StateMapperTests {
+    @Test func testClaudeEventMapping() {
+        #expect((StateMapper.state(for: .claude, eventName: "SessionStart")) == (.registered))
+        #expect((StateMapper.state(for: .claude, eventName: "UserPromptSubmit")) == (.working))
+        #expect((StateMapper.state(for: .claude, eventName: "PreToolUse")) == (.working))
+        #expect((StateMapper.state(for: .claude, eventName: "PostToolUse")) == (.working))
+        #expect((StateMapper.state(for: .claude, eventName: "Notification")) == (.waiting))
+        #expect((StateMapper.state(for: .claude, eventName: "Stop")) == (.done))
+        #expect((StateMapper.state(for: .claude, eventName: "SubagentStop")) == nil, Comment(rawValue: "a subagent finishing mid-task must not change the main session's state"))
     }
 
-    func testUnknownEventIsIgnored() {
-        XCTAssertNil(StateMapper.state(for: .claude, eventName: "Bogus"))
-        XCTAssertNil(StateMapper.state(for: .codex, eventName: "Bogus"))
-        XCTAssertNil(StateMapper.state(for: .unknown, eventName: "Stop"))
+    @Test func testUnknownEventIsIgnored() {
+        #expect((StateMapper.state(for: .claude, eventName: "Bogus")) == nil)
+        #expect((StateMapper.state(for: .codex, eventName: "Bogus")) == nil)
+        #expect((StateMapper.state(for: .unknown, eventName: "Stop")) == nil)
     }
 
-    func testDirectStateNameMapsForAnyKind() {
-        XCTAssertEqual(StateMapper.state(for: .cli, eventName: "working"), .working)
-        XCTAssertEqual(StateMapper.state(for: .cli, eventName: "done"), .done)
-        XCTAssertEqual(StateMapper.state(for: .unknown, eventName: "waiting"), .waiting)
+    @Test func testDirectStateNameMapsForAnyKind() {
+        #expect((StateMapper.state(for: .cli, eventName: "working")) == (.working))
+        #expect((StateMapper.state(for: .cli, eventName: "done")) == (.done))
+        #expect((StateMapper.state(for: .unknown, eventName: "waiting")) == (.waiting))
     }
 
-    func testCodexMapping() {
-        XCTAssertEqual(StateMapper.state(for: .codex, eventName: "SessionStart"), .registered)
-        XCTAssertEqual(StateMapper.state(for: .codex, eventName: "PreToolUse"), .working)
-        XCTAssertEqual(StateMapper.state(for: .codex, eventName: "PermissionRequest"), .waiting)
-        XCTAssertEqual(StateMapper.state(for: .codex, eventName: "Stop"), .done)
+    @Test func testCodexMapping() {
+        #expect((StateMapper.state(for: .codex, eventName: "SessionStart")) == (.registered))
+        #expect((StateMapper.state(for: .codex, eventName: "PreToolUse")) == (.working))
+        #expect((StateMapper.state(for: .codex, eventName: "PermissionRequest")) == (.waiting))
+        #expect((StateMapper.state(for: .codex, eventName: "Stop")) == (.done))
     }
 
-    func testGeminiMapping() {
-        XCTAssertEqual(StateMapper.state(for: .gemini, eventName: "BeforeTool"), .working)
-        XCTAssertEqual(StateMapper.state(for: .gemini, eventName: "Notification"), .waiting)
-        XCTAssertEqual(StateMapper.state(for: .gemini, eventName: "AfterAgent"), .done)
+    @Test func testGeminiMapping() {
+        #expect((StateMapper.state(for: .gemini, eventName: "BeforeTool")) == (.working))
+        #expect((StateMapper.state(for: .gemini, eventName: "Notification")) == (.waiting))
+        #expect((StateMapper.state(for: .gemini, eventName: "AfterAgent")) == (.done))
     }
 
-    func testHookSpecsCoverInstallEvents() {
+    @Test func testHookSpecsCoverInstallEvents() {
         // Every event we register must either map to a state, end the session,
         // or be an intentionally-ignored event (documented here).
         let intentionallyIgnored: [AgentKind: Set<String>] = [
-            .claude: ["SubagentStop"]
+            .claude: ["SubagentStop"],
+            .codex: ["SubagentStop"]
         ]
         for kind in [AgentKind.claude, .codex, .gemini] {
             let spec = AgentHooks.spec(for: kind)!
             let ignored = intentionallyIgnored[kind] ?? []
             for event in spec.events
             where !StateMapper.isSessionEnd(for: kind, eventName: event) && !ignored.contains(event) {
-                XCTAssertNotNil(StateMapper.state(for: kind, eventName: event), "\(kind) \(event)")
+                #expect((StateMapper.state(for: kind, eventName: event)) != nil, Comment(rawValue: "\(kind) \(event)"))
             }
         }
     }
 }
 
-final class SessionStoreTests: XCTestCase {
+@Suite(.serialized)
+final class SessionStoreTests {
     private let t0 = Date(timeIntervalSince1970: 1_000_000)
 
     private func event(_ name: String, session: String = "s1", project: String? = "/proj") -> AgentEvent {
         AgentEvent(sessionId: session, agentKind: .claude, eventName: name, project: project, message: nil, timestamp: t0)
     }
 
-    func testApplyCreatesSession() {
+    @Test func testApplyCreatesSession() {
         let store = SessionStore()
         let s = store.apply(event("SessionStart"), now: t0)
-        XCTAssertEqual(s?.state, .registered)
-        XCTAssertEqual(s?.project, "/proj")
-        XCTAssertEqual(s?.source, .hook)
-        XCTAssertEqual(store.sessions.count, 1)
+        #expect((s?.state) == (.registered))
+        #expect((s?.project) == ("/proj"))
+        #expect((s?.source) == (.hook))
+        #expect((store.sessions.count) == (1))
     }
 
-    func testApplyUpdatesExistingAndKeepsProjectWhenNil() {
+    @Test func testApplyUpdatesExistingAndKeepsProjectWhenNil() {
         let store = SessionStore()
         store.apply(event("SessionStart"), now: t0)
         let updated = store.apply(event("Stop", project: nil), now: t0.addingTimeInterval(5))
-        XCTAssertEqual(updated?.state, .done)
-        XCTAssertEqual(updated?.project, "/proj", "project should persist when event omits it")
-        XCTAssertEqual(store.sessions.count, 1)
+        #expect((updated?.state) == (.done))
+        #expect((updated?.project) == ("/proj"), Comment(rawValue: "project should persist when event omits it"))
+        #expect((store.sessions.count) == (1))
     }
 
-    func testApplyKeepsModelWhenLaterEventOmitsIt() {
+    @Test func testApplyKeepsModelWhenLaterEventOmitsIt() {
         let store = SessionStore()
         let withModel = AgentEvent(
             sessionId: "s1", agentKind: .claude, eventName: "SessionStart",
@@ -94,31 +97,31 @@ final class SessionStoreTests: XCTestCase {
         )
         let updated = store.apply(withoutModel, now: t0.addingTimeInterval(5))
 
-        XCTAssertEqual(updated?.model, "Sonnet 4.6", "model should persist when a later event omits it")
+        #expect((updated?.model) == ("Sonnet 4.6"), Comment(rawValue: "model should persist when a later event omits it"))
     }
 
-    func testApplySetsModelOnNewSession() {
+    @Test func testApplySetsModelOnNewSession() {
         let store = SessionStore()
         let withModel = AgentEvent(
             sessionId: "s1", agentKind: .claude, eventName: "SessionStart",
             project: "/proj", message: nil, model: "Sonnet 4.6", timestamp: t0
         )
         let s = store.apply(withModel, now: t0)
-        XCTAssertEqual(s?.model, "Sonnet 4.6")
+        #expect((s?.model) == ("Sonnet 4.6"))
     }
 
-    func testApplySetsTerminalOnNewSession() {
+    @Test func testApplySetsTerminalOnNewSession() {
         let store = SessionStore()
         let e = AgentEvent(
             sessionId: "s1", agentKind: .claude, eventName: "SessionStart",
             project: "/proj", terminalProgram: "iTerm.app", terminalTTY: "/dev/ttys003", timestamp: t0
         )
         let s = store.apply(e, now: t0)
-        XCTAssertEqual(s?.terminalProgram, "iTerm.app")
-        XCTAssertEqual(s?.terminalTTY, "/dev/ttys003")
+        #expect((s?.terminalProgram) == ("iTerm.app"))
+        #expect((s?.terminalTTY) == ("/dev/ttys003"))
     }
 
-    func testApplyKeepsTerminalWhenLaterEventOmitsIt() {
+    @Test func testApplyKeepsTerminalWhenLaterEventOmitsIt() {
         let store = SessionStore()
         let withTerminal = AgentEvent(
             sessionId: "s1", agentKind: .claude, eventName: "SessionStart",
@@ -132,101 +135,98 @@ final class SessionStoreTests: XCTestCase {
         )
         let updated = store.apply(withoutTerminal, now: t0.addingTimeInterval(5))
 
-        XCTAssertEqual(updated?.terminalProgram, "Apple_Terminal", "terminal should persist across later events")
-        XCTAssertEqual(updated?.terminalTTY, "/dev/ttys007")
+        #expect((updated?.terminalProgram) == ("Apple_Terminal"), Comment(rawValue: "terminal should persist across later events"))
+        #expect((updated?.terminalTTY) == ("/dev/ttys007"))
     }
 
-    func testApplyIgnoresUnmappedEvent() {
+    @Test func testApplyIgnoresUnmappedEvent() {
         let store = SessionStore()
-        XCTAssertNil(store.apply(event("Bogus"), now: t0))
-        XCTAssertEqual(store.sessions.count, 0)
+        #expect((store.apply(event("Bogus"), now: t0)) == nil)
+        #expect((store.sessions.count) == (0))
     }
 
-    func testRefineStateAppliesWhenStateAndSinceStillMatch() {
+    @Test func testRefineStateAppliesWhenStateAndSinceStillMatch() {
         let store = SessionStore()
         let applied = store.apply(event("Stop"), now: t0)
-        XCTAssertEqual(applied?.state, .done)
+        #expect((applied?.state) == (.done))
 
         store.refineState(id: "s1", from: .done, to: .waiting, since: applied!.stateSince)
 
         let refined = store.session(id: "s1")
-        XCTAssertEqual(refined?.state, .waiting)
-        XCTAssertEqual(refined?.stateSince, applied!.stateSince,
-                       "correction preserves the original transition time")
+        #expect((refined?.state) == (.waiting))
+        #expect((refined?.stateSince) == (applied!.stateSince), Comment(rawValue: "correction preserves the original transition time"))
     }
 
-    func testRefineStateNoOpsWhenANewerEventAlreadyChangedState() {
+    @Test func testRefineStateNoOpsWhenANewerEventAlreadyChangedState() {
         let store = SessionStore()
         let applied = store.apply(event("Stop"), now: t0)
         store.apply(event("UserPromptSubmit"), now: t0.addingTimeInterval(2))   // user replied -> working
 
         store.refineState(id: "s1", from: .done, to: .waiting, since: applied!.stateSince)
 
-        XCTAssertEqual(store.session(id: "s1")?.state, .working,
-                       "a newer transition must never be clobbered by a stale correction")
+        #expect((store.session(id: "s1")?.state) == (.working), Comment(rawValue: "a newer transition must never be clobbered by a stale correction"))
     }
 
-    func testRefineStateNoOpsWhenSinceNoLongerMatches() {
+    @Test func testRefineStateNoOpsWhenSinceNoLongerMatches() {
         let store = SessionStore()
         let applied = store.apply(event("Stop"), now: t0)
         let staleSince = applied!.stateSince.addingTimeInterval(-10)
 
         store.refineState(id: "s1", from: .done, to: .waiting, since: staleSince)
 
-        XCTAssertEqual(store.session(id: "s1")?.state, .done,
-                       "a `since` mismatch means this correction targets a transition that's gone")
+        #expect((store.session(id: "s1")?.state) == (.done), Comment(rawValue: "a `since` mismatch means this correction targets a transition that's gone"))
     }
 
-    func testPruneDemotesDoneToIdle() {
+    @Test func testPruneDemotesDoneToIdle() {
         let store = SessionStore(doneToIdleAfter: 30, removeIdleAfter: 600)
         store.apply(event("Stop"), now: t0)
         store.prune(now: t0.addingTimeInterval(10))
-        XCTAssertEqual(store.session(id: "s1")?.state, .done, "still done before threshold")
+        #expect((store.session(id: "s1")?.state) == (.done), Comment(rawValue: "still done before threshold"))
         store.prune(now: t0.addingTimeInterval(40))
-        XCTAssertEqual(store.session(id: "s1")?.state, .idle, "demoted to idle after threshold")
+        #expect((store.session(id: "s1")?.state) == (.idle), Comment(rawValue: "demoted to idle after threshold"))
     }
 
-    func testPruneRemovesLongIdle() {
+    @Test func testPruneRemovesLongIdle() {
         let store = SessionStore(doneToIdleAfter: 30, removeIdleAfter: 600)
         store.apply(event("Stop"), now: t0)
         store.prune(now: t0.addingTimeInterval(40))   // -> idle at t0+40
         store.prune(now: t0.addingTimeInterval(40 + 600))
-        XCTAssertNil(store.session(id: "s1"), "removed after idle timeout")
+        #expect((store.session(id: "s1")) == nil, Comment(rawValue: "removed after idle timeout"))
     }
 
-    func testPruneRemovesStaleActiveSession() {
+    @Test func testPruneRemovesStaleActiveSession() {
         let store = SessionStore(staleActiveAfter: 300)
         store.apply(event("UserPromptSubmit"), now: t0)   // working
         store.prune(now: t0.addingTimeInterval(120))
-        XCTAssertNotNil(store.session(id: "s1"), "kept before stale timeout")
+        #expect((store.session(id: "s1")) != nil, Comment(rawValue: "kept before stale timeout"))
         store.prune(now: t0.addingTimeInterval(300))
-        XCTAssertNil(store.session(id: "s1"), "stale working session removed")
+        #expect((store.session(id: "s1")) == nil, Comment(rawValue: "stale working session removed"))
     }
 
-    func testPruneRemovesStaleRegisteredSooner() {
+    @Test func testPruneRemovesStaleRegisteredSooner() {
         let store = SessionStore(staleActiveAfter: 300, staleRegisteredAfter: 90)
         store.apply(event("SessionStart"), now: t0)   // registered, never worked
         store.prune(now: t0.addingTimeInterval(60))
-        XCTAssertNotNil(store.session(id: "s1"), "kept before registered timeout")
+        #expect((store.session(id: "s1")) != nil, Comment(rawValue: "kept before registered timeout"))
         store.prune(now: t0.addingTimeInterval(90))
-        XCTAssertNil(store.session(id: "s1"), "idle registered session removed sooner than working")
+        #expect((store.session(id: "s1")) == nil, Comment(rawValue: "idle registered session removed sooner than working"))
     }
 
-    func testClearRemovesAll() {
+    @Test func testClearRemovesAll() {
         let store = SessionStore()
         store.apply(event("UserPromptSubmit", session: "a"), now: t0)
         store.apply(event("UserPromptSubmit", session: "b"), now: t0)
         store.clear()
-        XCTAssertTrue(store.sessions.isEmpty)
+        #expect(store.sessions.isEmpty)
     }
 
-    func testSortedByAttentionPriority() {
+    @Test func testSortedByAttentionPriority() {
         let store = SessionStore()
         store.apply(event("UserPromptSubmit", session: "working"), now: t0)
         store.apply(event("Notification", session: "waiting"), now: t0)
         store.apply(event("Stop", session: "done"), now: t0)
         let order = store.sorted.map(\.id)
-        XCTAssertEqual(order, ["working", "waiting", "done"])
+        #expect((order) == (["working", "waiting", "done"]))
     }
 
     // MARK: - pendingApproval gating
@@ -241,54 +241,53 @@ final class SessionStoreTests: XCTestCase {
         )
     }
 
-    func testApplyWithApprovalRequestIdSetsWaitingStateAndPendingApproval() {
+    @Test func testApplyWithApprovalRequestIdSetsWaitingStateAndPendingApproval() {
         let store = SessionStore()
         let s = store.apply(approvalEvent(at: t0), now: t0)
-        XCTAssertEqual(s?.state, .waiting, "a gated tool request must override the PreToolUse .working mapping")
-        XCTAssertEqual(s?.pendingApproval?.requestId, "req-1")
-        XCTAssertEqual(s?.pendingApproval?.toolName, "Bash")
-        XCTAssertEqual(s?.pendingApproval?.summary, "npm test")
+        #expect((s?.state) == (.waiting), Comment(rawValue: "a gated tool request must override the PreToolUse .working mapping"))
+        #expect((s?.pendingApproval?.requestId) == ("req-1"))
+        #expect((s?.pendingApproval?.toolName) == ("Bash"))
+        #expect((s?.pendingApproval?.summary) == ("npm test"))
     }
 
-    func testSubsequentEventWithoutApprovalIdClearsPendingApproval() {
+    @Test func testSubsequentEventWithoutApprovalIdClearsPendingApproval() {
         let store = SessionStore()
         store.apply(approvalEvent(at: t0), now: t0)
         let updated = store.apply(event("PostToolUse"), now: t0.addingTimeInterval(1))
-        XCTAssertNil(updated?.pendingApproval, "a later event with no approval request must clear a stale one")
+        #expect((updated?.pendingApproval) == nil, Comment(rawValue: "a later event with no approval request must clear a stale one"))
     }
 
-    func testSecondApprovalRequestOverwritesPendingApprovalNewestWins() {
+    @Test func testSecondApprovalRequestOverwritesPendingApprovalNewestWins() {
         let store = SessionStore()
         store.apply(approvalEvent(requestId: "req-1", at: t0), now: t0)
         let second = store.apply(
             approvalEvent(requestId: "req-2", toolName: "Bash", toolSummary: "rm -rf tmp", at: t0.addingTimeInterval(1)),
             now: t0.addingTimeInterval(1)
         )
-        XCTAssertEqual(second?.pendingApproval?.requestId, "req-2", "newest pending approval wins, it does not queue")
-        XCTAssertEqual(second?.pendingApproval?.summary, "rm -rf tmp")
+        #expect((second?.pendingApproval?.requestId) == ("req-2"), Comment(rawValue: "newest pending approval wins, it does not queue"))
+        #expect((second?.pendingApproval?.summary) == ("rm -rf tmp"))
     }
 
-    func testResolveApprovalClearsPendingApprovalAndSetsWorkingWhenIdMatches() {
+    @Test func testResolveApprovalClearsPendingApprovalAndSetsWorkingWhenIdMatches() {
         let store = SessionStore()
         store.apply(approvalEvent(requestId: "req-1", at: t0), now: t0)
         let resolved = store.resolveApproval(id: "s1", requestId: "req-1")
-        XCTAssertTrue(resolved)
-        XCTAssertNil(store.session(id: "s1")?.pendingApproval)
-        XCTAssertEqual(store.session(id: "s1")?.state, .working)
+        #expect(resolved)
+        #expect((store.session(id: "s1")?.pendingApproval) == nil)
+        #expect((store.session(id: "s1")?.state) == (.working))
     }
 
-    func testResolveApprovalNoOpsWhenRequestIdMismatches() {
+    @Test func testResolveApprovalNoOpsWhenRequestIdMismatches() {
         let store = SessionStore()
         store.apply(approvalEvent(requestId: "req-1", at: t0), now: t0)
         let resolved = store.resolveApproval(id: "s1", requestId: "wrong-id")
-        XCTAssertFalse(resolved)
-        XCTAssertEqual(store.session(id: "s1")?.pendingApproval?.requestId, "req-1",
-                       "mismatched requestId must not clear an unrelated/newer pending approval")
-        XCTAssertEqual(store.session(id: "s1")?.state, .waiting)
+        #expect(!(resolved))
+        #expect((store.session(id: "s1")?.pendingApproval?.requestId) == ("req-1"), Comment(rawValue: "mismatched requestId must not clear an unrelated/newer pending approval"))
+        #expect((store.session(id: "s1")?.state) == (.waiting))
     }
 
-    func testResolveApprovalNoOpsWhenSessionMissing() {
+    @Test func testResolveApprovalNoOpsWhenSessionMissing() {
         let store = SessionStore()
-        XCTAssertFalse(store.resolveApproval(id: "missing", requestId: "req-1"))
+        #expect(!(store.resolveApproval(id: "missing", requestId: "req-1")))
     }
 }

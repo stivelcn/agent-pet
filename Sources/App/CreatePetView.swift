@@ -32,7 +32,7 @@ struct CreatePetView: View {
 
                 Section {
                     HStack {
-                        Text(spritesheetURL?.lastPathComponent ?? "No image selected")
+                        Text(spritesheetURL?.lastPathComponent ?? NSLocalizedString("No image selected", comment: ""))
                             .foregroundStyle(spritesheetURL == nil ? .secondary : .primary)
                             .lineLimit(1)
                         Spacer()
@@ -72,8 +72,8 @@ struct CreatePetView: View {
 
     private func chooseSpritesheet() {
         let panel = NSOpenPanel()
-        panel.title = "Choose Spritesheet"
-        panel.prompt = "Choose"
+        panel.title = NSLocalizedString("Choose Spritesheet", comment: "")
+        panel.prompt = NSLocalizedString("Choose", comment: "")
         panel.canChooseDirectories = false
         panel.canChooseFiles = true
         panel.allowsMultipleSelection = false
@@ -92,7 +92,7 @@ struct CreatePetView: View {
             description: description,
             spritesheetURL: spritesheetURL
         ) else {
-            errorText = "Could not create this pet. Check that the image is a valid spritesheet."
+            errorText = NSLocalizedString("Could not create this pet. Check that the image is a valid spritesheet.", comment: "")
             return
         }
         onCreate(id)

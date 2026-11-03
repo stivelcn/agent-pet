@@ -2,8 +2,9 @@ import AppKit
 import Combine
 import AgentPetCore
 
-/// Resolves the aggregate session mood, plays a short `celebrate` burst when
-/// work finishes, owns the selected (imported) pet, and drives the chat bubble.
+/// Resolves live session mood and drives the pet. Durable completion reminders
+/// are managed separately, so activity/idle chatter cannot erase them.
+/// Session moods do not select sprite actions; the pet stays in its idle loop.
 @MainActor
 final class PetController: ObservableObject {
     static let shared = PetController()
@@ -12,62 +13,64 @@ final class PetController: ObservableObject {
     @Published private(set) var chatLine: String = ""
 
     @Published var selectedPetID: String? {
-        didSet { UserDefaults.standard.set(selectedPetID, forKey: Self.petKey) }
+        didSet {
+            LocalPreferences.defaults.set(selectedPetID, forKey: Self.petKey)
+            if hasStarted && oldValue != selectedPetID { refreshChat() }
+        }
     }
     @Published var showChat: Bool {
         didSet {
-            UserDefaults.standard.set(showChat, forKey: Self.chatKey)
+            LocalPreferences.defaults.set(showChat, forKey: Self.chatKey)
             refreshChat()
         }
     }
     /// Whether the pet shows a chat line while idle (the "doing nothing" chatter).
     @Published var showIdleMessage: Bool {
         didSet {
-            UserDefaults.standard.set(showIdleMessage, forKey: Self.idleMsgKey)
+            LocalPreferences.defaults.set(showIdleMessage, forKey: Self.idleMsgKey)
             refreshChat()
         }
     }
     /// When enabled, spawns one pet window per active project instead of a single shared pet.
-    @Published var splitPet: Bool = UserDefaults.standard.bool(forKey: "agentpet.splitPet") {
+    @Published var splitPet: Bool = LocalPreferences.defaults.bool(forKey: "agentpet.splitPet") {
         didSet {
-            UserDefaults.standard.set(splitPet, forKey: "agentpet.splitPet")
+            LocalPreferences.defaults.set(splitPet, forKey: "agentpet.splitPet")
             update(sessions: latestSessions)   // re-evaluate windows when toggled
         }
     }
     /// In split mode: hide a configured project's pet while it has no active work
     /// (it reappears when the project runs again). Off = the project pet stays put.
-    @Published var hideIdleProjectPets: Bool = UserDefaults.standard.bool(forKey: "agentpet.hideIdleProjectPets") {
+    @Published var hideIdleProjectPets: Bool = LocalPreferences.defaults.bool(forKey: "agentpet.hideIdleProjectPets") {
         didSet {
-            UserDefaults.standard.set(hideIdleProjectPets, forKey: "agentpet.hideIdleProjectPets")
+            LocalPreferences.defaults.set(hideIdleProjectPets, forKey: "agentpet.hideIdleProjectPets")
             update(sessions: latestSessions)
         }
     }
     /// When disabled, freezes all continuous/perpetual pet and bubble animation so
     /// the SwiftUI render loop can go idle (lower CPU, reduce-motion option).
     @Published var animationsEnabled: Bool =
-        (UserDefaults.standard.object(forKey: "agentpet.animationsEnabled") as? Bool) ?? true {
-        didSet { UserDefaults.standard.set(animationsEnabled, forKey: "agentpet.animationsEnabled") }
+        (LocalPreferences.defaults.object(forKey: "agentpet.animationsEnabled") as? Bool) ?? true {
+        didSet { LocalPreferences.defaults.set(animationsEnabled, forKey: "agentpet.animationsEnabled") }
     }
-    /// User-adjustable sprite frame rate (1–12 fps). Active moods animate at this
-    /// rate; idle is capped at 2 fps regardless of the slider (idle CPU win).
+    /// Quiet sprite frame rate (1–2 fps). Legacy faster preferences are clamped
+    /// in memory; task completion never speeds the pet up. Sleepy uses 1 fps.
     @Published var animationFPS: Double =
-        ((UserDefaults.standard.object(forKey: "agentpet.animationFPS") as? Double) ?? 8).clampedFPS {
+        ((LocalPreferences.defaults.object(forKey: "agentpet.animationFPS") as? Double) ?? 2).clampedFPS {
         didSet {
             let v = animationFPS.clampedFPS
             if v != animationFPS { animationFPS = v; return }   // re-entrancy guard for clamp
-            UserDefaults.standard.set(animationFPS, forKey: "agentpet.animationFPS")
+            LocalPreferences.defaults.set(animationFPS, forKey: "agentpet.animationFPS")
         }
     }
     /// Sprite point size, freely adjustable via a slider.
     @Published var petPoint: Double {
-        didSet { UserDefaults.standard.set(petPoint, forKey: Self.sizeKey) }
+        didSet { LocalPreferences.defaults.set(petPoint, forKey: Self.sizeKey) }
     }
 
     static let minPoint: Double = 60
     static let maxPoint: Double = 240
     static let presets: [(String, Double)] = [("S", 84), ("M", 120), ("L", 168)]
 
-    private var lastResolved: PetMood = .idle
     private var latestSessions: [AgentSession] = []
 
     /// Number of active agent lines currently shown; drives window height.
@@ -82,14 +85,28 @@ final class PetController: ObservableObject {
     private static let celebrateDuration: TimeInterval = 3
 
     init() {
-        selectedPetID = UserDefaults.standard.string(forKey: Self.petKey)
-        showChat = (UserDefaults.standard.object(forKey: Self.chatKey) as? Bool) ?? true
-        showIdleMessage = (UserDefaults.standard.object(forKey: Self.idleMsgKey) as? Bool) ?? true
-        let saved = UserDefaults.standard.object(forKey: Self.sizeKey) as? Double ?? 120
+        selectedPetID = LocalPreferences.defaults.string(forKey: Self.petKey)
+        showChat = (LocalPreferences.defaults.object(forKey: Self.chatKey) as? Bool) ?? true
+        showIdleMessage = (LocalPreferences.defaults.object(forKey: Self.idleMsgKey) as? Bool) ?? true
+        let saved = LocalPreferences.defaults.object(forKey: Self.sizeKey) as? Double ?? 120
         petPoint = min(max(saved, Self.minPoint), Self.maxPoint)
     }
 
+    private var hasStarted = false
+    private var petLibraryObserver: AnyCancellable?
+
     func start() {
+        guard !hasStarted else { return }
+        hasStarted = true
+        petLibraryObserver = ImagePetStore.shared.$packs
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.refreshChat() }
+        completionObserver = CompletionNoticeStore.shared.$notices
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.syncWindows() }
+        syncWindows()
         // Ticker drives chatLine updates; no separate chat timer needed.
         // Re-plan windows when project→pet mappings change so adding/removing a
         // configured project takes effect immediately (no need to wait for the
@@ -112,11 +129,12 @@ final class PetController: ObservableObject {
     }
 
     private var projectNamesObserver: AnyCancellable?
+    private var completionObserver: AnyCancellable?
 
-    /// Returns the effective sprite fps for a given mood, honouring the slider.
-    /// Idle and sleepy are capped at 2 fps regardless of the slider value (calm CPU win).
+    /// Task states share exactly the same calm cadence, so status changes do
+    /// not restart playback. Resting slows the existing idle/closed-eye frames.
     func spriteFPS(forMood mood: PetMood) -> Double {
-        (mood == .idle || mood == .sleepy) ? min(animationFPS, 2) : animationFPS
+        mood == .sleepy ? 1 : animationFPS
     }
 
     private var sizeAnimTimer: Timer?
@@ -152,23 +170,6 @@ final class PetController: ObservableObject {
     func update(sessions: [AgentSession]) {
         latestSessions = sessions
         let resolved = MoodResolver.aggregate(sessions)
-        defer { lastResolved = resolved }
-
-        if resolved == .done && lastResolved != .done {
-            chatLineCount = 0
-            activeAgentSessions = []
-            let celebrateLine = chatLine(forMood: .celebrate)
-            celebratingKeys[PetWindowPlanner.defaultKey] = CelebrateFlash(line: celebrateLine, mood: .celebrate)
-            let key = PetWindowPlanner.defaultKey
-            Timer.scheduledTimer(withTimeInterval: Self.celebrateDuration, repeats: false) { _ in
-                Task { @MainActor [weak self] in
-                    self?.celebratingKeys.removeValue(forKey: key)
-                    self?.syncWindows()
-                }
-            }
-            syncWindows()
-            return
-        }
         setMood(resolved)
 
         if resolved == .working || resolved == .waiting {
@@ -267,6 +268,13 @@ final class PetController: ObservableObject {
             syncWindows()
             return
         }
+        if mood == .done {
+            // CompletionBubble owns the fixed, persistent completion message.
+            chatLine = ""
+            StatusBarController.shared.refreshTitle()
+            syncWindows()
+            return
+        }
         if mood == .idle {
             guard showIdleMessage else {
                 chatLine = ""
@@ -332,7 +340,9 @@ final class PetController: ObservableObject {
                 return sessions.map { "• \(TickerFormatter.line(for: $0, projectNames: names))" }.joined(separator: "\n")
             }
             return chatLine(forMood: mood)
-        case .done, .celebrate, .levelup:
+        case .done:
+            return ""
+        case .celebrate, .levelup:
             return chatLine(forMood: mood)
         }
     }
@@ -342,7 +352,7 @@ final class PetController: ObservableObject {
     /// Builds the structured session list and a plain-text fallback chatLine.
     private func buildAgentChatLine(sessions: [AgentSession]) {
         let active = TickerFormatter.sorted(
-            sessions.filter { $0.state != .idle && $0.state != .registered }
+            sessions.filter { $0.state == .working || $0.state == .waiting }
         )
         activeAgentSessions = active
         chatLineCount = active.count
@@ -364,7 +374,6 @@ final class PetController: ObservableObject {
         let mood: PetMood
     }
 
-    private var lastMoodByKey: [String: PetMood] = [:]
     private var celebratingKeys: [String: CelebrateFlash] = [:]
 
     // MARK: - Break reminder (home pet rests)
@@ -426,7 +435,7 @@ final class PetController: ObservableObject {
 
     private func performWindowSync() {
         let specs = PetWindowPlanner.plan(
-            sessions: latestSessions,
+            sessions: CompletionNoticeStore.shared.planningSessions(live: latestSessions),
             split: splitPet,
             mappings: ProjectPetSettings.shared.mappings,
             defaultPetID: selectedPetID,
@@ -436,28 +445,7 @@ final class PetController: ObservableObject {
 
         let liveKeys = Set(specs.map(\.key))
         // Drop tracking for windows that no longer exist.
-        lastMoodByKey = lastMoodByKey.filter { liveKeys.contains($0.key) }
         celebratingKeys = celebratingKeys.filter { liveKeys.contains($0.key) }
-
-        // Fire a celebrate burst when a window's group newly enters `.done`.
-        // In Split-ON mode the defaultKey window is a real project-less group and
-        // must also get per-key celebrate; in Split-OFF the defaultKey celebrates
-        // via the global mood mirror, so we exclude it here to avoid doubling.
-        for spec in specs {
-            let prev = lastMoodByKey[spec.key]
-            if spec.mood == .done && prev != nil && prev != .done {
-                let line = chatLine(forMood: .celebrate)
-                celebratingKeys[spec.key] = CelebrateFlash(line: line, mood: .celebrate)
-                let key = spec.key
-                Timer.scheduledTimer(withTimeInterval: Self.celebrateDuration, repeats: false) { _ in
-                    Task { @MainActor [weak self] in
-                        self?.celebratingKeys.removeValue(forKey: key)
-                        self?.syncWindows()
-                    }
-                }
-            }
-            lastMoodByKey[spec.key] = spec.mood
-        }
 
         PetWindowController.shared.sync(specs: specs) { [weak self] spec in
             self?.windowState(for: spec)
@@ -505,7 +493,7 @@ final class PetController: ObservableObject {
             resolvedLine = chatLine
         } else {
             groupSessions = TickerFormatter.sorted(
-                latestSessions.filter { ids.contains($0.id) && $0.state != .idle && $0.state != .registered }
+                latestSessions.filter { ids.contains($0.id) && ($0.state == .working || $0.state == .waiting) }
             )
             lineCount = spec.count
             resolvedLine = chatLine(forMood: spec.mood, sessions: groupSessions, petID: spec.petID)
@@ -523,8 +511,8 @@ final class PetController: ObservableObject {
 // MARK: - FPS helpers
 
 private extension Double {
-    /// Clamps a frame-rate value to the valid 1–12 fps slider range.
-    var clampedFPS: Double { min(max(self, 1), 12) }
+    /// Clamps both saved and newly selected rates to the quiet 1–2 fps range.
+    var clampedFPS: Double { min(max(self, 1), 2) }
 }
 
 /// Built-in (system) chat lines per mood.

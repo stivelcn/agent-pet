@@ -1,33 +1,33 @@
-import XCTest
+import Testing
+import Foundation
 @testable import agentpet
 
-final class IdleBoostTests: XCTestCase {
-    func testLinesKeepPolishedDeveloperTone() {
-        XCTAssertTrue(IdleBoost.lines.contains("Let's grill some bugs."))
-        XCTAssertTrue(IdleBoost.lines.contains("I miss you. Open a branch for me."))
-        XCTAssertTrue(IdleBoost.lines.contains("Tiny commit, tiny dopamine."))
+@Suite(.serialized)
+final class IdleBoostTests {
+    @Test func testLinesKeepPolishedDeveloperTone() {
+        #expect(IdleBoost.lines.contains("Let's grill some bugs."))
+        #expect(IdleBoost.lines.contains("I miss you. Open a branch for me."))
+        #expect(IdleBoost.lines.contains("Tiny commit, tiny dopamine."))
     }
 
-    func testLinesAvoidNoisyPunctuationAndEmoji() {
+    @Test func testLinesAvoidNoisyPunctuationAndEmoji() {
         for line in IdleBoost.lines {
-            XCTAssertFalse(line.contains("!"), line)
-            XCTAssertTrue(line.allSatisfy(\.isASCII), line)
+            #expect(!(line.contains("!")), Comment(rawValue: line))
+            let isASCII = line.allSatisfy(\.isASCII)
+            #expect(isASCII, Comment(rawValue: line))
         }
     }
 
-    func testLineSelectionIsStableInsideSameMinute() {
+    @Test func testLineSelectionIsStableInsideSameMinute() {
         let now = Date(timeIntervalSince1970: 120)
 
-        XCTAssertEqual(
-            IdleBoost.line(at: now),
-            IdleBoost.line(at: now.addingTimeInterval(59))
-        )
+        #expect((IdleBoost.line(at: now)) == (IdleBoost.line(at: now.addingTimeInterval(59))))
     }
 
-    func testLineSelectionRotatesAcrossMinutes() {
+    @Test func testLineSelectionRotatesAcrossMinutes() {
         let first = IdleBoost.line(at: Date(timeIntervalSince1970: 0))
         let later = IdleBoost.line(at: Date(timeIntervalSince1970: 60))
 
-        XCTAssertNotEqual(first, later)
+        #expect((first) != (later))
     }
 }

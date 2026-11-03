@@ -1,91 +1,113 @@
-import XCTest
+import AgentPetCore
+import Testing
+import Foundation
 @testable import agentpet
 
 @MainActor
-final class ProjectUsageStoreCostTests: XCTestCase {
-    private let storageKey = "agentpet.projectUsage"
-    private let dirtyKey = "agentpet.projectUsage.dirty"
+@Suite(.serialized)
+final class ProjectUsageStoreCostTests {
+    nonisolated(unsafe) private var suite = ""
+    nonisolated(unsafe) private var defaults: UserDefaults!
 
-    nonisolated(unsafe) private var savedStorage: Any?
-    nonisolated(unsafe) private var savedDirty: Any?
+    private func setUp() {
 
-    override func setUp() {
-        super.setUp()
-        savedStorage = UserDefaults.standard.object(forKey: storageKey)
-        savedDirty = UserDefaults.standard.object(forKey: dirtyKey)
-        UserDefaults.standard.removeObject(forKey: storageKey)
-        UserDefaults.standard.removeObject(forKey: dirtyKey)
+        suite = "local.agentpet.tests.projectUsage." + UUID().uuidString
+        defaults = UserDefaults(suiteName: suite)!
     }
 
-    override func tearDown() {
-        UserDefaults.standard.removeObject(forKey: storageKey)
-        UserDefaults.standard.removeObject(forKey: dirtyKey)
-        if let savedStorage { UserDefaults.standard.set(savedStorage, forKey: storageKey) }
-        if let savedDirty { UserDefaults.standard.set(savedDirty, forKey: dirtyKey) }
-        savedStorage = nil
-        savedDirty = nil
-        super.tearDown()
+    private func tearDown() {
+        defaults.removePersistentDomain(forName: suite)
+        defaults = nil
+
     }
 
     // a) Backward-compat decode: old JSON without costUSD must still decode, defaulting to 0.
-    func testRowDecodesOldFormatWithoutCostUSD() throws {
+    @Test func testRowDecodesOldFormatWithoutCostUSD() throws {
+        setUp()
+        defer { tearDown() }
         let json = """
         {"projectId":"p1","projectName":"test","agent":"claude","day":"2026-07-01","tokens":100,"sessions":1}
         """
         let data = Data(json.utf8)
         let row = try JSONDecoder().decode(ProjectUsageStore.Row.self, from: data)
-        XCTAssertEqual(row.costUSD, 0)
-        XCTAssertEqual(row.tokens, 100)
+        #expect((row.costUSD) == (0))
+        #expect((row.tokens) == (100))
     }
 
     // b) Forward decode: JSON with costUSD present decodes correctly.
-    func testRowDecodesNewFormatWithCostUSD() throws {
+    @Test func testRowDecodesNewFormatWithCostUSD() throws {
+        setUp()
+        defer { tearDown() }
         let json = """
         {"projectId":"p1","projectName":"test","agent":"claude","day":"2026-07-01","tokens":100,"sessions":1,"costUSD":1.5}
         """
         let data = Data(json.utf8)
         let row = try JSONDecoder().decode(ProjectUsageStore.Row.self, from: data)
-        XCTAssertEqual(row.costUSD, 1.5)
+        #expect((row.costUSD) == (1.5))
     }
 
     // c) recordTokens with cost accumulates correctly across multiple calls.
-    func testRecordTokensAccumulatesCost() {
-        let store = ProjectUsageStore()
+    @Test func testRecordTokensAccumulatesCost() {
+        setUp()
+        defer { tearDown() }
+        let store = ProjectUsageStore(defaults: defaults)
         store.recordTokens(1000, project: "/some/project", agent: "claude", costUSD: 0.05)
         store.recordTokens(1000, project: "/some/project", agent: "claude", costUSD: 0.05)
 
-        let row = store.pendingRows().first { $0.agent == "claude" }
-        XCTAssertNotNil(row)
-        XCTAssertEqual(row?.tokens, 2000)
-        XCTAssertEqual(row?.costUSD ?? -1, 0.10, accuracy: 0.0001)
+        let row = store.recordedRows().first { $0.agent == "claude" }
+        #expect((row) != nil)
+        #expect((row?.tokens) == (2000))
+        #expect(abs((row?.costUSD ?? -1) - (0.10)) <= 0.0001)
     }
 
     // d) recordTokens without cost arg defaults to 0, keeping existing call sites intact.
-    func testRecordTokensWithoutCostDefaultsToZero() {
-        let store = ProjectUsageStore()
+    @Test func testRecordTokensWithoutCostDefaultsToZero() {
+        setUp()
+        defer { tearDown() }
+        let store = ProjectUsageStore(defaults: defaults)
         store.recordTokens(500, project: "/p", agent: "claude")
 
-        let row = store.pendingRows().first { $0.agent == "claude" }
-        XCTAssertNotNil(row)
-        XCTAssertEqual(row?.costUSD, 0)
+        let row = store.recordedRows().first { $0.agent == "claude" }
+        #expect((row) != nil)
+        #expect((row?.costUSD) == (0))
     }
 
     // e) todayCostUSD sums today's rows across projects/agents.
-    func testTodayCostUSDSumsAcrossProjects() {
-        let store = ProjectUsageStore()
+    @Test func testTodayCostUSDSumsAcrossProjects() {
+        setUp()
+        defer { tearDown() }
+        let store = ProjectUsageStore(defaults: defaults)
         store.recordTokens(1000, project: "/project/one", agent: "claude", costUSD: 0.10)
         store.recordTokens(2000, project: "/project/two", agent: "codex", costUSD: 0.20)
 
-        XCTAssertEqual(store.todayCostUSD, 0.30, accuracy: 0.0001)
+        #expect(abs((store.todayCostUSD) - (0.30)) <= 0.0001)
     }
 
     // f) monthlyCostUSD is at least todayCostUSD, and both are non-negative.
-    func testMonthlyCostUSDIsAtLeastTodayCostUSD() {
-        let store = ProjectUsageStore()
+    @Test func testMonthlyCostUSDIsAtLeastTodayCostUSD() {
+        setUp()
+        defer { tearDown() }
+        let store = ProjectUsageStore(defaults: defaults)
         store.recordTokens(1000, project: "/project/one", agent: "claude", costUSD: 0.10)
 
-        XCTAssertGreaterThanOrEqual(store.monthlyCostUSD, store.todayCostUSD)
-        XCTAssertGreaterThanOrEqual(store.todayCostUSD, 0)
-        XCTAssertGreaterThanOrEqual(store.monthlyCostUSD, 0)
+        #expect((store.monthlyCostUSD) >= (store.todayCostUSD))
+        #expect((store.todayCostUSD) >= (0))
+        #expect((store.monthlyCostUSD) >= (0))
     }
+    @Test func testLocalUsageSurvivesReloadWithoutCloud() {
+        setUp()
+        defer { tearDown() }
+        let store = ProjectUsageStore(defaults: defaults)
+        // Explicitly synthetic, isolated unit-test data; never real usage records.
+        store.recordTokens(300, project: "/synthetic/project", agent: "claude", costUSD: 0.02)
+        store.recordSession(project: "/synthetic/project", agent: "claude")
+        let expected = store.recordedRows()
+
+        let restored = ProjectUsageStore(defaults: defaults)
+        #expect((restored.recordedRows()) == (expected))
+        #expect((restored.recordedRows().first?.tokens) == (300))
+        #expect((restored.recordedRows().first?.sessions) == (1))
+        #expect(abs((restored.todayCostUSD) - (0.02)) <= 0.0001)
+    }
+
 }

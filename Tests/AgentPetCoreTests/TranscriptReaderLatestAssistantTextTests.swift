@@ -1,7 +1,9 @@
-import XCTest
+import Testing
+import Foundation
 @testable import AgentPetCore
 
-final class TranscriptReaderLatestAssistantTextTests: XCTestCase {
+@Suite(.serialized)
+final class TranscriptReaderLatestAssistantTextTests {
     private func tempTranscript(_ lines: [String]) throws -> String {
         let path = NSTemporaryDirectory() + "transcript-\(UUID().uuidString).jsonl"
         try Data(lines.joined(separator: "\n").utf8).write(to: URL(fileURLWithPath: path))
@@ -15,7 +17,7 @@ final class TranscriptReaderLatestAssistantTextTests: XCTestCase {
 
     private let userLine = #"{"type":"user","message":{"content":[{"type":"text","text":"thanks"}]}}"#
 
-    func testReturnsLatestAssistantTextVerbatim() throws {
+    @Test func testReturnsLatestAssistantTextVerbatim() throws {
         let path = try tempTranscript([
             assistantLine("Working on it now."),
             userLine,
@@ -23,37 +25,35 @@ final class TranscriptReaderLatestAssistantTextTests: XCTestCase {
         ])
         defer { try? FileManager.default.removeItem(atPath: path) }
 
-        XCTAssertEqual(TranscriptReader.latestAssistantText(at: path),
-                       "Which approach do you want — A or B?")
+        #expect((TranscriptReader.latestAssistantText(at: path)) == ("Which approach do you want — A or B?"))
     }
 
-    func testSkipsTrailingNonAssistantLines() throws {
+    @Test func testSkipsTrailingNonAssistantLines() throws {
         let path = try tempTranscript([
             assistantLine("All done — pushed the fix."),
             userLine
         ])
         defer { try? FileManager.default.removeItem(atPath: path) }
 
-        XCTAssertEqual(TranscriptReader.latestAssistantText(at: path),
-                       "All done — pushed the fix.")
+        #expect((TranscriptReader.latestAssistantText(at: path)) == ("All done — pushed the fix."))
     }
 
-    func testReturnsNilForUnreadablePath() {
-        XCTAssertNil(TranscriptReader.latestAssistantText(at: "/no/such/file-\(UUID().uuidString).jsonl"))
+    @Test func testReturnsNilForUnreadablePath() {
+        #expect((TranscriptReader.latestAssistantText(at: "/no/such/file-\(UUID().uuidString).jsonl")) == nil)
     }
 
-    func testReturnsNilWhenNoAssistantLineExists() throws {
+    @Test func testReturnsNilWhenNoAssistantLineExists() throws {
         let path = try tempTranscript([userLine])
         defer { try? FileManager.default.removeItem(atPath: path) }
 
-        XCTAssertNil(TranscriptReader.latestAssistantText(at: path))
+        #expect((TranscriptReader.latestAssistantText(at: path)) == nil)
     }
 
     private func assistantLine(model: String) -> String {
         #"{"type":"assistant","message":{"model":"\#(model)","content":[{"type":"text","text":"hi"}]}}"#
     }
 
-    func testLatestAssistantModelReturnsMostRecent() throws {
+    @Test func testLatestAssistantModelReturnsMostRecent() throws {
         let path = try tempTranscript([
             assistantLine(model: "claude-sonnet-4-6"),
             userLine,
@@ -61,13 +61,13 @@ final class TranscriptReaderLatestAssistantTextTests: XCTestCase {
         ])
         defer { try? FileManager.default.removeItem(atPath: path) }
 
-        XCTAssertEqual(TranscriptReader.latestAssistantModel(at: path), "claude-opus-4-1-20250805")
+        #expect((TranscriptReader.latestAssistantModel(at: path)) == ("claude-opus-4-1-20250805"))
     }
 
-    func testLatestAssistantModelNilWhenAbsent() throws {
+    @Test func testLatestAssistantModelNilWhenAbsent() throws {
         let path = try tempTranscript([userLine])
         defer { try? FileManager.default.removeItem(atPath: path) }
 
-        XCTAssertNil(TranscriptReader.latestAssistantModel(at: path))
+        #expect((TranscriptReader.latestAssistantModel(at: path)) == nil)
     }
 }

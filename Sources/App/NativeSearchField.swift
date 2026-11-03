@@ -9,7 +9,7 @@ struct NativeSearchField: NSViewRepresentable {
 
     func makeNSView(context: Context) -> NSSearchField {
         let field = NSSearchField()
-        field.placeholderString = placeholder
+        field.placeholderString = NSLocalizedString(placeholder, comment: "Search field placeholder")
         field.delegate = context.coordinator
         field.focusRingType = .none
         field.sendsSearchStringImmediately = true
@@ -19,6 +19,7 @@ struct NativeSearchField: NSViewRepresentable {
 
     func updateNSView(_ view: NSSearchField, context: Context) {
         if view.stringValue != text { view.stringValue = text }
+        view.placeholderString = NSLocalizedString(placeholder, comment: "Search field placeholder")
     }
 
     func makeCoordinator() -> Coordinator { Coordinator(text: $text) }

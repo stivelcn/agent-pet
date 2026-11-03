@@ -13,7 +13,7 @@ final class ProjectNameStore: ObservableObject {
     @Published private(set) var names: [String: String]
 
     init() {
-        names = (UserDefaults.standard.dictionary(forKey: Self.key) as? [String: String]) ?? [:]
+        names = (LocalPreferences.defaults.dictionary(forKey: Self.key) as? [String: String]) ?? [:]
     }
 
     /// Custom name, else the folder name. Use this wherever a project is shown.
@@ -30,7 +30,7 @@ final class ProjectNameStore: ObservableObject {
     func setName(_ name: String, forID id: String) {
         let clean = ProjectNames.clean(name)
         if clean.isEmpty { names.removeValue(forKey: id) } else { names[id] = clean }
-        UserDefaults.standard.set(names, forKey: Self.key)
+        LocalPreferences.defaults.set(names, forKey: Self.key)
     }
 }
 

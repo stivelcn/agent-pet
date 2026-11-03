@@ -1,57 +1,59 @@
-import XCTest
+import Testing
+import Foundation
 @testable import AgentPetCore
 
-final class AntigravityHookPayloadTests: XCTestCase {
+@Suite(.serialized)
+final class AntigravityHookPayloadTests {
     private let now = Date(timeIntervalSince1970: 1_700_000_000)
 
     private func event(_ json: String) -> AgentEvent? {
         AntigravityHookPayload.decode(from: Data(json.utf8))?.makeEvent(now: now)
     }
 
-    func testPreToolUseIsWorking() {
+    @Test func testPreToolUseIsWorking() {
         let e = event(#"{"conversationId":"c1","workspacePaths":["/Users/me/proj"],"stepIdx":0,"toolCall":{"name":"run_command"}}"#)
-        XCTAssertEqual(e?.agentKind, .antigravity)
-        XCTAssertEqual(e?.sessionId, "c1")
-        XCTAssertEqual(e?.eventName, "working")
-        XCTAssertEqual(e?.project, "/Users/me/proj")
-        XCTAssertTrue(ActivityTheme.chef.running.contains(e?.message ?? ""), "got \(e?.message ?? "nil")")
-        XCTAssertEqual(StateMapper.state(for: .antigravity, eventName: e!.eventName), .working)
+        #expect((e?.agentKind) == (.antigravity))
+        #expect((e?.sessionId) == ("c1"))
+        #expect((e?.eventName) == ("working"))
+        #expect((e?.project) == ("/Users/me/proj"))
+        #expect(ActivityTheme.chef.running.contains(e?.message ?? ""), Comment(rawValue: "got \(e?.message ?? "nil")"))
+        #expect((StateMapper.state(for: .antigravity, eventName: e!.eventName)) == (.working))
     }
 
-    func testDecodesModel() {
+    @Test func testDecodesModel() {
         let e = event(#"{"conversationId":"c1","workspacePaths":["/p"],"stepIdx":0,"toolCall":{"name":"run_command"},"model":{"display_name":"Gemini 3 Pro"}}"#)
-        XCTAssertEqual(e?.model, "Gemini 3 Pro")
+        #expect((e?.model) == ("Gemini 3 Pro"))
     }
 
-    func testStopWithTerminationReasonIsDone() {
+    @Test func testStopWithTerminationReasonIsDone() {
         let e = event(#"{"conversationId":"c2","executionNum":1,"terminationReason":"model_stop","fullyIdle":true}"#)
-        XCTAssertEqual(e?.eventName, "done")
-        XCTAssertEqual(StateMapper.state(for: .antigravity, eventName: e!.eventName), .done)
+        #expect((e?.eventName) == ("done"))
+        #expect((StateMapper.state(for: .antigravity, eventName: e!.eventName)) == (.done))
     }
 
-    func testStopWithOnlyFullyIdleIsDone() {
+    @Test func testStopWithOnlyFullyIdleIsDone() {
         let e = event(#"{"conversationId":"c2","fullyIdle":false}"#)
-        XCTAssertEqual(e?.eventName, "done")
+        #expect((e?.eventName) == ("done"))
     }
 
-    func testPreInvocationIsWorking() {
+    @Test func testPreInvocationIsWorking() {
         let e = event(#"{"conversationId":"c3","invocationNum":2,"initialNumSteps":5}"#)
-        XCTAssertEqual(e?.eventName, "working")
+        #expect((e?.eventName) == ("working"))
     }
 
-    func testPostToolUseIsWorking() {
+    @Test func testPostToolUseIsWorking() {
         let e = event(#"{"conversationId":"c4","stepIdx":3,"error":""}"#)
-        XCTAssertEqual(e?.eventName, "working")
+        #expect((e?.eventName) == ("working"))
     }
 
-    func testMissingConversationIdIsNil() {
-        XCTAssertNil(event(#"{"stepIdx":0,"toolCall":{"name":"x"}}"#))
+    @Test func testMissingConversationIdIsNil() {
+        #expect((event(#"{"stepIdx":0,"toolCall":{"name":"x"}}"#)) == nil)
     }
 
-    func testRoutedThroughHookPayloads() {
+    @Test func testRoutedThroughHookPayloads() {
         let data = Data(#"{"conversationId":"c5","terminationReason":"model_stop"}"#.utf8)
         let e = HookPayload.event(forAgent: .antigravity, stdin: data, now: now)
-        XCTAssertEqual(e?.agentKind, .antigravity)
-        XCTAssertEqual(e?.eventName, "done")
+        #expect((e?.agentKind) == (.antigravity))
+        #expect((e?.eventName) == ("done"))
     }
 }

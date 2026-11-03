@@ -3,10 +3,10 @@ import Foundation
 /// Persists completed agent sessions to daily JSON files under `baseURL`.
 public final class SessionArchiveStore: @unchecked Sendable {
 
-    /// Default singleton backed by `~/.agentpet/history/`.
+    /// Uses the same isolated data directory as pets, hooks and the event socket.
     public static let shared: SessionArchiveStore = SessionArchiveStore(
-        baseURL: FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".agentpet/history", isDirectory: true)
+        baseURL: URL(fileURLWithPath: AgentPetPaths.baseDir, isDirectory: true)
+            .appendingPathComponent("history", isDirectory: true)
     )
 
     /// Root directory where daily archive files are stored.

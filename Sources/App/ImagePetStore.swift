@@ -1,16 +1,25 @@
 import AppKit
 import AgentPetCore
 
-/// Loads and imports spritesheet pet packs from `~/.agentpet/pets/`.
+/// Loads and imports spritesheet pet packs from `AgentPetPaths.baseDir/pets/`.
 @MainActor
 final class ImagePetStore: ObservableObject {
     static let shared = ImagePetStore()
 
     @Published private(set) var packs: [ImagePetPack] = []
+    @Published private(set) var isLoading = false
+    @Published private(set) var loadFailures: [String: String] = [:]
+    private var loadGeneration = UUID()
+
+    func loadingMessage(for id: String?) -> String {
+        guard let id else { return "请在设置中选择宠物" }
+        if let failure = loadFailures[id] { return failure }
+        return isLoading ? "正在加载宠物…" : "未找到所选宠物，请重新选择"
+    }
 
     /// User-chosen names per pet id, overriding the pack's catalog name (#31).
     @Published private(set) var nameOverrides: [String: String] =
-        (UserDefaults.standard.dictionary(forKey: "agentpet.petNames") as? [String: String]) ?? [:]
+        (LocalPreferences.defaults.dictionary(forKey: "agentpet.petNames") as? [String: String]) ?? [:]
 
     private var petsDir: URL {
         URL(fileURLWithPath: AgentPetPaths.baseDir).appendingPathComponent("pets")
@@ -36,8 +45,7 @@ final class ImagePetStore: ObservableObject {
         } else {
             nameOverrides[id] = String(trimmed.prefix(40))
         }
-        UserDefaults.standard.set(nameOverrides, forKey: "agentpet.petNames")
-        CareSyncController.shared.scheduleSync()   // push the new name to the web
+        LocalPreferences.defaults.set(nameOverrides, forKey: "agentpet.petNames")
     }
 
     /// Deletes an installed pet's folder from disk. Drops it from the in-memory
@@ -52,36 +60,52 @@ final class ImagePetStore: ObservableObject {
     /// Full synchronous reload. Used after importing a pet, where slicing every
     /// pack up front is acceptable; launch uses `loadFast` to stay responsive.
     func reload() {
-        packs = Self.directories(in: petsDir)
-            .compactMap { SpriteSlicer.loadPack(directory: $0) }
-            .sorted { $0.displayName < $1.displayName }
+        loadGeneration = UUID() // discard a previous background launch load
+        let result = Self.load(directories: Self.directories(in: petsDir))
+        loadFailures = result.failures
+        isLoading = false
+        packs = result.packs.sorted { $0.displayName < $1.displayName }
     }
 
-    /// Launch path: slice only the prioritised pack synchronously so the pet and
-    /// menu bar can appear immediately, then slice the remaining packs OFF the
-    /// main thread and publish once. Slicing on the main actor (even chunked)
-    /// starved the pet's frame timer at launch — the animation crawled until the
-    /// library finished loading. Decoding happens on a background queue; only the
-    /// finished, immutable packs are handed back to the main actor.
+    /// Decode the selected pack immediately, then load the rest off the main actor.
     func loadFast(priorityID: String?) {
+        let generation = UUID()
+        loadGeneration = generation
         let dirs = Self.directories(in: petsDir)
         let priorityDir = priorityID
             .flatMap { pid in dirs.first { SpriteSlicer.manifestID(directory: $0) == pid } }
             ?? dirs.first
-        if let pd = priorityDir, let pack = SpriteSlicer.loadPack(directory: pd) {
-            packs = [pack]
-        }
+        let first = Self.load(directories: priorityDir.map { [$0] } ?? [])
+        loadFailures = first.failures
+        packs = first.packs
         let rest = dirs.filter { $0 != priorityDir }
+        isLoading = !rest.isEmpty
         guard !rest.isEmpty else { return }
         Task.detached(priority: .utility) {
-            let more = rest.compactMap { SpriteSlicer.loadPack(directory: $0) }
-            let box = UncheckedSendableBox(more)
+            let result = Self.load(directories: rest)
+            let box = UncheckedSendableBox(result)
             await MainActor.run {
-                // Keep the already-shown priority pack, add the rest, sort once.
                 let store = ImagePetStore.shared
-                store.packs = (store.packs + box.value).sorted { $0.displayName < $1.displayName }
+                guard store.loadGeneration == generation else { return }
+                store.loadFailures.merge(box.value.failures) { _, new in new }
+                store.isLoading = false
+                store.packs = (store.packs + box.value.packs).sorted { $0.displayName < $1.displayName }
             }
         }
+    }
+
+    nonisolated private static func load(directories: [URL]) -> (packs: [ImagePetPack], failures: [String: String]) {
+        var packs: [ImagePetPack] = []
+        var failures: [String: String] = [:]
+        for dir in directories {
+            if let pack = SpriteSlicer.loadPack(directory: dir) {
+                packs.append(pack)
+            } else {
+                let id = SpriteSlicer.manifestID(directory: dir) ?? dir.lastPathComponent
+                failures[id] = "宠物资源加载失败，请重新下载或导入"
+            }
+        }
+        return (packs, failures)
     }
 
     private static func directories(in dir: URL) -> [URL] {

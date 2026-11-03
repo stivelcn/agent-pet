@@ -25,10 +25,10 @@ final class SettingsModel: ObservableObject {
     /// In-app notification toggle: lets users mute alerts even after granting
     /// the macOS permission. Defaults to on.
     @Published var notificationsEnabled: Bool {
-        didSet { UserDefaults.standard.set(notificationsEnabled, forKey: NotificationManager.enabledKey) }
+        didSet { LocalPreferences.defaults.set(notificationsEnabled, forKey: NotificationManager.enabledKey) }
     }
 
-    /// Backed by `~/.agentpet/approval-gate.json` so the separate hook CLI process reads it too.
+    /// Backed by `AgentPetPaths.baseDir/approval-gate.json` so the separate hook CLI process reads it too.
     @Published var approvalGateEnabled: Bool {
         didSet { ApprovalGateConfig.setEnabled(approvalGateEnabled) }
     }
@@ -36,117 +36,95 @@ final class SettingsModel: ObservableObject {
     let agents = AgentCatalog.all
 
     init() {
-        notificationsEnabled = (UserDefaults.standard.object(forKey: NotificationManager.enabledKey) as? Bool) ?? true
+        notificationsEnabled = (LocalPreferences.defaults.object(forKey: NotificationManager.enabledKey) as? Bool) ?? true
         approvalGateEnabled = ApprovalGateConfig.isEnabled()
     }
 
-    func refresh() {
-        var set: Set<AgentKind> = []
-        for agent in agents where agent.isSupported {
-            if let spec = AgentHooks.spec(for: agent.kind),
-               HookInstaller.isInstalledOnDisk(path: spec.settingsPath, events: spec.events, style: spec.style) {
-                set.insert(agent.kind)
-            }
+    @Published private(set) var detectedClients: [AgentKind: String] = [:]
+    @Published private(set) var connectionErrors: [AgentKind: String] = [:]
+    @Published private(set) var lastEvents: [AgentKind: Date] = [:]
+    private static let disconnectedKey = "agentpet.disconnectedClients"
+    private var disconnected: Set<String> = Set(LocalPreferences.defaults.stringArray(forKey: disconnectedKey) ?? [])
+
+    private var installer: AgentConnectionInstaller {
+        AgentConnectionInstaller(
+            binaryPath: Bundle.main.executablePath ?? CommandLine.arguments[0],
+            backupRoot: AgentPetPaths.baseDir + "/config-backups")
+    }
+
+    /// Run only after the local event receiver has started. Configuration is not a live connection.
+    func autoConnectDetectedClients() {
+        refresh()
+        guard LocalConfiguration.hookConfigurationEnabled,
+              ProcessInfo.processInfo.environment["AGENTPET_AUTOCONNECT"] != "0" else { return }
+        for agent in agents where agent.isSupported && detectedClients[agent.kind] != nil {
+            guard !disconnected.contains(agent.kind.rawValue) else { continue }
+            connect(agent.kind)
         }
-        installedKinds = set
+        refresh()
+    }
+
+    func refresh() {
+        detectedClients = AgentClientDetector.detect()
+        installedKinds = Set(agents.compactMap { agent in
+            guard agent.isSupported, let spec = AgentHooks.spec(for: agent.kind),
+                  installer.isConfigured(spec, codexConfigPath: agent.kind == .codex ? CodexHookConfig.defaultConfigPath() : nil)
+            else { return nil }
+            return agent.kind
+        })
         refreshNotificationState()
     }
 
-    func isInstalled(_ kind: AgentKind) -> Bool {
-        installedKinds.contains(kind)
-    }
+    func isInstalled(_ kind: AgentKind) -> Bool { installedKinds.contains(kind) }
 
-    /// Re-applies hooks for already-installed agents once per app version, so
-    /// existing users pick up newly-added events (e.g. SessionEnd for instant
-    /// clear on quit) without manually re-installing. Idempotent and only
-    /// touches our own hook entries.
-    func migrateInstalledHooksIfNeeded() {
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
-        let key = "agentpet.hookMigration.\(version)"
-        guard !UserDefaults.standard.bool(forKey: key) else { return }
-        UserDefaults.standard.set(true, forKey: key)
-        for agent in agents where agent.isSupported {
-            reinstallIfInstalled(agent.kind)
+    func connectionStatus(_ kind: AgentKind) -> String {
+        if let error = connectionErrors[kind] { return error }
+        if let date = lastEvents[kind] {
+            return "已收到客户端事件 · " + date.formatted(date: .omitted, time: .standard)
         }
+        if isInstalled(kind) { return "已配置，等待客户端事件" }
+        if disconnected.contains(kind.rawValue) { return "已断开，不会自动重连" }
+        return detectedClients[kind] == nil ? "未检测到已安装的客户端" : "已检测到，尚未连接"
     }
 
-    /// Re-runs the (idempotent) install for `kind` when its hook is already on
-    /// disk. Never installs for an agent the user hasn't enabled.
-    private func reinstallIfInstalled(_ kind: AgentKind) {
-        guard let spec = AgentHooks.spec(for: kind),
-              HookInstaller.isInstalledOnDisk(path: spec.settingsPath, events: spec.events, style: spec.style)
-        else { return }
-        try? HookInstaller.installToDisk(command: hookCommand(for: kind),
-                                         path: spec.settingsPath, events: spec.events, style: spec.style)
+    func recordActivity(_ kind: AgentKind) {
+        lastEvents[kind] = Date()
     }
 
-    /// Repairs hook entries whose embedded binary path no longer matches the
-    /// current executable location. Runs on every launch so hooks stay valid
-    /// after the app is moved, re-downloaded, or updated via a different channel
-    /// (e.g. Homebrew vs DMG).  Idempotent — only rewrites when the path differs.
-    func repairStaleHookPathsIfNeeded() {
-        let currentPath = Bundle.main.executablePath ?? ""
-        guard !currentPath.isEmpty else { return }
-        let expectedCommand = "\"\(currentPath)\" hook"
-        for agent in agents where agent.isSupported {
-            guard let spec = AgentHooks.spec(for: agent.kind) else { continue }
-            // jcode's config is TOML, not JSON, so there is no JSON entry to
-            // inspect; its install is an idempotent in-place rewrite.
-            if spec.style == .jcodeToml {
-                reinstallIfInstalled(agent.kind)
-                continue
-            }
-            guard let settings = try? HookInstaller.readSettings(path: spec.settingsPath) else { continue }
-            guard HookInstaller.isInstalledOnDisk(path: spec.settingsPath,
-                                                  events: spec.events,
-                                                  style: spec.style) else { continue }
-            // Check if any stored hook command references a different binary path.
-            let needsRepair: Bool = {
-                guard let hooks = settings["hooks"] as? [String: Any] else { return false }
-                for event in spec.events {
-                    guard let groups = hooks[event] as? [[String: Any]] else { continue }
-                    for group in groups {
-                        guard let inner = group["hooks"] as? [[String: Any]] else { continue }
-                        for entry in inner {
-                            if let cmd = entry["command"] as? String,
-                               cmd.contains("agentpet") && cmd.contains("hook"),
-                               !cmd.hasPrefix(expectedCommand) {
-                                return true
-                            }
-                        }
-                    }
-                }
-                return false
-            }()
-            guard needsRepair else { continue }
-            try? HookInstaller.installToDisk(command: hookCommand(for: agent.kind),
-                                             path: spec.settingsPath,
-                                             events: spec.events,
-                                             style: spec.style)
+    private func connect(_ kind: AgentKind) {
+        guard let spec = AgentHooks.spec(for: kind) else { return }
+        connectionErrors.removeValue(forKey: kind)
+        do {
+            try installer.connect(spec, codexConfigPath: kind == .codex ? CodexHookConfig.defaultConfigPath() : nil)
+        } catch {
+            connectionErrors[kind] = error.localizedDescription
+            installError = error.localizedDescription
         }
-    }
-
-    private func hookCommand(for kind: AgentKind) -> String {
-        let path = Bundle.main.executablePath ?? CommandLine.arguments.first ?? "agentpet"
-        return "\"\(path)\" hook --agent \(kind.rawValue)"
     }
 
     func toggleInstall(_ kind: AgentKind) {
+        guard LocalConfiguration.hookConfigurationEnabled else {
+            installError = "当前启动方式已关闭客户端配置；请正常启动开发版后重试。"
+            return
+        }
         guard let spec = AgentHooks.spec(for: kind) else { return }
         installError = nil
-        do {
-            if installedKinds.contains(kind) {
-                try HookInstaller.uninstallFromDisk(path: spec.settingsPath, events: spec.events, style: spec.style)
-            } else {
-                try HookInstaller.installToDisk(command: hookCommand(for: kind), path: spec.settingsPath, events: spec.events, style: spec.style)
-                // Codex ignores our hooks.json unless its hooks feature is on.
-                if kind == .codex {
-                    try CodexHookConfig.enableHooksOnDisk()
-                }
+        connectionErrors.removeValue(forKey: kind)
+        if isInstalled(kind) {
+            do {
+                try installer.disconnect(spec)
+                disconnected.insert(kind.rawValue)
+                lastEvents.removeValue(forKey: kind)
+            } catch {
+                connectionErrors[kind] = error.localizedDescription
+                installError = error.localizedDescription
             }
-        } catch {
-            installError = error.localizedDescription
+        } else {
+            guard detectedClients[kind] != nil else { return }
+            connect(kind)
+            if connectionErrors[kind] == nil { disconnected.remove(kind.rawValue) }
         }
+        LocalPreferences.defaults.set(Array(disconnected).sorted(), forKey: Self.disconnectedKey)
         refresh()
     }
 

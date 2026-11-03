@@ -1,34 +1,33 @@
-import XCTest
+import Testing
+import Foundation
 @testable import AgentPetCore
 
-final class PerKeyThrottleTests: XCTestCase {
-    func testFirstCallForKeyRuns() {
+@Suite(.serialized)
+final class PerKeyThrottleTests {
+    @Test func testFirstCallForKeyRuns() {
         let throttle = PerKeyThrottle(interval: 10)
         let t0 = Date(timeIntervalSince1970: 0)
-        XCTAssertTrue(throttle.shouldRun("a", now: t0), "the first call for a key must run")
+        #expect(throttle.shouldRun("a", now: t0), Comment(rawValue: "the first call for a key must run"))
     }
 
-    func testSecondCallWithinIntervalIsSkipped() {
+    @Test func testSecondCallWithinIntervalIsSkipped() {
         let throttle = PerKeyThrottle(interval: 10)
         let t0 = Date(timeIntervalSince1970: 0)
         _ = throttle.shouldRun("a", now: t0)
-        XCTAssertFalse(throttle.shouldRun("a", now: t0.addingTimeInterval(9)),
-                       "a call before the interval elapses must be skipped")
+        #expect(!(throttle.shouldRun("a", now: t0.addingTimeInterval(9))), Comment(rawValue: "a call before the interval elapses must be skipped"))
     }
 
-    func testCallAfterIntervalRunsAgain() {
+    @Test func testCallAfterIntervalRunsAgain() {
         let throttle = PerKeyThrottle(interval: 10)
         let t0 = Date(timeIntervalSince1970: 0)
         _ = throttle.shouldRun("a", now: t0)
-        XCTAssertTrue(throttle.shouldRun("a", now: t0.addingTimeInterval(10)),
-                      "once the interval has elapsed the key runs again")
+        #expect(throttle.shouldRun("a", now: t0.addingTimeInterval(10)), Comment(rawValue: "once the interval has elapsed the key runs again"))
     }
 
-    func testKeysAreIndependent() {
+    @Test func testKeysAreIndependent() {
         let throttle = PerKeyThrottle(interval: 10)
         let t0 = Date(timeIntervalSince1970: 0)
         _ = throttle.shouldRun("a", now: t0)
-        XCTAssertTrue(throttle.shouldRun("b", now: t0),
-                      "throttling one key must not block a different key")
+        #expect(throttle.shouldRun("b", now: t0), Comment(rawValue: "throttling one key must not block a different key"))
     }
 }

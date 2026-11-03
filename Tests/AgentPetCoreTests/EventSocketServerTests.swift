@@ -1,13 +1,15 @@
-import XCTest
+import Testing
+import Foundation
 @testable import AgentPetCore
 
-final class EventSocketServerTests: XCTestCase {
-    func testReceivesEventOverSocket() throws {
+@Suite(.serialized)
+final class EventSocketServerTests {
+    @Test func testReceivesEventOverSocket() throws {
         let path = "/tmp/agentpet-\(UUID().uuidString).sock"
         let server = EventSocketServer(path: path)
         defer { server.stop() }
 
-        let exp = expectation(description: "event delivered")
+        let exp = TestSignal(description: "event delivered")
         let box = Box()
         try server.start { event in
             box.value = event
@@ -22,11 +24,11 @@ final class EventSocketServerTests: XCTestCase {
         data.append(0x0A)
         try sendToUnixSocket(path: path, data: data)
 
-        wait(for: [exp], timeout: 2)
-        XCTAssertEqual(box.value, event)
+        waitForSignals( [exp], timeout: 2)
+        #expect((box.value) == (event))
     }
 
-    func testDrainQueueEmitsAndRemovesFiles() throws {
+    @Test func testDrainQueueEmitsAndRemovesFiles() throws {
         let dir = NSTemporaryDirectory() + "agentpet-q-\(UUID().uuidString)"
         try FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(atPath: dir) }
@@ -43,19 +45,19 @@ final class EventSocketServerTests: XCTestCase {
         var received: [AgentEvent] = []
         EventSocketServer.drainQueue(directory: dir) { received.append($0) }
 
-        XCTAssertEqual(received, [event])
-        XCTAssertFalse(FileManager.default.fileExists(atPath: file), "queue file removed after drain")
+        #expect((received) == ([event]))
+        #expect(!(FileManager.default.fileExists(atPath: file)), Comment(rawValue: "queue file removed after drain"))
     }
 
     /// A client that connects and never sends (a suspended hook, a stray probe)
     /// used to hold the single accept loop in a blocking read forever, so every
     /// later event fell into the offline queue, which is only drained at launch.
-    func testSilentClientDoesNotBlockLaterEvents() throws {
+    @Test func testSilentClientDoesNotBlockLaterEvents() throws {
         let path = "/tmp/agentpet-\(UUID().uuidString).sock"
         let server = EventSocketServer(path: path)
         defer { server.stop() }
 
-        let exp = expectation(description: "event delivered despite a silent client")
+        let exp = TestSignal(description: "event delivered despite a silent client")
         let box = Box()
         try server.start { event in
             box.value = event
@@ -73,8 +75,8 @@ final class EventSocketServerTests: XCTestCase {
         data.append(0x0A)
         try sendToUnixSocket(path: path, data: data)
 
-        wait(for: [exp], timeout: 5)
-        XCTAssertEqual(box.value, event)
+        waitForSignals( [exp], timeout: 5)
+        #expect((box.value) == (event))
     }
 
     // MARK: - Helpers
@@ -88,14 +90,14 @@ final class EventSocketServerTests: XCTestCase {
         defer { close(fd) }
         data.withUnsafeBytes { raw in
             let written = write(fd, raw.baseAddress, raw.count)
-            XCTAssertEqual(written, raw.count)
+            #expect((written) == (raw.count))
         }
     }
 
     /// Opens a connected client socket; the caller closes it.
     private func connectToUnixSocket(path: String) throws -> Int32 {
         let fd = socket(AF_UNIX, SOCK_STREAM, 0)
-        XCTAssertGreaterThanOrEqual(fd, 0)
+        #expect((fd) >= (0))
 
         var addr = sockaddr_un()
         addr.sun_family = sa_family_t(AF_UNIX)
@@ -111,7 +113,7 @@ final class EventSocketServerTests: XCTestCase {
         let connected = withUnsafePointer(to: &addr) { ptr in
             ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { connect(fd, $0, size) }
         }
-        XCTAssertEqual(connected, 0, "connect failed errno=\(errno)")
+        #expect((connected) == (0), Comment(rawValue: "connect failed errno=\(errno)"))
         return fd
     }
 }

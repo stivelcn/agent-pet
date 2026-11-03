@@ -12,6 +12,11 @@ struct ImagePetPack: Identifiable {
 
     var clipCount: Int { clips.count }
 
+    /// The first clip is the pack's in-place idle/blink loop. Desktop and preview
+    /// renderers deliberately use it for EVERY task state, ignoring legacy
+    /// state-to-action bindings without deleting the user's saved preferences.
+    var restingFrames: [NSImage] { clip(0) }
+
     func clip(_ index: Int) -> [NSImage] {
         guard !clips.isEmpty else { return [] }
         return clips[min(max(index, 0), clips.count - 1)]

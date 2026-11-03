@@ -11,7 +11,7 @@ final class ChatSettings: ObservableObject {
     enum Source: String { case system, custom }
 
     @Published var source: Source {
-        didSet { UserDefaults.standard.set(source.rawValue, forKey: Self.sourceKey) }
+        didSet { LocalPreferences.defaults.set(source.rawValue, forKey: Self.sourceKey) }
     }
     /// moodRawValue -> custom lines.
     @Published var custom: [String: [String]] {
@@ -32,8 +32,8 @@ final class ChatSettings: ObservableObject {
     }
 
     init() {
-        source = (UserDefaults.standard.string(forKey: Self.sourceKey)).flatMap(Source.init(rawValue:)) ?? .system
-        if let data = UserDefaults.standard.data(forKey: Self.customKey),
+        source = (LocalPreferences.defaults.string(forKey: Self.sourceKey)).flatMap(Source.init(rawValue:)) ?? .system
+        if let data = LocalPreferences.defaults.data(forKey: Self.customKey),
            let decoded = try? JSONDecoder().decode([String: [String]].self, from: data) {
             custom = decoded
         } else {
@@ -75,7 +75,7 @@ final class ChatSettings: ObservableObject {
 
     private func save() {
         if let data = try? JSONEncoder().encode(custom) {
-            UserDefaults.standard.set(data, forKey: Self.customKey)
+            LocalPreferences.defaults.set(data, forKey: Self.customKey)
         }
     }
 }

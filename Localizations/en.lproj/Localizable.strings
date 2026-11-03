@@ -526,3 +526,226 @@
 "Show less" = "Show less";
 "Show %d more" = "Show %d more";
 "Limit" = "Limit";
+
+"%@ · %d running" = "%@ · %d running";
+
+"%d agents" = "%d agents";
+
+"(empty)" = "(empty)";
+
+"A local companion for your AI coding work." = "A local companion for your AI coding work.";
+
+"Acknowledgements" = "Acknowledgements";
+
+"Add…" = "Add…";
+
+"Agent" = "Agent";
+
+"AgentPet" = "AgentPet";
+
+"Break reminder" = "Break reminder";
+
+"By %@" = "By %@";
+
+"Choose" = "Choose";
+
+"Choose Project Folder" = "Choose Project Folder";
+
+"Choose Spritesheet" = "Choose Spritesheet";
+
+"Configured projects" = "Configured projects";
+
+"Copilot CLI only (~/.copilot/hooks)" = "Copilot CLI only (~/.copilot/hooks)";
+
+"Could not create this pet. Check that the image is a valid spritesheet." = "Could not create this pet. Check that the image is a valid spritesheet.";
+
+"Could not download %@. Check your connection and try again." = "Could not download %@. Check your connection and try again.";
+
+"Data folder" = "Data folder";
+
+"Delete this webhook" = "Delete this webhook";
+
+"Description" = "Description";
+
+"Development builds do not change agent hooks by default. See LOCAL_DEVELOPMENT.md to opt in." = "Development builds do not change agent hooks by default. See LOCAL_DEVELOPMENT.md to opt in.";
+
+"Development mode: agent hook configuration is disabled. Your existing clients are unchanged." = "Development mode: agent hook configuration is disabled. Your existing clients are unchanged.";
+
+"Factory Droid CLI (~/.factory/hooks.json)" = "Factory Droid CLI (~/.factory/hooks.json)";
+
+"Get" = "Get";
+
+"Give your companion a custom name. Clear it to use the original." = "Give your companion a custom name. Clear it to use the original.";
+
+"Hooks the default Kiro CLI agent" = "Hooks the default Kiro CLI agent";
+
+"Icon for %@" = "Icon for %@";
+
+"L" = "L";
+
+"Local data" = "Local data";
+
+"M" = "M";
+
+"Manual updates only. No account, cloud sync or subscription polling." = "Manual updates only. No account, cloud sync or subscription polling.";
+
+"Max agent kinds: %d" = "Max agent kinds: %d";
+
+"Max sessions: %d" = "Max sessions: %d";
+
+"Name" = "Name";
+
+"No \"needs input\" alerts (Antigravity has no notification hook)" = "No \"needs input\" alerts (Antigravity has no notification hook)";
+
+"No \"needs input\" alerts (Windsurf has no such hook)" = "No \"needs input\" alerts (Windsurf has no such hook)";
+
+"No agents running" = "No agents running";
+
+"No image selected" = "No image selected";
+
+"No pet selected — browse or create one" = "No pet selected — browse or create one";
+
+"No pets installed." = "No pets installed.";
+
+"On" = "On";
+
+"Original AgentPet project (MIT)" = "Original AgentPet project (MIT)";
+
+"Period" = "Period";
+
+"Pet artwork keeps its own creator and license information." = "Pet artwork keeps its own creator and license information.";
+
+"Pet display" = "Pet display";
+
+"Pet name" = "Pet name";
+
+"Petdex is rate-limiting downloads right now. Wait a moment and tap Get again." = "Petdex is rate-limiting downloads right now. Wait a moment and tap Get again.";
+
+"Pets, settings and growth stay on this Mac. No account or cloud sync is required." = "Pets, settings and growth stay on this Mac. No account or cloud sync is required.";
+
+"Pi (pi.dev) extension; no \"needs input\" alerts (Pi has no approval gate by default)" = "Pi (pi.dev) extension; no \"needs input\" alerts (Pi has no approval gate by default)";
+
+"Preferences" = "Preferences";
+
+"Remove project" = "Remove project";
+
+"Remove this project mapping" = "Remove this project mapping";
+
+"S" = "S";
+
+"Save" = "Save";
+
+"Search" = "Search";
+
+"Third-party usage depends on what the client records. Additional client adapters are planned." = "Third-party usage depends on what the client records. Additional client adapters are planned.";
+
+"Usage comes from supported local agent logs and session events, not subscription balances." = "Usage comes from supported local agent logs and session events, not subscription balances.";
+
+"jcode lifecycle hooks (~/.jcode/config.toml)" = "jcode lifecycle hooks (~/.jcode/config.toml)";
+
+"space" = "space";
+
+"xAI Grok Build CLI (~/.grok/hooks/agentpet.json)" = "xAI Grok Build CLI (~/.grok/hooks/agentpet.json)";
+
+/* Dynamic controls and gallery labels */
+"All" = "All";
+"Characters" = "Characters";
+"Creatures" = "Creatures";
+"Objects" = "Objects";
+"Search pets" = "Search pets";
+"Search your pets" = "Search your pets";
+"Sep" = "Sep";
+"community" = "community";
+"Couldn't load the pet library. Check your connection." = "Couldn't load the pet library. Check your connection.";
+"Show pet" = "Show pet";
+"Show count on menu bar" = "Show count on menu bar";
+"Show chat on menu bar" = "Show chat on menu bar";
+"Show bubble on menu bar" = "Show bubble on menu bar";
+"Registered" = "Registered";
+
+/* Pet tap reactions: normal, affectionate, and delighted */
+"Hehe~" = "Hehe~";
+"That tickles!" = "That tickles!";
+"Hi there! 👋" = "Hi there! 👋";
+"Oh! Hello~" = "Oh! Hello~";
+"*purrs*" = "*purrs*";
+"Nyaa~" = "Nyaa~";
+"I love you! 💕" = "I love you! 💕";
+"More pets please!" = "More pets please!";
+"Best human ever!" = "Best human ever!";
+"So happy~ ✨" = "So happy~ ✨";
+"MAXIMUM LOVE! 💖" = "MAXIMUM LOVE! 💖";
+"Can't stop smiling! 🥰" = "Can't stop smiling! 🥰";
+"I'm gonna melt~" = "I'm gonna melt~";
+
+/* Quiet companion animation */
+"Quiet animations use 1–2 fps; sleepy uses 1 fps." = "Quiet animations use 1–2 fps; sleepy uses 1 fps.";
+"Quiet companion" = "Quiet companion";
+"Only in-place idle and blinking, even when tasks finish. No running, jumping, or tap bouncing." = "Only in-place idle and blinking, even when tasks finish. No running, jumping, or tap bouncing.";
+"Task tracking and status messages stay active. Sleepy playback is slower." = "Task tracking and status messages stay active. Sleepy playback is slower.";
+
+// Local token usage history
+"View usage statistics" = "View usage statistics";
+"View statistics" = "View statistics";
+"By day" = "By day";
+"By month" = "By month";
+"Month" = "Month";
+"Year" = "Year";
+"Unknown project" = "Unknown project";
+"token usage statistics" = "token usage statistics";
+"Local · Auto-updating" = "Local · Auto-updating";
+"Today token" = "Today token";
+"This month token" = "This month token";
+"Recorded token total" = "Recorded token total";
+"Recorded completions" = "Recorded completions";
+"Completion events reported by connected agents, not unique conversations." = "Completion events reported by connected agents, not unique conversations.";
+"Time grouping" = "Time grouping";
+"All recorded clients" = "All recorded clients";
+"No recorded token data" = "No recorded token data";
+"Completions" = "Completions";
+"token trend" = "token trend";
+"Click a bar or date to inspect its clients and projects. — means no recorded token data, not zero usage." = "Click a bar or date to inspect its clients and projects. — means no recorded token data, not zero usage.";
+"Clients and projects" = "Clients and projects";
+"Show entire period" = "Show entire period";
+"Client / Project" = "Client / Project";
+"Daily details" = "Daily details";
+"Monthly details" = "Monthly details";
+"Date" = "Date";
+"No records" = "No records";
+"Companion growth" = "Companion growth";
+"Pet received %@ token" = "Pet received %@ token";
+"Pet meals: %@" = "Pet meals: %@";
+"Pet growth belongs to this companion only. Usage statistics above cover all locally recorded clients; their totals may differ." = "Pet growth belongs to this companion only. Usage statistics above cover all locally recorded clients; their totals may differ.";
+"Recorded dates: %@ – %@" = "Recorded dates: %@ – %@";
+"Only locally collected usage is shown, not a provider bill or your full account history. Previously deleted or uncollected records cannot be recovered here. Daily and monthly aggregates are kept locally going forward." = "Only locally collected usage is shown, not a provider bill or your full account history. Previously deleted or uncollected records cannot be recovered here. Daily and monthly aggregates are kept locally going forward.";
+"Some clients report completions without token counts. — means unavailable. Completion counts track reported task-finished events, not unique conversations." = "Some clients report completions without token counts. — means unavailable. Completion counts track reported task-finished events, not unique conversations.";
+"No usage records in this period" = "No usage records in this period";
+"Use a connected agent as usual. Reported usage will appear here automatically; no manual import is needed." = "Use a connected agent as usual. Reported usage will appear here automatically; no manual import is needed.";
+"Coding agent" = "Coding agent";
+"Other agents" = "Other agents";
+
+// Daily token calendar heatmap
+"Ending month" = "Ending month";
+"Daily activity" = "Daily activity";
+"Past three months" = "Past three months";
+"Each square is a day. Darker blue means more token; gray means no recorded token data, not zero usage." = "Each square is a day. Darker blue means more token; gray means no recorded token data, not zero usage.";
+"Hover for usage · Click for details" = "Hover for usage · Click for details";
+"No token record" = "No token record";
+"Less usage" = "Less usage";
+"More usage" = "More usage";
+"Blue intensity represents token usage" = "Blue intensity represents token usage";
+"Selected day" = "Selected day";
+
+/* Persistent completion reminders */
+"Done ✅" = "Done ✅";
+"%d tasks are done" = "%d tasks are done";
+"Click to choose a conversation" = "Click to choose a conversation";
+"Open the completed conversation" = "Open the completed conversation";
+"Completed conversations" = "Completed conversations";
+"Dismiss this completion reminder" = "Dismiss this completion reminder";
+"Open this agent conversation" = "Open this agent conversation";
+"The client is open, but this conversation could not be located. Reminder kept." = "The client is open, but this conversation could not be located. Reminder kept.";
+"This client has not provided a conversation location. Reminder kept." = "This client has not provided a conversation location. Reminder kept.";
+"Could not open this conversation. Check that the client is installed and the session still exists. Reminder kept." = "Could not open this conversation. Check that the client is installed and the session still exists. Reminder kept.";
+"Completion reminders could not be saved or restored. They remain visible in this run." = "Completion reminders could not be saved or restored. They remain visible in this run.";
+"Conversation" = "Conversation";

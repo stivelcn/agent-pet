@@ -1,3 +1,4 @@
+import AgentPetCore
 // Sources/App/BreakReminderSettings.swift
 import Foundation
 
@@ -9,13 +10,13 @@ final class BreakReminderSettings: ObservableObject {
     static let shared = BreakReminderSettings()
 
     @Published var enabled: Bool {
-        didSet { UserDefaults.standard.set(enabled, forKey: Self.enabledKey); onChange?() }
+        didSet { LocalPreferences.defaults.set(enabled, forKey: Self.enabledKey); onChange?() }
     }
     @Published var workIntervalMinutes: Int {
-        didSet { UserDefaults.standard.set(workIntervalMinutes, forKey: Self.workKey); onChange?() }
+        didSet { LocalPreferences.defaults.set(workIntervalMinutes, forKey: Self.workKey); onChange?() }
     }
     @Published var breakLengthMinutes: Int {
-        didSet { UserDefaults.standard.set(breakLengthMinutes, forKey: Self.breakKey); onChange?() }
+        didSet { LocalPreferences.defaults.set(breakLengthMinutes, forKey: Self.breakKey); onChange?() }
     }
 
     /// Invoked on any change so `BreakReminderController` can react.
@@ -26,7 +27,7 @@ final class BreakReminderSettings: ObservableObject {
     private static let breakKey = "agentpet.breakReminder.breakLengthMinutes"
 
     init() {
-        let d = UserDefaults.standard
+        let d = LocalPreferences.defaults
         enabled = (d.object(forKey: Self.enabledKey) as? Bool) ?? false
         workIntervalMinutes = (d.object(forKey: Self.workKey) as? Int) ?? 90
         breakLengthMinutes = (d.object(forKey: Self.breakKey) as? Int) ?? 5

@@ -35,8 +35,28 @@ final class AppDaemon: ObservableObject {
         // Replay queued events with their original timestamps (not "now"), so
         // sessions that ended while the app was closed look stale and get
         // pruned immediately instead of resurrecting as "working".
+        let completions = CompletionNoticeStore.shared
+        var replayed: [String: (AgentEvent, AgentSession)] = [:]
         EventSocketServer.drainQueue(directory: AgentPetPaths.queueDir) { [store] event in
-            store.apply(event, now: event.timestamp)
+            guard let session = store.apply(event, now: event.timestamp) else { return }
+            completions.observeActivity(session, at: event.timestamp)
+            if session.state == .done { replayed[session.id] = (event, session) }
+            else { replayed.removeValue(forKey: session.id) }
+        }
+        // Replay completion reminders, not meals/token usage or system notifications.
+        for (event, session) in replayed.values {
+            if event.agentKind == .claude {
+                let path = event.transcriptPath ?? event.project.map {
+                    TranscriptReader.inferredPath(sessionId: session.id, cwd: $0)
+                }
+                Task {
+                    let isQuestion = await Task.detached(priority: .utility) {
+                        path.flatMap { TranscriptReader.latestAssistantText(at: $0) }
+                            .map(QuestionDetector.looksLikeQuestion) ?? false
+                    }.value
+                    if !isQuestion { completions.record(session, at: event.timestamp) }
+                }
+            } else { completions.record(session, at: event.timestamp) }
         }
         store.prune(now: Date())
         refresh()
@@ -53,12 +73,14 @@ final class AppDaemon: ObservableObject {
 
     /// Clears the tracked sessions (e.g. after disconnecting an integration).
     func clearSessions() {
+        CompletionNoticeStore.shared.dismissAll()
         store.clear()
         refresh()
     }
 
     /// Dismisses a single session (e.g. a stuck agent).
     func removeSession(_ id: String) {
+        CompletionNoticeStore.shared.removeSession(id)
         store.remove(id: id)
         refresh()
     }
@@ -72,14 +94,15 @@ final class AppDaemon: ObservableObject {
         }
     }
 
-    /// Brings the terminal running `sessionId` to the front (Terminal.app and
-    /// iTerm2 focus the exact tab via tty; Warp/others just activate the app).
+    /// Live rows and completion reminders use the same client-aware navigation.
     func focusTerminal(sessionId: String) {
         guard let session = store.session(id: sessionId) else { return }
-        TerminalFocus.focus(program: session.terminalProgram, tty: session.terminalTTY, focusURL: session.terminalFocusURL)
+        let target = SessionNavigationTarget(session)
+        Task { _ = await SessionNavigator.open(target) }
     }
 
     private func ingest(_ event: AgentEvent) {
+        SettingsModel.shared.recordActivity(event.agentKind)
         let before = store.session(id: event.sessionId)?.state
         guard let updated = store.apply(event, now: Date()) else {
             feedSubagentTokens(for: event)
@@ -92,6 +115,7 @@ final class AppDaemon: ObservableObject {
             refresh()
             return
         }
+        CompletionNoticeStore.shared.observeActivity(updated, at: event.timestamp)
         resolveTitle(for: event)
         resolveModel(for: event)
         feedLiveTokens(for: event)
@@ -103,7 +127,7 @@ final class AppDaemon: ObservableObject {
         if event.agentKind == .claude, event.eventName == "Stop", updated.state == .done {
             refineDoneIfQuestion(event: event, before: before, session: updated)
         } else {
-            notifyIfNeeded(before: before, session: updated)
+            notifyIfNeeded(before: before, session: updated, completionAt: event.timestamp)
         }
         refresh()
     }
@@ -249,7 +273,7 @@ final class AppDaemon: ObservableObject {
         let path: String? = event.transcriptPath
             ?? event.project.map { TranscriptReader.inferredPath(sessionId: sessionId, cwd: $0) }
         guard let path else {
-            notifyIfNeeded(before: before, session: session)
+            notifyIfNeeded(before: before, session: session, completionAt: event.timestamp)
             return
         }
         // Capture the project string (Sendable) before crossing the actor boundary.
@@ -267,8 +291,10 @@ final class AppDaemon: ObservableObject {
                 if isQuestion {
                     self.store.refineState(id: sessionId, from: .done, to: .waiting, since: stateSince)
                 }
-                guard let final = self.store.session(id: sessionId) else { return }
-                self.notifyIfNeeded(before: before, session: final)
+                guard let final = self.store.session(id: sessionId),
+                      final.stateSince == stateSince,
+                      final.state == .done || final.state == .waiting else { return }
+                self.notifyIfNeeded(before: before, session: final, completionAt: event.timestamp)
                 self.refresh()
             }
         }
@@ -317,7 +343,7 @@ final class AppDaemon: ObservableObject {
         }
     }
 
-    private func notifyIfNeeded(before: AgentState?, session: AgentSession) {
+    private func notifyIfNeeded(before: AgentState?, session: AgentSession, completionAt: Date) {
         guard session.state != before else { return }
         let project = session.project.map { ProjectNameStore.shared.label(for: $0) } ?? session.id
         switch session.state {
@@ -326,6 +352,7 @@ final class AppDaemon: ObservableObject {
                 title: "\(project) needs input", body: session.message ?? "Waiting for you")
             SoundSettings.shared.play(.waiting)
         case .done:
+            CompletionNoticeStore.shared.record(session, at: completionAt)
             NotificationManager.shared.notify(
                 title: "\(project) finished", body: "Agent completed its turn")
             SoundSettings.shared.play(.done)
@@ -346,6 +373,7 @@ final class AppDaemon: ObservableObject {
 
     private func refresh() {
         sessions = store.sorted
+        CompletionNoticeStore.shared.refreshMetadata(from: sessions)
         PetController.shared.update(sessions: sessions)
         StatusBarController.shared.updateStatus(sessions)
     }

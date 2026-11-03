@@ -10,11 +10,11 @@ enum BubbleToken: String, CaseIterable, Codable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .dot:        return "State dot"
+        case .dot:        return NSLocalizedString("State dot", comment: "")
         case .icon:       return NSLocalizedString("Agent icon", comment: "")
         case .title:      return NSLocalizedString("Chat title", comment: "")
         case .project:    return NSLocalizedString("Project folder", comment: "")
-        case .separator:  return "Separator"
+        case .separator:  return NSLocalizedString("Separator", comment: "")
         case .message:    return NSLocalizedString("Activity message", comment: "")
         case .stateLabel: return NSLocalizedString("State label", comment: "")
         case .elapsed:    return NSLocalizedString("Elapsed time", comment: "")
@@ -28,9 +28,9 @@ enum BubbleToken: String, CaseIterable, Codable, Identifiable {
         case .icon:       return NSLocalizedString("Icon", comment: "")
         case .title:      return NSLocalizedString("Title", comment: "")
         case .project:    return NSLocalizedString("Project", comment: "")
-        case .separator:  return "Sep"
+        case .separator:  return NSLocalizedString("Sep", comment: "")
         case .message:    return NSLocalizedString("Message", comment: "")
-        case .stateLabel: return "State"
+        case .stateLabel: return NSLocalizedString("State", comment: "")
         case .elapsed:    return NSLocalizedString("Elapsed", comment: "")
         case .model:      return NSLocalizedString("Model", comment: "")
         }
@@ -341,7 +341,7 @@ final class BubbleSettings: ObservableObject {
 
     // MARK: Private
 
-    private let ud = UserDefaults.standard
+    private let ud = LocalPreferences.defaults
 
     private enum Keys {
         static let customLayout    = "agentpet.bubble.customLayout"
@@ -388,12 +388,12 @@ final class BubbleSettings: ObservableObject {
     }
 
     private static func loadJSON<T: Decodable>(_ key: String) -> T? {
-        guard let data = UserDefaults.standard.data(forKey: key) else { return nil }
+        guard let data = LocalPreferences.defaults.data(forKey: key) else { return nil }
         return try? JSONDecoder().decode(T.self, from: data)
     }
 
     private static func loadSessionGrouping() -> BubbleSessionGrouping {
-        let ud = UserDefaults.standard
+        let ud = LocalPreferences.defaults
         if let raw = ud.string(forKey: Keys.sessionGrouping),
            let mode = BubbleSessionGrouping(rawValue: raw) {
             return mode

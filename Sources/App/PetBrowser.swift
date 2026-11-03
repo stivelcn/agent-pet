@@ -18,7 +18,7 @@ struct RemotePet: Decodable, Identifiable {
 
     var id: String { slug }
     var name: String { displayName ?? slug }
-    var author: String { let s = (submittedBy ?? "").trimmingCharacters(in: .whitespaces); return s.isEmpty ? "community" : s }
+    var author: String { let s = (submittedBy ?? "").trimmingCharacters(in: .whitespaces); return s.isEmpty ? NSLocalizedString("community", comment: "Unknown pet author") : s }
 }
 
 /// Decodes `T` but tolerates a malformed element (yields `nil` instead of
@@ -30,7 +30,7 @@ private struct Lenient<T: Decodable>: Decodable {
     }
 }
 
-/// Loads the online pet library and downloads packs into `~/.agentpet/pets/`.
+/// Loads the online pet library and downloads packs into `AgentPetPaths.baseDir/pets/`.
 @MainActor
 final class PetBrowser: ObservableObject {
     @Published var pets: [RemotePet] = []
@@ -86,7 +86,7 @@ final class PetBrowser: ObservableObject {
             // community pets stay first. Shuffled once per load.
             let merged = Self.dedupe(await community + (await library).shuffled())
             if merged.isEmpty {
-                self.errorText = "Couldn't load the pet library. Check your connection."
+                self.errorText = NSLocalizedString("Couldn't load the pet library. Check your connection.", comment: "Pet library error")
             } else {
                 self.pets = merged
             }

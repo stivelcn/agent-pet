@@ -20,7 +20,7 @@ struct BrowsePetsView: View {
                 .padding(.horizontal, 12).padding(.top, 12)
 
             Picker("Category", selection: $browser.category) {
-                ForEach(PetBrowser.categories, id: \.value) { Text($0.label).tag($0.value) }
+                ForEach(PetBrowser.categories, id: \.value) { Text(LocalizedStringKey($0.label)).tag($0.value) }
             }
             .pickerStyle(.segmented)
             .labelsHidden()
@@ -95,7 +95,7 @@ private struct RemotePetRow: View {
                             .background(Capsule().fill(Color.accentColor.opacity(0.25)))
                     }
                 }
-                Text("by \(pet.author)").font(.caption).foregroundStyle(.secondary)
+                Text(String(format: NSLocalizedString("By %@", comment: ""), pet.author)).font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
 

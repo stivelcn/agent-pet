@@ -16,14 +16,14 @@ final class StatusBarController: NSObject, ObservableObject {
     /// Whether to show the agent count next to the menu bar icon.
     @Published var showCount: Bool {
         didSet {
-            UserDefaults.standard.set(showCount, forKey: "agentpet.showCount")
+            LocalPreferences.defaults.set(showCount, forKey: "agentpet.showCount")
             updateStatus(lastSessions)
         }
     }
     /// Whether to show the pet's chat line next to the menu bar icon (default off).
     @Published var showChatOnMenuBar: Bool {
         didSet {
-            UserDefaults.standard.set(showChatOnMenuBar, forKey: "agentpet.showChatMenuBar")
+            LocalPreferences.defaults.set(showChatOnMenuBar, forKey: "agentpet.showChatMenuBar")
             updateStatus(lastSessions)
         }
     }
@@ -31,15 +31,15 @@ final class StatusBarController: NSObject, ObservableObject {
     /// the menu bar icon.
     @Published var showBubbleOnMenuBar: Bool {
         didSet {
-            UserDefaults.standard.set(showBubbleOnMenuBar, forKey: "agentpet.showBubbleMenuBar")
+            LocalPreferences.defaults.set(showBubbleOnMenuBar, forKey: "agentpet.showBubbleMenuBar")
             refreshAgentBubble()
         }
     }
 
     override init() {
-        showCount = (UserDefaults.standard.object(forKey: "agentpet.showCount") as? Bool) ?? true
-        showChatOnMenuBar = (UserDefaults.standard.object(forKey: "agentpet.showChatMenuBar") as? Bool) ?? false
-        showBubbleOnMenuBar = (UserDefaults.standard.object(forKey: "agentpet.showBubbleMenuBar") as? Bool) ?? false
+        showCount = (LocalPreferences.defaults.object(forKey: "agentpet.showCount") as? Bool) ?? true
+        showChatOnMenuBar = (LocalPreferences.defaults.object(forKey: "agentpet.showChatMenuBar") as? Bool) ?? false
+        showBubbleOnMenuBar = (LocalPreferences.defaults.object(forKey: "agentpet.showBubbleMenuBar") as? Bool) ?? false
         super.init()
     }
 

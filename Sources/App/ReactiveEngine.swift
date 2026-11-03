@@ -157,17 +157,6 @@ public final class ReactiveEngine {
     // MARK: - Subscriptions
 
     public func start() {
-        // Sink 1: OpenUsageClient
-        OpenUsageClient.shared.$providers
-            .receive(on: RunLoop.main)
-            .sink { [weak self] _ in
-                let value = OpenUsageClient.shared.lowestFractionLeft
-                if let line = self?.evaluate(metric: .rateLimit, value: value.map { AnyHashable($0) }) {
-                    PetController.shared.flashReactiveLine(line)
-                }
-            }
-            .store(in: &cancellables)
-
         // Sink 2: PetCareController (evaluates 4 metrics)
         PetCareController.shared.$states
             .receive(on: RunLoop.main)

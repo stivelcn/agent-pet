@@ -1,4 +1,5 @@
-import XCTest
+import Testing
+import Foundation
 
 /// `Localizations/en.lproj/Localizable.strings` is the base/source-of-truth
 /// file translators work from (its own header says so: "Keys are the
@@ -14,7 +15,8 @@ import XCTest
 /// locale's keys must exist in the base file) — a key that is *only* in
 /// en.lproj is fine, since new strings routinely land untranslated and get
 /// a locale follow-up later (see `f817127` + `1469780`, or issue #43).
-final class LocalizationParityTests: XCTestCase {
+@Suite(.serialized)
+final class LocalizationParityTests {
     private static let localizationsDir: URL = {
         URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent() // LocalizationParityTests.swift
@@ -29,22 +31,18 @@ final class LocalizationParityTests: XCTestCase {
         let path = Self.localizationsDir
             .appendingPathComponent("\(locale).lproj")
             .appendingPathComponent("Localizable.strings")
-        let dict = try XCTUnwrap(
-            NSDictionary(contentsOf: path) as? [String: String],
-            "Could not parse \(path.path) as a strings file"
-        )
+        let dict = try #require(NSDictionary(contentsOf: path) as? [String: String], Comment(rawValue: "Could not parse \(path.path) as a strings file"))
         return Set(dict.keys)
     }
 
-    func testBaseFileHasEveryKeyEachTranslationDeclares() throws {
+    @Test func testBaseFileHasEveryKeyEachTranslationDeclares() throws {
         let base = try keys(forLocale: "en")
-        XCTAssertFalse(base.isEmpty, "en.lproj should not be empty")
+        #expect(!(base.isEmpty), Comment(rawValue: "en.lproj should not be empty"))
 
         for locale in Self.translatedLocales {
             let localeKeys = try keys(forLocale: locale)
             let missingFromBase = localeKeys.subtracting(base)
-            XCTAssertTrue(missingFromBase.isEmpty,
-                "en.lproj is missing keys that \(locale).lproj already translates: \(missingFromBase.sorted())")
+            #expect(missingFromBase.isEmpty, Comment(rawValue: "en.lproj is missing keys that \(locale).lproj already translates: \(missingFromBase.sorted())"))
         }
     }
 }

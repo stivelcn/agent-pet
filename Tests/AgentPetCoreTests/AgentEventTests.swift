@@ -1,17 +1,19 @@
-import XCTest
+import Testing
+import Foundation
 @testable import AgentPetCore
 
-final class AgentEventTests: XCTestCase {
+@Suite(.serialized)
+final class AgentEventTests {
     private let now = Date(timeIntervalSince1970: 1_000_000)
 
-    func testApprovalFieldsDefaultToNil() {
+    @Test func testApprovalFieldsDefaultToNil() {
         let event = AgentEvent(sessionId: "s1", agentKind: .claude, eventName: "Stop", timestamp: now)
-        XCTAssertNil(event.approvalRequestId)
-        XCTAssertNil(event.toolName)
-        XCTAssertNil(event.toolSummary)
+        #expect((event.approvalRequestId) == nil)
+        #expect((event.toolName) == nil)
+        #expect((event.toolSummary) == nil)
     }
 
-    func testCodableRoundTripPreservesApprovalFields() throws {
+    @Test func testCodableRoundTripPreservesApprovalFields() throws {
         let event = AgentEvent(
             sessionId: "s1", agentKind: .claude, eventName: "PreToolUse",
             approvalRequestId: "req-1", toolName: "Bash", toolSummary: "npm test",
@@ -19,19 +21,19 @@ final class AgentEventTests: XCTestCase {
         )
         let data = try EventCoding.encoder.encode(event)
         let decoded = try EventCoding.decoder.decode(AgentEvent.self, from: data)
-        XCTAssertEqual(decoded, event)
-        XCTAssertEqual(decoded.approvalRequestId, "req-1")
-        XCTAssertEqual(decoded.toolName, "Bash")
-        XCTAssertEqual(decoded.toolSummary, "npm test")
+        #expect((decoded) == (event))
+        #expect((decoded.approvalRequestId) == ("req-1"))
+        #expect((decoded.toolName) == ("Bash"))
+        #expect((decoded.toolSummary) == ("npm test"))
     }
 
-    func testCodableRoundTripWithNilApprovalFields() throws {
+    @Test func testCodableRoundTripWithNilApprovalFields() throws {
         let event = AgentEvent(sessionId: "s1", agentKind: .claude, eventName: "Stop", timestamp: now)
         let data = try EventCoding.encoder.encode(event)
         let decoded = try EventCoding.decoder.decode(AgentEvent.self, from: data)
-        XCTAssertEqual(decoded, event)
-        XCTAssertNil(decoded.approvalRequestId)
-        XCTAssertNil(decoded.toolName)
-        XCTAssertNil(decoded.toolSummary)
+        #expect((decoded) == (event))
+        #expect((decoded.approvalRequestId) == nil)
+        #expect((decoded.toolName) == nil)
+        #expect((decoded.toolSummary) == nil)
     }
 }

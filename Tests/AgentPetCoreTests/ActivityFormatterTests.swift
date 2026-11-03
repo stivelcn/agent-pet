@@ -1,11 +1,13 @@
-import XCTest
+import Testing
+import Foundation
 @testable import AgentPetCore
 
-final class ActivityFormatterTests: XCTestCase {
+@Suite(.serialized)
+final class ActivityFormatterTests {
 
     // MARK: - Rotation
 
-    func test_rotation_doesNotRepeatConsecutively() {
+    @Test func test_rotation_doesNotRepeatConsecutively() {
         let first = ActivityFormatter.activityMessage(
             eventName: "PreToolUse", sessionId: "rot1",
             toolName: "Read", toolInput: nil, explicitMessage: nil
@@ -14,10 +16,10 @@ final class ActivityFormatterTests: XCTestCase {
             eventName: "PreToolUse", sessionId: "rot1",
             toolName: "Read", toolInput: nil, explicitMessage: nil
         )
-        XCTAssertNotEqual(first, second, "consecutive calls same tool should rotate")
+        #expect((first) != (second), Comment(rawValue: "consecutive calls same tool should rotate"))
     }
 
-    func test_rotation_cyclesFullPool() {
+    @Test func test_rotation_cyclesFullPool() {
         // reading pool has 5 phrases — 5 distinct calls must yield 5 distinct phrases
         let poolSize = 5
         var seen = Set<String?>()
@@ -28,12 +30,12 @@ final class ActivityFormatterTests: XCTestCase {
             )
             seen.insert(msg)
         }
-        XCTAssertEqual(seen.count, poolSize, "should cycle through all \(poolSize) reading phrases")
+        #expect((seen.count) == (poolSize), Comment(rawValue: "should cycle through all \(poolSize) reading phrases"))
     }
 
     // MARK: - Tool categorization
 
-    func test_toolCategory_matchesClaudeToolNames() {
+    @Test func test_toolCategory_matchesClaudeToolNames() {
         let cases: [(String, [String])] = [
             ("Read", ActivityTheme.chef.reading),
             ("Edit", ActivityTheme.chef.writing),
@@ -53,11 +55,11 @@ final class ActivityFormatterTests: XCTestCase {
                 eventName: "PreToolUse", sessionId: "cat-claude-\(toolName)",
                 toolName: toolName, toolInput: nil, explicitMessage: nil
             )
-            XCTAssertTrue(pool.contains(msg ?? ""), "\(toolName) -> \(msg ?? "nil") not in expected pool")
+            #expect(pool.contains(msg ?? ""), Comment(rawValue: "\(toolName) -> \(msg ?? "nil") not in expected pool"))
         }
     }
 
-    func test_toolCategory_matchesCursorToolNames() {
+    @Test func test_toolCategory_matchesCursorToolNames() {
         let cases: [(String, [String])] = [
             ("read_file", ActivityTheme.chef.reading),
             ("edit_file", ActivityTheme.chef.writing),
@@ -72,87 +74,87 @@ final class ActivityFormatterTests: XCTestCase {
                 eventName: "preToolUse", sessionId: "cat-cursor-\(toolName)",
                 toolName: toolName, toolInput: nil, explicitMessage: nil
             )
-            XCTAssertTrue(pool.contains(msg ?? ""), "\(toolName) -> \(msg ?? "nil") not in expected pool")
+            #expect(pool.contains(msg ?? ""), Comment(rawValue: "\(toolName) -> \(msg ?? "nil") not in expected pool"))
         }
     }
 
     // MARK: - Extension hints
 
-    func test_extensionHint_testFile_reading() {
+    @Test func test_extensionHint_testFile_reading() {
         let input = ToolActivityInput(filePath: "Tests/FooTests/BarTests.swift")
         let msg = ActivityFormatter.activityMessage(
             eventName: "PreToolUse", sessionId: "ext1",
             toolName: "Read", toolInput: input, explicitMessage: nil
         )
-        XCTAssertEqual(msg, "Reviewing tests…")
+        #expect((msg) == ("Reviewing tests…"))
     }
 
-    func test_extensionHint_testFile_writing() {
+    @Test func test_extensionHint_testFile_writing() {
         let input = ToolActivityInput(filePath: "Tests/FooTests/BarTests.swift")
         let msg = ActivityFormatter.activityMessage(
             eventName: "PreToolUse", sessionId: "ext2",
             toolName: "Edit", toolInput: input, explicitMessage: nil
         )
-        XCTAssertEqual(msg, "Refining tests…")
+        #expect((msg) == ("Refining tests…"))
     }
 
-    func test_extensionHint_markdown_reading() {
+    @Test func test_extensionHint_markdown_reading() {
         let input = ToolActivityInput(filePath: "README.md")
         let msg = ActivityFormatter.activityMessage(
             eventName: "PreToolUse", sessionId: "ext3",
             toolName: "Read", toolInput: input, explicitMessage: nil
         )
-        XCTAssertEqual(msg, "Reading the docs…")
+        #expect((msg) == ("Reading the docs…"))
     }
 
-    func test_extensionHint_markdown_writing() {
+    @Test func test_extensionHint_markdown_writing() {
         let input = ToolActivityInput(filePath: "docs/guide.md")
         let msg = ActivityFormatter.activityMessage(
             eventName: "PreToolUse", sessionId: "ext4",
             toolName: "Write", toolInput: input, explicitMessage: nil
         )
-        XCTAssertEqual(msg, "Updating the docs…")
+        #expect((msg) == ("Updating the docs…"))
     }
 
-    func test_extensionHint_json_reading() {
+    @Test func test_extensionHint_json_reading() {
         let input = ToolActivityInput(filePath: "config/settings.json")
         let msg = ActivityFormatter.activityMessage(
             eventName: "PreToolUse", sessionId: "ext5",
             toolName: "Read", toolInput: input, explicitMessage: nil
         )
-        XCTAssertEqual(msg, "Parsing config…")
+        #expect((msg) == ("Parsing config…"))
     }
 
-    func test_extensionHint_plist_writing() {
+    @Test func test_extensionHint_plist_writing() {
         let input = ToolActivityInput(filePath: "Info.plist")
         let msg = ActivityFormatter.activityMessage(
             eventName: "PreToolUse", sessionId: "ext6",
             toolName: "Edit", toolInput: input, explicitMessage: nil
         )
-        XCTAssertEqual(msg, "Adjusting config…")
+        #expect((msg) == ("Adjusting config…"))
     }
 
     // MARK: - State messages
 
-    func test_stateMessage_done_returnsPhrase() {
-        XCTAssertNotNil(ActivityFormatter.stateMessage(for: .done))
+    @Test func test_stateMessage_done_returnsPhrase() {
+        #expect((ActivityFormatter.stateMessage(for: .done)) != nil)
     }
 
-    func test_stateMessage_waiting_returnsPhrase() {
-        XCTAssertNotNil(ActivityFormatter.stateMessage(for: .waiting))
+    @Test func test_stateMessage_waiting_returnsPhrase() {
+        #expect((ActivityFormatter.stateMessage(for: .waiting)) != nil)
     }
 
-    func test_stateMessage_idle_returnsNil() {
-        XCTAssertNil(ActivityFormatter.stateMessage(for: .idle))
+    @Test func test_stateMessage_idle_returnsNil() {
+        #expect((ActivityFormatter.stateMessage(for: .idle)) == nil)
     }
 
-    func test_stateMessage_working_returnsNil() {
-        XCTAssertNil(ActivityFormatter.stateMessage(for: .working))
+    @Test func test_stateMessage_working_returnsNil() {
+        #expect((ActivityFormatter.stateMessage(for: .working)) == nil)
     }
 
-    func test_stateMessage_done_rotates() {
+    @Test func test_stateMessage_done_rotates() {
         let first  = ActivityFormatter.stateMessage(for: .done)
         let second = ActivityFormatter.stateMessage(for: .done)
-        XCTAssertNotEqual(first, second, "done phrases should rotate")
+        #expect((first) != (second), Comment(rawValue: "done phrases should rotate"))
     }
 }

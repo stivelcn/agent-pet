@@ -126,79 +126,33 @@ private struct TabButton: View {
 // MARK: - About
 
 private struct AboutTab: View {
-    @Environment(\.openURL) private var openURL
-    @State private var showCoffee = false
-
-    private let repo = URL(string: "https://github.com/ntd4996/agentpet")!
-    private let profile = URL(string: "https://github.com/ntd4996")!
-    private let coffee = URL(string: "https://buymeacoffee.com/ntd4996")!
-    private let discord = URL(string: "https://discord.gg/kzFJKsZav")!
-    private let homepage = URL(string: "https://agentpet.thenightwatcher.online")!
-
     var body: some View {
         Form {
             Section {
                 VStack(spacing: 10) {
                     Image(systemName: "pawprint.fill")
                         .font(.system(size: 40)).foregroundStyle(Color.systemAccent)
-                    Text("AgentPet").font(.title2.bold())
-                    Text("A desktop pet that watches your AI coding agents.")
-                        .font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
-                    Link(destination: homepage) {
-                        Label("agentpet.thenightwatcher.online", systemImage: "globe")
-                            .font(.callout)
-                    }
-                    .padding(.top, 2)
+                    Text(verbatim: LocalConfiguration.displayName).font(.title2.bold())
+                    Text("A local companion for your AI coding work.")
+                        .font(.callout).foregroundStyle(.secondary)
+                    Text("Manual updates only. No account, cloud sync or subscription polling.")
+                        .font(.caption).foregroundStyle(.secondary)
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
+                .frame(maxWidth: .infinity).padding(.vertical, 8)
             }
-
-            Section {
-                Button { openURL(repo) } label: {
-                    Label("Star on GitHub", systemImage: "star.fill")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(Color.systemAccent)
-                .controlSize(.large)
-
-                Button { openURL(discord) } label: {
-                    Label("Join the Discord", systemImage: "bubble.left.and.bubble.right.fill")
-                        .frame(maxWidth: .infinity)
-                }
-                .controlSize(.large)
-
-                Button { showCoffee = true } label: {
-                    Label("Buy me a coffee", systemImage: "cup.and.saucer.fill")
-                        .frame(maxWidth: .infinity)
-                }
-                .controlSize(.large)
-            } footer: {
-                Text("If AgentPet helps your workflow, a star means a lot. Thank you!")
+            Section("Local data") {
+                LabeledContent("Data folder", value: AgentPetPaths.baseDir)
+                    .textSelection(.enabled)
+                LabeledContent("Preferences", value: LocalConfiguration.preferencesSuite)
+                    .textSelection(.enabled)
             }
-
-            Section("Author") {
-                Link(destination: profile) {
-                    Label("Nguyễn Thành Đạt (@ntd4996)", systemImage: "person.crop.circle")
-                }
-                Link(destination: repo) {
-                    Label("github.com/ntd4996/agentpet", systemImage: "chevron.left.forwardslash.chevron.right")
-                }
-            }
-
-            Section("About") {
-                LabeledContent("Version", value: appVersion)
+            Section("Acknowledgements") {
+                Link("Original AgentPet project (MIT)", destination: URL(string: "https://github.com/ntd4996/agentpet")!)
+                Text("Pet artwork keeps its own creator and license information.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)
-        .sheet(isPresented: $showCoffee) { CoffeeView(coffeeURL: coffee) }
-    }
-
-    private var appVersion: String {
-        let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.1.0"
-        let b = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
-        return "\(v) (\(b))"
     }
 }
 
@@ -291,14 +245,14 @@ private struct GeneralTab: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Animation speed")
-                        Text("Sprite frame rate. Idle is always capped at 2 fps.")
+                        Text("Quiet animations use 1–2 fps; sleepy uses 1 fps.")
                             .font(.caption).foregroundStyle(.secondary)
                     }
                     Spacer()
                     HStack(spacing: 8) {
-                        Slider(value: $pet.animationFPS, in: 1...12, step: 1)
+                        Slider(value: $pet.animationFPS, in: 1...2, step: 1)
                             .frame(width: 120)
-                        Text("\(Int(pet.animationFPS)) fps")
+                        Text("\(Int(pet.animationFPS)) 帧/秒")
                             .monospacedDigit()
                             .foregroundStyle(.secondary)
                             .fixedSize()
@@ -355,35 +309,14 @@ private struct GeneralTab: View {
             }
 
             Section("Agent integrations") {
+                Text("启动时自动检测并配置已安装的受支持客户端。已有设置会先备份；未收到事件前，不会显示已连接。")
+                    .font(.caption).foregroundStyle(.secondary)
+                HStack {
+                    Button("重新检测并连接") { model.autoConnectDetectedClients() }
+                    Button("Codex 连接说明") { showCodexHelp = true }
+                }
                 ForEach(model.agents) { agent in
-                    HStack {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(agent.displayName)
-                            if agent.kind == .codex, model.isInstalled(.codex) {
-                                Text("Installed , needs a one-time trust (tap ?)")
-                                    .font(.caption).foregroundStyle(.orange)
-                            } else if let note = agent.note {
-                                Text(note).font(.caption).foregroundStyle(.secondary)
-                            } else if model.isInstalled(agent.kind) {
-                                Text("Hook installed").font(.caption).foregroundStyle(.green)
-                            }
-                        }
-                        Spacer()
-                        if agent.kind == .codex {
-                            Button { showCodexHelp = true } label: {
-                                Image(systemName: "questionmark.circle")
-                            }
-                            .buttonStyle(.borderless)
-                            .help("How to connect Codex")
-                        }
-                        if agent.isSupported {
-                            Button(model.isInstalled(agent.kind) ? "Remove" : "Install") {
-                                model.toggleInstall(agent.kind)
-                            }
-                        } else {
-                            Text("Coming soon").foregroundStyle(.secondary)
-                        }
-                    }
+                    AgentConnectionRow(agent: agent)
                 }
                 if let err = model.installError {
                     Text(err).font(.caption).foregroundStyle(.red).textSelection(.enabled)
@@ -634,7 +567,7 @@ private struct PetTab: View {
         .overlay(alignment: .topLeading) {
             if let petID {
                 let level = PetCare.displayLevel(forXP: PetCareController.shared.states[petID]?.xp ?? 0)
-                Text(verbatim: "Lv \(level)")
+                Text(verbatim: "等级 \(level)")
                     .font(.system(size: 9, weight: .bold))
                     .padding(.horizontal, 5).padding(.vertical, 1.5)
                     .background(Capsule().fill(level > 0 ? Color.systemAccent.opacity(0.85) : Color.secondary.opacity(0.45)))
@@ -738,7 +671,7 @@ private struct PetTab: View {
 
         if let pack = selectedPack {
             Section("Animations") {
-                AnimationPicker(pack: pack)
+                QuietAnimationPreview(pack: pack)
             }
         }
 
@@ -748,7 +681,7 @@ private struct PetTab: View {
                 Text("\(Int(pet.petPoint))")
                     .monospacedDigit().foregroundStyle(.secondary).fixedSize()
                 ForEach(PetController.presets, id: \.0) { preset in
-                    Button(preset.0) { pet.animateSize(to: preset.1) }
+                    Button(NSLocalizedString(preset.0, comment: "pet size")) { pet.animateSize(to: preset.1) }
                         .buttonStyle(.bordered)
                 }
             }
@@ -768,7 +701,7 @@ private struct PetTab: View {
 
         if let pack = selectedSlotPack {
             Section("Animations") {
-                AnimationPicker(pack: pack)
+                QuietAnimationPreview(pack: pack)
             }
         }
 
@@ -786,7 +719,7 @@ private struct PetTab: View {
 
     @ViewBuilder private var slotPetPreview: some View {
         if let pack = selectedSlotPack {
-            ImageSpriteView(frames: pack.clip(0), mood: .idle,
+            ImageSpriteView(frames: pack.restingFrames,
                             fps: pet.spriteFPS(forMood: .idle), size: 78)
         } else {
             Image(systemName: "pawprint.fill").font(.system(size: 40)).foregroundStyle(.secondary)
@@ -794,7 +727,7 @@ private struct PetTab: View {
     }
 
     private func levelBadge(for packID: String) -> some View {
-        Text(verbatim: "Lv \(PetCare.displayLevel(forXP: PetCareController.shared.states[packID]?.xp ?? 0))")
+        Text(verbatim: "等级 \(PetCare.displayLevel(forXP: PetCareController.shared.states[packID]?.xp ?? 0))")
             .font(.caption.weight(.bold))
             .padding(.horizontal, 7).padding(.vertical, 2)
             .background(Capsule().fill(Color.systemAccent.opacity(0.2)))
@@ -803,8 +736,8 @@ private struct PetTab: View {
 
     private func addProject() {
         let panel = NSOpenPanel()
-        panel.title = "Choose Project Folder"
-        panel.prompt = "Add"
+        panel.title = NSLocalizedString("Choose Project Folder", comment: "")
+        panel.prompt = NSLocalizedString("Add", comment: "")
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
@@ -930,7 +863,7 @@ private struct PetThumb: View {
         }
         .buttonStyle(.plain)
         .overlay(alignment: .topLeading) {
-            Text(verbatim: "Lv \(level)")
+            Text(verbatim: "等级 \(level)")
                 .font(.system(size: 9, weight: .bold))
                 .padding(.horizontal, 5).padding(.vertical, 1.5)
                 .background(Capsule().fill(level > 0 ? Color.systemAccent.opacity(0.85) : Color.secondary.opacity(0.45)))
@@ -952,66 +885,25 @@ private struct PetThumb: View {
     }
 }
 
-private struct AnimationPicker: View {
+/// One consistent preview, with no controls that can silently re-enable running.
+private struct QuietAnimationPreview: View {
     let pack: ImagePetPack
-    @ObservedObject private var store = PetBindingsStore.shared
     @ObservedObject private var pet = PetController.shared
-    @State private var state: PetMood = .working
-    @State private var hoveredClip: Int?
-
-    private let states: [PetMood] = [.idle, .working, .waiting, .done, .celebrate, .sleepy, .levelup]
 
     var body: some View {
-        Picker("State", selection: $state) {
-            ForEach(states, id: \.self) { Text(label($0)).tag($0) }
-        }
-        .pickerStyle(.segmented)
-        .labelsHidden()
-
-        Text("Hover a clip to preview it.")
-            .font(.caption2).foregroundStyle(.secondary)
-
-        let current = store.clipIndex(packId: pack.id, clipCount: pack.clipCount, mood: state)
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 72), spacing: 10)], spacing: 10) {
-            ForEach(0..<pack.clipCount, id: \.self) { i in
-                Button {
-                    store.setClip(i, mood: state, packId: pack.id, clipCount: pack.clipCount)
-                } label: {
-                    VStack(spacing: 3) {
-                        Group {
-                            if hoveredClip == i {
-                                ImageSpriteView(frames: pack.clip(i), mood: .working,
-                                                fps: pet.spriteFPS(forMood: .working), size: 44)
-                            } else {
-                                StaticFrame(image: pack.clip(i).first, size: 44)
-                            }
-                        }
-                        .frame(width: 54, height: 44)
-                        Text("Clip \(i + 1)").font(.caption2).foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(5)
-                    .background(RoundedRectangle(cornerRadius: 9).fill(i == current ? Color.systemAccent.opacity(0.2) : .clear))
-                    .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(i == current ? Color.systemAccent : .secondary.opacity(0.25), lineWidth: i == current ? 2 : 1))
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .onHover { hoveredClip = $0 ? i : (hoveredClip == i ? nil : hoveredClip) }
+        HStack(spacing: 12) {
+            ImageSpriteView(frames: pack.restingFrames,
+                            fps: pet.spriteFPS(forMood: .idle), size: 64)
+                .environment(\.animationsEnabled, pet.animationsEnabled)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Quiet companion").font(.headline)
+                Text("Only in-place idle and blinking, even when tasks finish. No running, jumping, or tap bouncing.")
+                    .font(.caption).foregroundStyle(.secondary)
+                Text("Task tracking and status messages stay active. Sleepy playback is slower.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
         }
         .padding(.vertical, 4)
-    }
-
-    private func label(_ mood: PetMood) -> String {
-        switch mood {
-        case .idle: return NSLocalizedString("Idle", comment: "pet mood")
-        case .working: return NSLocalizedString("Working", comment: "pet mood")
-        case .waiting: return NSLocalizedString("Waiting", comment: "pet mood")
-        case .done: return NSLocalizedString("Done", comment: "pet mood")
-        case .celebrate: return NSLocalizedString("Celebrate", comment: "pet mood")
-        case .sleepy: return NSLocalizedString("Sleepy", comment: "pet mood")
-        case .levelup: return NSLocalizedString("Level up", comment: "pet mood")
-        }
     }
 }
 
@@ -1025,11 +917,10 @@ private struct CodexHelpView: View {
 
     private struct Step: Identifiable { let n: Int; let text: String; var id: Int { n } }
     private let steps: [Step] = [
-        .init(n: 1, text: NSLocalizedString("Open Terminal and run: codex (launches the Codex CLI)", comment: "codex help step")),
-        .init(n: 2, text: NSLocalizedString("Type /hooks and press Enter to list the hooks.", comment: "codex help step")),
-        .init(n: 3, text: NSLocalizedString("Press t to Trust all hooks.", comment: "codex help step")),
-        .init(n: 4, text: NSLocalizedString("Quit and reopen Codex (both the CLI and the desktop app).", comment: "codex help step")),
-        .init(n: 5, text: NSLocalizedString("Run any prompt , your pet now shows the Codex session.", comment: "codex help step")),
+        .init(n: 1, text: "确认 Codex 一栏显示“已配置，等待客户端事件”。如有错误，先按提示处理，不要覆盖已有配置。"),
+        .init(n: 2, text: "在 Codex 中新建会话。如果未加载新的连接配置，保存当前工作后重新打开客户端。"),
+        .init(n: 3, text: "如果客户端要求确认外部命令，请核对路径确实指向本机的智能桌宠，再按客户端提示确认这一项。"),
+        .init(n: 4, text: "在 Codex 中执行一个正常任务。桌宠收到事件后，这里会显示事件时间，并展示对应会话状态。"),
     ]
 
     var body: some View {
@@ -1041,7 +932,7 @@ private struct CodexHelpView: View {
                 Spacer()
             }
 
-            Text("The hook is installed. Codex blocks unknown command hooks until you trust them once , a Codex security feature, not an AgentPet bug. Do this one time:")
+            Text("桌宠通过本地事件回调接收 Codex 的工作状态，不会读取登录凭证，也不会替你确认客户端的信任提示。")
                 .font(.callout).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -1060,12 +951,12 @@ private struct CodexHelpView: View {
                 }
             }
 
-            Text("Trust is shared, so trusting once in the CLI also covers the Codex desktop app. If /hooks shows nothing, add  [features] hooks = true  to ~/.codex/config.toml, then retry.")
+            Text("不同版本的 Codex 对事件回调的支持可能不同。若一直没有事件，请检查客户端的连接提示和回调支持；仅写入配置不代表已建立实时连接。")
                 .font(.caption).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
             HStack {
-                Link("Codex hooks docs", destination: URL(string: "https://developers.openai.com/codex/hooks")!)
+                Link("Codex hooks docs", destination: URL(string: "https://learn.chatgpt.com/docs/hooks")!)
                     .font(.caption)
                 Spacer()
                 Button("Got it") { dismiss() }

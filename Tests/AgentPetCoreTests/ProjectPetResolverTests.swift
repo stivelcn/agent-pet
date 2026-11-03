@@ -1,33 +1,35 @@
-import XCTest
+import Testing
+import Foundation
 @testable import AgentPetCore
 
-final class ProjectPetResolverTests: XCTestCase {
+@Suite(.serialized)
+final class ProjectPetResolverTests {
     private let cat = ProjectPetMapping(projectPath: "/work/foo", petID: "cat")
     private let dog = ProjectPetMapping(projectPath: "/work/foo/api", petID: "dog")
 
-    func testExactMatch() {
-        XCTAssertEqual(ProjectPetResolver.mapping(forProject: "/work/foo", mappings: [cat])?.petID, "cat")
+    @Test func testExactMatch() {
+        #expect((ProjectPetResolver.mapping(forProject: "/work/foo", mappings: [cat])?.petID) == ("cat"))
     }
-    func testSubfolderMatches() {
-        XCTAssertEqual(ProjectPetResolver.mapping(forProject: "/work/foo/src", mappings: [cat])?.petID, "cat")
+    @Test func testSubfolderMatches() {
+        #expect((ProjectPetResolver.mapping(forProject: "/work/foo/src", mappings: [cat])?.petID) == ("cat"))
     }
-    func testLongestMatchWins() {
-        XCTAssertEqual(ProjectPetResolver.mapping(forProject: "/work/foo/api/v1", mappings: [cat, dog])?.petID, "dog")
+    @Test func testLongestMatchWins() {
+        #expect((ProjectPetResolver.mapping(forProject: "/work/foo/api/v1", mappings: [cat, dog])?.petID) == ("dog"))
     }
-    func testDirectoryBoundaryNotPrefixString() {
+    @Test func testDirectoryBoundaryNotPrefixString() {
         // "/work/foobar" must NOT match "/work/foo"
-        XCTAssertNil(ProjectPetResolver.mapping(forProject: "/work/foobar", mappings: [cat]))
+        #expect((ProjectPetResolver.mapping(forProject: "/work/foobar", mappings: [cat])) == nil)
     }
-    func testTrailingSlashNormalized() {
-        XCTAssertEqual(ProjectPetResolver.mapping(forProject: "/work/foo/", mappings: [cat])?.petID, "cat")
+    @Test func testTrailingSlashNormalized() {
+        #expect((ProjectPetResolver.mapping(forProject: "/work/foo/", mappings: [cat])?.petID) == ("cat"))
         let catSlash = ProjectPetMapping(projectPath: "/work/foo/", petID: "cat")
-        XCTAssertEqual(ProjectPetResolver.mapping(forProject: "/work/foo", mappings: [catSlash])?.petID, "cat")
+        #expect((ProjectPetResolver.mapping(forProject: "/work/foo", mappings: [catSlash])?.petID) == ("cat"))
     }
-    func testNilOrEmptyCwdReturnsNil() {
-        XCTAssertNil(ProjectPetResolver.mapping(forProject: nil, mappings: [cat]))
-        XCTAssertNil(ProjectPetResolver.mapping(forProject: "", mappings: [cat]))
+    @Test func testNilOrEmptyCwdReturnsNil() {
+        #expect((ProjectPetResolver.mapping(forProject: nil, mappings: [cat])) == nil)
+        #expect((ProjectPetResolver.mapping(forProject: "", mappings: [cat])) == nil)
     }
-    func testNoMatchReturnsNil() {
-        XCTAssertNil(ProjectPetResolver.mapping(forProject: "/other", mappings: [cat]))
+    @Test func testNoMatchReturnsNil() {
+        #expect((ProjectPetResolver.mapping(forProject: "/other", mappings: [cat])) == nil)
     }
 }

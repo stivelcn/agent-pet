@@ -1,3 +1,4 @@
+import AgentPetCore
 import AppKit
 import SwiftUI
 
@@ -8,12 +9,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     static let shared = SettingsWindowController()
 
     private var window: NSWindow?
-
-    /// True while a Settings or onboarding window is open (and therefore the
-    /// app should keep its `.regular` activation policy / Dock icon). Other
-    /// transient `.regular` switches (e.g. Sparkle's update UI) check this
-    /// before dropping back to `.accessory`.
-    var hasOpenWindow: Bool { window != nil || onboardingWindow != nil }
+    private let activationOwner = UUID()
 
     func show() {
         SettingsModel.shared.refresh()
@@ -24,7 +20,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         window = nil
 
         // Show a Dock icon while Settings is open (requires .regular policy).
-        NSApp.setActivationPolicy(.regular)
+        AppWindowActivation.acquire(activationOwner)
 
         let host = NSHostingView(rootView: SetupView(
             onClose: { [weak self] in self?.window?.close() },
@@ -37,7 +33,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
             styleMask: [.titled, .closable],
             backing: .buffered, defer: false
         )
-        window.title = "AgentPet"
+        window.title = LocalConfiguration.displayName
         window.delegate = self
         window.isReleasedWhenClosed = false
         window.contentView = host
@@ -60,6 +56,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     }
 
     @objc private func appBecameActive() {
+        guard UsageHistoryWindowController.shared.window == nil else { return }
         window?.makeKeyAndOrderFront(nil)
     }
 
@@ -76,21 +73,21 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
 
     func windowWillClose(_ notification: Notification) {
         if (notification.object as? NSWindow) === onboardingWindow {
-            UserDefaults.standard.set(true, forKey: "agentpet.hasOnboarded")
+            LocalPreferences.defaults.set(true, forKey: "agentpet.hasOnboarded")
             onboardingWindow = nil
         } else {
             window = nil
         }
         // Back to a menu bar accessory (no Dock icon) when no window is open.
         if window == nil && onboardingWindow == nil {
-            NSApp.setActivationPolicy(.accessory)
+            AppWindowActivation.release(activationOwner)
             NotificationCenter.default.removeObserver(self, name: NSApplication.didBecomeActiveNotification, object: nil)
         }
     }
 
     /// Shows the welcome/onboarding window the first time the app is launched.
     func showOnFirstLaunch() {
-        guard !UserDefaults.standard.bool(forKey: "agentpet.hasOnboarded") else { return }
+        guard !LocalPreferences.defaults.bool(forKey: "agentpet.hasOnboarded") else { return }
         showOnboarding()
     }
 
@@ -105,14 +102,14 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
             contentRect: NSRect(x: 0, y: 0, width: 560, height: 640),
             styleMask: [.titled, .closable], backing: .buffered, defer: false
         )
-        window.title = "Welcome to AgentPet"
+        window.title = LocalConfiguration.displayName
         window.delegate = self
         window.isReleasedWhenClosed = false
         window.contentView = host
         window.center()
         onboardingWindow = window
 
-        NSApp.setActivationPolicy(.regular)
+        AppWindowActivation.acquire(activationOwner)
         DispatchQueue.main.async {
             NSApp.activate(ignoringOtherApps: true)
             window.makeKeyAndOrderFront(nil)

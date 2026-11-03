@@ -1,3 +1,4 @@
+import AgentPetCore
 import Foundation
 import SwiftUI
 
@@ -13,7 +14,7 @@ final class UsageVisibility: ObservableObject {
 
     @Published private(set) var hidden: Set<String>
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = LocalPreferences.defaults) {
         self.defaults = defaults
         hidden = Set(defaults.stringArray(forKey: Self.key) ?? [])
     }

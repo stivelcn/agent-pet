@@ -48,7 +48,8 @@ final class PetWindowModel: ObservableObject {
 
     // MARK: - Pet tap interaction (per window)
     // Lives here, not on the shared controller, so tapping one pet in split
-    // mode only bounces THAT pet (a shared state flickered every window).
+    // mode only shows feedback for THAT pet. The visual stays in its idle loop;
+    // the short-lived isPetted flag no longer drives squash/stretch motion.
 
     @Published private(set) var isPetted = false
     @Published private(set) var petReactionLine: String = ""
@@ -66,7 +67,7 @@ final class PetWindowModel: ObservableObject {
         ["MAXIMUM LOVE! 💖", "Can't stop smiling! 🥰", "I'm gonna melt~"],
     ]
 
-    func petTap() {
+    func petTap(localizationBundle: Bundle = .main) {
         guard !petCooldown else { return }
         petCooldown = true
 
@@ -79,7 +80,9 @@ final class PetWindowModel: ObservableObject {
         lastPetTime = now
 
         let tier = consecutivePets >= 6 ? 2 : consecutivePets >= 3 ? 1 : 0
-        petReactionLine = Self.petReactions[tier].randomElement() ?? "Hehe~"
+        // Resolve on each tap so the reaction follows the current app language.
+        let reactionKey = Self.petReactions[tier].randomElement() ?? "Hehe~"
+        petReactionLine = NSLocalizedString(reactionKey, bundle: localizationBundle, comment: "Pet tap reaction")
         petTapCount += 1
 
         isPetted = true

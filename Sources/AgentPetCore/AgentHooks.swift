@@ -49,7 +49,7 @@ public enum AgentHooks {
             return AgentHookSpec(
                 kind: .codex, style: .claudeNested,
                 events: ["SessionStart", "UserPromptSubmit", "PreToolUse", "PermissionRequest", "Stop", "SubagentStop"],
-                settingsPath: home + "/.codex/hooks.json")
+                settingsPath: CodexHookConfig.homeDirectory() + "/hooks.json")
         case .gemini:
             return AgentHookSpec(
                 kind: .gemini, style: .claudeNested,

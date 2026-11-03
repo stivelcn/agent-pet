@@ -1,10 +1,12 @@
-import XCTest
+import Testing
+import Foundation
 @testable import agentpet
 
 /// Reset times from real provider payloads (shapes captured 2026-10-02).
 /// Bodies go through JSONSerialization like the live probes, so numbers are
 /// NSNumber exactly as in production.
-final class UsageResetParsingTests: XCTestCase {
+@Suite(.serialized)
+final class UsageResetParsingTests {
 
     private func json(_ s: String) throws -> [String: Any] { try UsageTestSupport.json(s) }
 
@@ -13,19 +15,18 @@ final class UsageResetParsingTests: XCTestCase {
     }
 
     /// `api/oauth/usage` sends microsecond ISO timestamps with a +00:00 offset.
-    func testClaudeResetParsesFractionalSeconds() throws {
+    @Test func testClaudeResetParsesFractionalSeconds() throws {
         let body = try json("""
         {"five_hour": {"utilization": 37.0, "resets_at": "2026-10-02T23:59:59.536032+00:00"},
          "seven_day": {"utilization": 79.0, "resets_at": "2026-10-05T03:59:59.536051+00:00"}}
         """)
-        let p = try XCTUnwrap(NativeUsageProbe.claudeProvider(from: body))
-        XCTAssertEqual(p.windowLabel, "Weekly")
-        XCTAssertEqual(try XCTUnwrap(p.resetsAt).timeIntervalSince1970,
-                       epoch("2026-10-05T03:59:59Z"), accuracy: 1)
+        let p = try #require(NativeUsageProbe.claudeProvider(from: body))
+        #expect((p.windowLabel) == ("Weekly"))
+        #expect(abs((try #require(p.resetsAt).timeIntervalSince1970) - (epoch("2026-10-05T03:59:59Z"))) <= 1)
     }
 
     /// `wham/usage` gives `reset_after_seconds` and an epoch `reset_at`.
-    func testCodexResetFromRealKeys() throws {
+    @Test func testCodexResetFromRealKeys() throws {
         let body = try json("""
         {"rate_limit": {
           "primary_window": {"used_percent": 16, "limit_window_seconds": 18000,
@@ -34,23 +35,23 @@ final class UsageResetParsingTests: XCTestCase {
                                "reset_after_seconds": 601951, "reset_at": 1791584488}}}
         """)
         let now = Date(timeIntervalSince1970: 1_790_982_537)
-        let p = try XCTUnwrap(NativeUsageProbe.codexProvider(from: body, now: now) { _ in nil })
-        XCTAssertEqual(p.windowLabel, "Session")
-        XCTAssertEqual(try XCTUnwrap(p.resetsAt).timeIntervalSince1970, 1_790_997_688, accuracy: 1)
+        let p = try #require(NativeUsageProbe.codexProvider(from: body, now: now) { _ in nil })
+        #expect((p.windowLabel) == ("Session"))
+        #expect(abs((try #require(p.resetsAt).timeIntervalSince1970) - (1_790_997_688)) <= 1)
     }
 
     /// Without an absolute `reset_at`, the relative seconds count from `now`.
-    func testCodexResetFallsBackToRelativeSeconds() throws {
+    @Test func testCodexResetFallsBackToRelativeSeconds() throws {
         let body = try json("""
         {"rate_limit": {"primary_window": {"used_percent": 40, "reset_after_seconds": 3600}}}
         """)
         let now = Date(timeIntervalSince1970: 1_790_982_537)
-        let p = try XCTUnwrap(NativeUsageProbe.codexProvider(from: body, now: now) { _ in nil })
-        XCTAssertEqual(try XCTUnwrap(p.resetsAt).timeIntervalSince1970, 1_790_986_137, accuracy: 1)
+        let p = try #require(NativeUsageProbe.codexProvider(from: body, now: now) { _ in nil })
+        #expect(abs((try #require(p.resetsAt).timeIntervalSince1970) - (1_790_986_137)) <= 1)
     }
 
     /// OpenUsage's local API sends millisecond ISO timestamps (`.000Z`).
-    func testOpenUsageResetParsesMilliseconds() throws {
+    @Test func testOpenUsageResetParsesMilliseconds() throws {
         let body = try json("""
         {"providerId": "antigravity", "lines": [
           {"type": "progress", "label": "Session", "used": 0, "limit": 100,
@@ -58,19 +59,17 @@ final class UsageResetParsingTests: XCTestCase {
           {"type": "progress", "label": "Weekly", "used": 9, "limit": 100,
            "resetsAt": "2026-10-07T02:26:05.000Z"}]}
         """)
-        let p = try XCTUnwrap(OpenUsageClient.provider(from: body))
-        XCTAssertEqual(p.windowLabel, "Weekly")
-        XCTAssertEqual(try XCTUnwrap(p.resetsAt).timeIntervalSince1970,
-                       epoch("2026-10-07T02:26:05Z"), accuracy: 1)
+        let p = try #require(OpenUsageClient.provider(from: body))
+        #expect((p.windowLabel) == ("Weekly"))
+        #expect(abs((try #require(p.resetsAt).timeIntervalSince1970) - (epoch("2026-10-07T02:26:05Z"))) <= 1)
     }
 
     /// Whole-second timestamps must keep working.
-    func testWholeSecondTimestampsStillParse() throws {
+    @Test func testWholeSecondTimestampsStillParse() throws {
         let body = try json("""
         {"seven_day": {"utilization": 50.0, "resets_at": "2026-10-05T04:00:00Z"}}
         """)
-        let p = try XCTUnwrap(NativeUsageProbe.claudeProvider(from: body))
-        XCTAssertEqual(try XCTUnwrap(p.resetsAt).timeIntervalSince1970,
-                       epoch("2026-10-05T04:00:00Z"), accuracy: 1)
+        let p = try #require(NativeUsageProbe.claudeProvider(from: body))
+        #expect(abs((try #require(p.resetsAt).timeIntervalSince1970) - (epoch("2026-10-05T04:00:00Z"))) <= 1)
     }
 }

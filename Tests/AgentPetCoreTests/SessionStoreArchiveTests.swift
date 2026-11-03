@@ -1,4 +1,5 @@
-import XCTest
+import Testing
+import Foundation
 @testable import AgentPetCore
 
 // MARK: - Helpers
@@ -11,7 +12,8 @@ private func makeTmpArchiveStore() -> (SessionArchiveStore, URL) {
 
 // MARK: - SessionStore + archiveStore Integration Tests
 
-final class SessionStoreArchiveTests: XCTestCase {
+@Suite(.serialized)
+final class SessionStoreArchiveTests {
 
     private let t0 = Date(timeIntervalSince1970: 1_000_000)
 
@@ -33,7 +35,7 @@ final class SessionStoreArchiveTests: XCTestCase {
     // MARK: Test 1
     // idle session 被 prune 時，archiveStore 收到正確 sessionId、createdAt、endedAt
 
-    func testIdleSessionPruneArchivesWithCorrectTimestamps() {
+    @Test func testIdleSessionPruneArchivesWithCorrectTimestamps() {
         let (archiveStore, dir) = makeTmpArchiveStore()
         defer { try? FileManager.default.removeItem(at: dir) }
 
@@ -51,21 +53,19 @@ final class SessionStoreArchiveTests: XCTestCase {
         store.prune(now: pruneNow)
 
         let records = archiveStore.records(for: t0)
-        XCTAssertEqual(records.count, 1, "idle session removed by prune should be archived")
+        #expect((records.count) == (1), Comment(rawValue: "idle session removed by prune should be archived"))
 
         let record = records.first!
-        XCTAssertEqual(record.sessionId, "s1")
+        #expect((record.sessionId) == ("s1"))
         // createdAt 應係 session 首次出現時（t0），endedAt 係 prune 發生時
-        XCTAssertEqual(record.startedAt.timeIntervalSince1970, t0.timeIntervalSince1970, accuracy: 1,
-                       "startedAt should equal session createdAt")
-        XCTAssertEqual(record.endedAt.timeIntervalSince1970, pruneNow.timeIntervalSince1970, accuracy: 1,
-                       "endedAt should equal the prune timestamp")
+        #expect(abs((record.startedAt.timeIntervalSince1970) - (t0.timeIntervalSince1970)) <= 1, Comment(rawValue: "startedAt should equal session createdAt"))
+        #expect(abs((record.endedAt.timeIntervalSince1970) - (pruneNow.timeIntervalSince1970)) <= 1, Comment(rawValue: "endedAt should equal the prune timestamp"))
     }
 
     // MARK: Test 2
     // isSessionEnd 路徑（SessionEnd event）觸發 archive
 
-    func testSessionEndEventArchivesBeforeRemoval() {
+    @Test func testSessionEndEventArchivesBeforeRemoval() {
         let (archiveStore, dir) = makeTmpArchiveStore()
         defer { try? FileManager.default.removeItem(at: dir) }
 
@@ -81,22 +81,21 @@ final class SessionStoreArchiveTests: XCTestCase {
         store.apply(event("SessionEnd"), now: endNow)
 
         // session 已被 remove
-        XCTAssertNil(store.session(id: "s1"), "session should be removed after SessionEnd")
+        #expect((store.session(id: "s1")) == nil, Comment(rawValue: "session should be removed after SessionEnd"))
 
         // archive 應該有記錄
         let records = archiveStore.records(for: t0)
-        XCTAssertEqual(records.count, 1, "SessionEnd should trigger archive")
+        #expect((records.count) == (1), Comment(rawValue: "SessionEnd should trigger archive"))
 
         let record = records.first!
-        XCTAssertEqual(record.sessionId, "s1")
-        XCTAssertEqual(record.endedAt.timeIntervalSince1970, endNow.timeIntervalSince1970, accuracy: 1,
-                       "endedAt should equal the SessionEnd event timestamp")
+        #expect((record.sessionId) == ("s1"))
+        #expect(abs((record.endedAt.timeIntervalSince1970) - (endNow.timeIntervalSince1970)) <= 1, Comment(rawValue: "endedAt should equal the SessionEnd event timestamp"))
     }
 
     // MARK: Test 3
     // stale working session 被 prune 時觸發 archive
 
-    func testStaleWorkingSessionPruneArchives() {
+    @Test func testStaleWorkingSessionPruneArchives() {
         let (archiveStore, dir) = makeTmpArchiveStore()
         defer { try? FileManager.default.removeItem(at: dir) }
 
@@ -109,18 +108,18 @@ final class SessionStoreArchiveTests: XCTestCase {
         let pruneNow = t0.addingTimeInterval(300)
         store.prune(now: pruneNow)
 
-        XCTAssertNil(store.session(id: "s1"), "stale working session should be removed")
+        #expect((store.session(id: "s1")) == nil, Comment(rawValue: "stale working session should be removed"))
 
         let records = archiveStore.records(for: t0)
-        XCTAssertEqual(records.count, 1, "stale working session removed by prune should be archived")
-        XCTAssertEqual(records.first?.sessionId, "s1")
-        XCTAssertEqual(records.first!.endedAt.timeIntervalSince1970, pruneNow.timeIntervalSince1970, accuracy: 1)
+        #expect((records.count) == (1), Comment(rawValue: "stale working session removed by prune should be archived"))
+        #expect((records.first?.sessionId) == ("s1"))
+        #expect(abs((records.first!.endedAt.timeIntervalSince1970) - (pruneNow.timeIntervalSince1970)) <= 1)
     }
 
     // MARK: Test 4
     // archiveStore == nil 時 prune/apply 無 crash（backward compatible）
 
-    func testNilArchiveStoreDoesNotCrashOnPrune() {
+    @Test func testNilArchiveStoreDoesNotCrashOnPrune() {
         let store = SessionStore(doneToIdleAfter: 10, removeIdleAfter: 20)
         // archiveStore 預設 nil，唔設定
 
@@ -132,41 +131,41 @@ final class SessionStoreArchiveTests: XCTestCase {
         // prune → remove idle（no archiveStore → should not crash）
         store.prune(now: t0.addingTimeInterval(45))
 
-        XCTAssertNil(store.session(id: "s1"), "session should be removed even without archiveStore")
+        #expect((store.session(id: "s1")) == nil, Comment(rawValue: "session should be removed even without archiveStore"))
     }
 
-    func testNilArchiveStoreDoesNotCrashOnSessionEnd() {
+    @Test func testNilArchiveStoreDoesNotCrashOnSessionEnd() {
         let store = SessionStore()
         // archiveStore == nil
 
         store.apply(event("PreToolUse"), now: t0)
         store.apply(event("SessionEnd"), now: t0.addingTimeInterval(5))
 
-        XCTAssertNil(store.session(id: "s1"), "session removed without archiveStore should not crash")
+        #expect((store.session(id: "s1")) == nil, Comment(rawValue: "session removed without archiveStore should not crash"))
     }
 
     // MARK: Test 5
     // 現有測試 regression check（SessionStore 基本行為唔受影響）
 
-    func testExistingBehaviourUnaffected_applyCreatesSession() {
+    @Test func testExistingBehaviourUnaffected_applyCreatesSession() {
         let store = SessionStore()
         let s = store.apply(event("PreToolUse"), now: t0)
-        XCTAssertEqual(s?.state, .working)
-        XCTAssertEqual(store.sessions.count, 1)
+        #expect((s?.state) == (.working))
+        #expect((store.sessions.count) == (1))
     }
 
-    func testExistingBehaviourUnaffected_pruneRemovesLongIdle() {
+    @Test func testExistingBehaviourUnaffected_pruneRemovesLongIdle() {
         let store = SessionStore(doneToIdleAfter: 30, removeIdleAfter: 60)
         store.apply(event("Stop"), now: t0)
         store.prune(now: t0.addingTimeInterval(40))   // done → idle
         store.prune(now: t0.addingTimeInterval(110))  // idle → remove
-        XCTAssertNil(store.session(id: "s1"))
+        #expect((store.session(id: "s1")) == nil)
     }
 
     // MARK: Test 6
     // 同一 session 跨 prune cycle 唔會 archive 兩次
 
-    func testSameSessionNotArchivedTwiceAcrossPruneCycles() {
+    @Test func testSameSessionNotArchivedTwiceAcrossPruneCycles() {
         let (archiveStore, dir) = makeTmpArchiveStore()
         defer { try? FileManager.default.removeItem(at: dir) }
 
@@ -184,14 +183,14 @@ final class SessionStoreArchiveTests: XCTestCase {
         store.prune(now: t0.addingTimeInterval(60))
 
         let records = archiveStore.records(for: t0)
-        XCTAssertEqual(records.count, 1, "same session must not be archived more than once across prune cycles")
+        #expect((records.count) == (1), Comment(rawValue: "same session must not be archived more than once across prune cycles"))
     }
 
     // MARK: - createdAt correctness
 
     // createdAt 應係 session 首次 apply 時嘅 `now`，唔隨後續 event 更新
 
-    func testCreatedAtIsSetOnFirstApplyAndNotUpdatedBySubsequentEvents() {
+    @Test func testCreatedAtIsSetOnFirstApplyAndNotUpdatedBySubsequentEvents() {
         let store = SessionStore()
 
         let firstEventTime = t0
@@ -201,10 +200,8 @@ final class SessionStoreArchiveTests: XCTestCase {
         store.apply(event("Stop"), now: laterEventTime)
 
         let session = store.session(id: "s1")
-        XCTAssertNotNil(session)
-        XCTAssertEqual(session!.createdAt.timeIntervalSince1970, firstEventTime.timeIntervalSince1970, accuracy: 0.001,
-                       "createdAt must equal the first event time and not be overwritten by later events")
-        XCTAssertEqual(session!.updatedAt.timeIntervalSince1970, laterEventTime.timeIntervalSince1970, accuracy: 0.001,
-                       "updatedAt should reflect the most recent event")
+        #expect((session) != nil)
+        #expect(abs((session!.createdAt.timeIntervalSince1970) - (firstEventTime.timeIntervalSince1970)) <= 0.001, Comment(rawValue: "createdAt must equal the first event time and not be overwritten by later events"))
+        #expect(abs((session!.updatedAt.timeIntervalSince1970) - (laterEventTime.timeIntervalSince1970)) <= 0.001, Comment(rawValue: "updatedAt should reflect the most recent event"))
     }
 }

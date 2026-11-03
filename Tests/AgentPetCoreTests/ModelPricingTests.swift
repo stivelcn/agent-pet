@@ -1,9 +1,11 @@
-import XCTest
+import Testing
+import Foundation
 @testable import AgentPetCore
 
-final class ModelPricingTests: XCTestCase {
+@Suite(.serialized)
+final class ModelPricingTests {
 
-    func testSonnetPricingWithAllFourTokenKinds() {
+    @Test func testSonnetPricingWithAllFourTokenKinds() {
         // sonnet: input $3.00/M, output $15.00/M
         let cost = ModelPricing.costUSD(
             model: "claude-sonnet-4-6-20260115",
@@ -18,10 +20,10 @@ final class ModelPricingTests: XCTestCase {
             + 250 * outputRate
             + 500 * inputRate * 1.25
             + 2_000 * inputRate * 0.1) / 1_000_000
-        XCTAssertEqual(cost, expected, accuracy: 0.0000001)
+        #expect(abs((cost) - (expected)) <= 0.0000001)
     }
 
-    func testOpusPricing() {
+    @Test func testOpusPricing() {
         let cost = ModelPricing.costUSD(
             model: "claude-opus-4-1",
             inputTokens: 1_000,
@@ -32,10 +34,10 @@ final class ModelPricingTests: XCTestCase {
         let inputRate = 15.00
         let outputRate = 75.00
         let expected = (1_000 * inputRate + 500 * outputRate) / 1_000_000
-        XCTAssertEqual(cost, expected, accuracy: 0.0000001)
+        #expect(abs((cost) - (expected)) <= 0.0000001)
     }
 
-    func testHaikuPricing() {
+    @Test func testHaikuPricing() {
         let cost = ModelPricing.costUSD(
             model: "claude-haiku-3-5",
             inputTokens: 2_000,
@@ -46,10 +48,10 @@ final class ModelPricingTests: XCTestCase {
         let inputRate = 1.00
         let outputRate = 5.00
         let expected = (2_000 * inputRate + 1_000 * outputRate) / 1_000_000
-        XCTAssertEqual(cost, expected, accuracy: 0.0000001)
+        #expect(abs((cost) - (expected)) <= 0.0000001)
     }
 
-    func testUnknownModelFallsBackToSonnetRate() {
+    @Test func testUnknownModelFallsBackToSonnetRate() {
         let cost = ModelPricing.costUSD(
             model: "some-unrecognized-model-xyz",
             inputTokens: 1_000,
@@ -58,10 +60,10 @@ final class ModelPricingTests: XCTestCase {
             cacheReadTokens: 0
         )
         let expected = (1_000 * 3.00 + 1_000 * 15.00) / 1_000_000
-        XCTAssertEqual(cost, expected, accuracy: 0.0000001)
+        #expect(abs((cost) - (expected)) <= 0.0000001)
     }
 
-    func testNilModelFallsBackToSonnetRate() {
+    @Test func testNilModelFallsBackToSonnetRate() {
         let cost = ModelPricing.costUSD(
             model: nil,
             inputTokens: 1_000,
@@ -70,10 +72,10 @@ final class ModelPricingTests: XCTestCase {
             cacheReadTokens: 0
         )
         let expected = (1_000 * 3.00 + 1_000 * 15.00) / 1_000_000
-        XCTAssertEqual(cost, expected, accuracy: 0.0000001)
+        #expect(abs((cost) - (expected)) <= 0.0000001)
     }
 
-    func testAllZeroTokensReturnsZero() {
+    @Test func testAllZeroTokensReturnsZero() {
         let cost = ModelPricing.costUSD(
             model: "claude-sonnet-4-6-20260115",
             inputTokens: 0,
@@ -81,10 +83,10 @@ final class ModelPricingTests: XCTestCase {
             cacheCreateTokens: 0,
             cacheReadTokens: 0
         )
-        XCTAssertEqual(cost, 0, accuracy: 0.0000001)
+        #expect(abs((cost) - (0)) <= 0.0000001)
     }
 
-    func testFullModelIdMatchesSonnetTierViaSubstring() {
+    @Test func testFullModelIdMatchesSonnetTierViaSubstring() {
         let cost = ModelPricing.costUSD(
             model: "claude-sonnet-4-6-20260115",
             inputTokens: 1_000,
@@ -93,6 +95,6 @@ final class ModelPricingTests: XCTestCase {
             cacheReadTokens: 0
         )
         let expected = (1_000 * 3.00 + 1_000 * 15.00) / 1_000_000
-        XCTAssertEqual(cost, expected, accuracy: 0.0000001)
+        #expect(abs((cost) - (expected)) <= 0.0000001)
     }
 }

@@ -3,7 +3,7 @@ import Foundation
 
 /// Opt-in resize trace for `scripts/bubble_selftest.py`. Launch the app with
 /// `AGENTPET_METRICS=1` and every measured content size and applied window
-/// size is appended to `~/.agentpet/metrics.log` as
+/// size is appended to `AgentPetPaths.baseDir/metrics.log` as
 /// `<uptime> content|window w=<W> h=<H>`. Off by default: nothing is opened
 /// or written unless the env var is set.
 @MainActor

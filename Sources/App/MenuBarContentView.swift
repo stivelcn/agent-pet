@@ -57,10 +57,10 @@ struct MenuContentView: View {
 
     private var subtitle: String {
         let total = agents.count
-        if total == 0 { return "No agents running" }
+        if total == 0 { return NSLocalizedString("No agents running", comment: "") }
         let running = agents.filter { $0.state == .working }.count
-        let label = "\(total) agent\(total == 1 ? "" : "s")"
-        return running > 0 ? "\(label) · \(running) running" : label
+        let label = String(format: NSLocalizedString("%d agents", comment: ""), total)
+        return running > 0 ? String(format: NSLocalizedString("%@ · %d running", comment: ""), label, running) : label
     }
 
     // MARK: Companion (care stats)
@@ -72,6 +72,20 @@ struct MenuContentView: View {
     private static let stageColors: [Color] = [.green, .teal, .blue, .purple, .orange]
 
     private var careSection: some View {
+        Button {
+            StatusBarController.shared.closeAndThen {
+                UsageHistoryWindowController.shared.show()
+            }
+        } label: {
+            careCard.contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(NSLocalizedString("View usage statistics", comment: "pet card action"))
+        .accessibilityIdentifier("usage-history-entry")
+        .accessibilityLabel(Text("View usage statistics"))
+    }
+
+    private var careCard: some View {
         let state = care.current
         let level = care.level
         let idx = min(care.stageIndex, Self.stageColors.count - 1)
@@ -79,13 +93,23 @@ struct MenuContentView: View {
         let name = imagePets.displayName(for: pet.selectedPetID)
 
         return VStack(alignment: .leading, spacing: 6) {
-            sectionLabel("Companion")
+            HStack {
+                sectionLabel("Companion")
+                Spacer()
+                HStack(spacing: 4) {
+                    Text("View statistics")
+                    Image(systemName: "chevron.right")
+                }
+                .font(.system(size: 10))
+                .foregroundStyle(Theme.muted)
+                .padding(.trailing, 14).padding(.top, 12).padding(.bottom, 6)
+            }
             HStack(spacing: 8) {
                 StageBadge(stageIndex: idx, size: 20)
                 Text(name)
                     .font(.system(size: 13, weight: .semibold)).foregroundStyle(.white)
                     .lineLimit(1).truncationMode(.tail)
-                Text(verbatim: "Lv \(level)")
+                Text(verbatim: "等级 \(level)")
                     .font(.system(size: 12, weight: .bold)).foregroundStyle(color)
                     .layoutPriority(1)
                 Spacer(minLength: 6)
@@ -165,7 +189,7 @@ struct MenuContentView: View {
     }
 
     private func sectionLabel(_ text: String) -> some View {
-        Text(text.uppercased())
+        Text(NSLocalizedString(text, comment: "menu section"))
             .font(.system(size: 10, weight: .semibold)).tracking(1.4)
             .foregroundStyle(.white.opacity(0.35))
             .padding(.horizontal, 14).padding(.top, 12).padding(.bottom, 6)
@@ -224,7 +248,7 @@ struct MenuContentView: View {
     private func controlRow(icon: String, label: String, isOn: Binding<Bool>) -> some View {
         HStack(spacing: 8) {
             Image(systemName: icon).foregroundStyle(.white.opacity(0.8)).frame(width: 16)
-            Text(label).font(.system(size: 13)).foregroundStyle(.white)
+            Text(NSLocalizedString(label, comment: "Menu bar control")).font(.system(size: 13)).foregroundStyle(.white)
             Spacer()
             ColorSwitch(isOn: isOn)
         }
@@ -233,7 +257,6 @@ struct MenuContentView: View {
 
     // MARK: Footer
 
-    @ObservedObject private var updater = UpdaterController.shared
 
     private var footer: some View {
         HStack {
@@ -242,15 +265,6 @@ struct MenuContentView: View {
                 // animation fully completes — no race, no overlap.
                 StatusBarController.shared.closeAndThen {
                     SettingsWindowController.shared.show()
-                }
-            }
-            FooterButton(
-                icon: "arrow.triangle.2.circlepath",
-                label: "Updates",
-                badge: updater.updatePending
-            ) {
-                StatusBarController.shared.closeAndThen {
-                    UpdaterController.shared.checkForUpdates()
                 }
             }
             Spacer()
@@ -293,7 +307,7 @@ private struct FooterButton: View {
                             .offset(x: 4, y: -4)
                     }
                 }
-                Text(label)
+                Text(NSLocalizedString(label, comment: "Menu bar control"))
             }
             .font(.system(size: 12, weight: .medium))
             .foregroundStyle(.white.opacity(0.8))
@@ -343,7 +357,7 @@ private struct AgentRow: View {
     /// The agent's context (waiting reason / running tool) when known, else its state.
     private var subtitle: String {
         if let message = session.message, !message.isEmpty { return message }
-        return session.state.rawValue.capitalized
+        return NSLocalizedString(session.state.rawValue.capitalized, comment: "Agent state")
     }
 
     private var dotColor: Color {

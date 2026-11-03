@@ -3,6 +3,7 @@ import AgentPetCore
 
 /// First-launch welcome: pick a pet and connect an agent in one screen.
 struct OnboardingView: View {
+    @ObservedObject private var language = AppLanguage.shared
     @ObservedObject private var model = SettingsModel.shared
     @ObservedObject private var pet = PetController.shared
     @ObservedObject private var imagePets = ImagePetStore.shared
@@ -36,6 +37,7 @@ struct OnboardingView: View {
         .frame(width: 640, height: 640)
         .background(Theme.background)
         .preferredColorScheme(.dark)
+        .environment(\.locale, language.locale)
         .noFocusRing()
         .onAppear { model.refresh() }
         .sheet(isPresented: $browsing) { BrowsePetsView(onClose: { browsing = false }) }
@@ -57,7 +59,7 @@ struct OnboardingView: View {
                 RoundedRectangle(cornerRadius: 9, style: .continuous)
                     .fill(Color.systemAccent).frame(width: 34, height: 34)
                     .overlay(Image(systemName: "pawprint.fill").font(.system(size: 17)).foregroundStyle(.white))
-                Text("Welcome to AgentPet").font(.title2.bold()).foregroundStyle(.white)
+                Text(verbatim: LocalConfiguration.displayName).font(.title2.bold()).foregroundStyle(.white)
             }
             Text("A desktop pet that watches your AI coding agents. Two quick steps to get going.")
                 .font(.callout).foregroundStyle(.white.opacity(0.7))
@@ -73,7 +75,7 @@ struct OnboardingView: View {
                     RoundedRectangle(cornerRadius: 16).fill(.white.opacity(0.05))
                         .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Color.systemAccent.opacity(0.3)))
                     if let pack = selectedPack {
-                        ImageSpriteView(frames: pack.clip(0), mood: .idle,
+                        ImageSpriteView(frames: pack.restingFrames,
                                         fps: pet.spriteFPS(forMood: .idle), size: 90)
                     } else {
                         Image(systemName: "pawprint.fill").font(.system(size: 40)).foregroundStyle(.white.opacity(0.3))
@@ -81,7 +83,7 @@ struct OnboardingView: View {
                 }
                 .frame(width: 120, height: 120)
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(selectedPack?.displayName ?? "Loading a starter pet…")
+                    Text(selectedPack?.displayName ?? NSLocalizedString("No pet selected — browse or create one", comment: "local first run"))
                         .font(.headline).foregroundStyle(.white)
                     if let d = selectedPack?.description {
                         Text(d).font(.caption).foregroundStyle(.white.opacity(0.6)).lineLimit(3)
@@ -108,18 +110,18 @@ struct OnboardingView: View {
             stepLabel(2, "Connect an agent")
             Text("Install a hook so AgentPet can see when an agent works, finishes, or needs you.")
                 .font(.caption).foregroundStyle(.white.opacity(0.6))
+            if !LocalConfiguration.hookConfigurationEnabled {
+                Text("Development mode: agent hook configuration is disabled. Your existing clients are unchanged.")
+                    .font(.caption).foregroundStyle(.orange)
+            }
+            Text("启动时已自动检测；完成配置后，在客户端里开始一个任务即可验证连接。")
+                .font(.caption).foregroundStyle(.secondary)
+            Button("重新检测并连接") { model.autoConnectDetectedClients() }
             ForEach(model.agents) { agent in
-                HStack {
-                    Text(agent.displayName).foregroundStyle(.white)
-                    if model.isInstalled(agent.kind) {
-                        Image(systemName: "checkmark.circle.fill").foregroundStyle(.green).font(.caption)
-                    }
-                    Spacer()
-                    Button(model.isInstalled(agent.kind) ? "Connected" : "Connect") {
-                        model.toggleInstall(agent.kind)
-                    }
-                    .disabled(model.isInstalled(agent.kind))
-                }
+                AgentConnectionRow(agent: agent)
+            }
+            if let error = model.installError {
+                Text(error).font(.caption).foregroundStyle(.red)
             }
         }
         .themedCard()

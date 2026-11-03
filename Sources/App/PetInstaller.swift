@@ -30,7 +30,7 @@ enum PetdexAssets {
     }
 }
 
-/// Downloads a pet pack (pet.json + spritesheet) into `~/.agentpet/pets/<slug>/`.
+/// Downloads a pet pack (pet.json + spritesheet) into `AgentPetPaths.baseDir/pets/<slug>/`.
 /// Shared by the Browse gallery and first-run onboarding.
 enum PetInstaller {
     private struct PackMeta: Decodable { let id: String?; let spritesheetPath: String }
@@ -44,7 +44,7 @@ enum PetInstaller {
     /// Returns the installed pack's id (pet.json `id`); throws on failure so the
     /// caller can show a meaningful message.
     @discardableResult
-    static func download(slug: String, petJsonURL: URL, spritesheetURL: URL, report: Bool = true) async throws -> String {
+    static func download(slug: String, petJsonURL: URL, spritesheetURL: URL) async throws -> String {
         let fm = FileManager.default
         let dir = URL(fileURLWithPath: AgentPetPaths.baseDir)
             .appendingPathComponent("pets").appendingPathComponent(slug)
@@ -57,27 +57,15 @@ enum PetInstaller {
         let sheetData = try await PetdexAssets.data(spritesheetURL)
         try sheetData.write(to: dir.appendingPathComponent(meta.spritesheetPath))
 
-        if report { reportInstall(slug: slug) }
         return meta.id ?? slug
-    }
-
-    /// Best-effort install ping so the community site can show real install counts.
-    /// Fire-and-forget: never blocks or fails the install.
-    private static func reportInstall(slug: String) {
-        guard let url = URL(string: "https://agentpet.thenightwatcher.online/api/install") else { return }
-        var r = URLRequest(url: url)
-        r.httpMethod = "POST"
-        r.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        r.httpBody = try? JSONSerialization.data(withJSONObject: ["slug": slug])
-        Task.detached { _ = try? await URLSession.shared.data(for: r) }
     }
 
     /// A user-facing reason for a failed download.
     static func message(for error: Error, pet: String) -> String {
         if case PetdexError.badStatus(let code) = error, code == 429 {
-            return "Petdex is rate-limiting downloads right now. Wait a moment and tap Get again."
+            return NSLocalizedString("Petdex is rate-limiting downloads right now. Wait a moment and tap Get again.", comment: "")
         }
-        return "Couldn't download \(pet). Check your connection and try again."
+        return String(format: NSLocalizedString("Could not download %@. Check your connection and try again.", comment: ""), pet)
     }
 
     /// Creates a new local pet pack from user-entered metadata and a
@@ -158,49 +146,4 @@ private extension JSONEncoder {
 
 private extension String {
     var nilIfEmpty: String? { isEmpty ? nil : self }
-}
-
-/// Installs a starter pet on the very first launch so the app isn't empty.
-@MainActor
-enum DefaultPetBootstrap {
-    private static let triedKey = "agentpet.defaultPetTried"
-    private static let manifestURL = URL(string: "https://pets.thenightwatcher.online/manifest.json")!
-    /// Preferred starter (a non-franchise original); falls back to any pet.
-    private static let preferredSlug = "boba"
-
-    struct Entry: Decodable { let slug: String; let spritesheetUrl: String; let petJsonUrl: String }
-    private struct Manifest: Decodable { let pets: [Lenient<Entry>] }
-
-    static func installIfNeeded() {
-        let d = UserDefaults.standard
-        guard !d.bool(forKey: triedKey) else { return }
-        guard ImagePetStore.shared.packs.isEmpty, PetController.shared.selectedPetID == nil else {
-            d.set(true, forKey: triedKey)
-            return
-        }
-        d.set(true, forKey: triedKey)   // attempt once, even if offline
-
-        Task {
-            guard let (data, _) = try? await URLSession.shared.data(from: manifestURL),
-                  let manifest = try? JSONDecoder().decode(Manifest.self, from: data) else { return }
-            let pets = manifest.pets.compactMap(\.value)
-            let pick = pets.first { $0.slug == preferredSlug } ?? pets.first
-            guard let pick,
-                  let petJsonURL = URL(string: pick.petJsonUrl),
-                  let sheetURL = URL(string: pick.spritesheetUrl) else { return }
-
-            // First-run auto-install: don't count it (not a user choice).
-            let id = try? await PetInstaller.download(slug: pick.slug, petJsonURL: petJsonURL, spritesheetURL: sheetURL, report: false)
-            ImagePetStore.shared.reload()
-            if let id, PetController.shared.selectedPetID == nil {
-                PetController.shared.selectedPetID = id
-            }
-        }
-    }
-}
-
-/// Tolerant decode wrapper: a malformed element yields nil instead of failing.
-private struct Lenient<T: Decodable>: Decodable {
-    let value: T?
-    init(from decoder: Decoder) { value = try? T(from: decoder) }
 }

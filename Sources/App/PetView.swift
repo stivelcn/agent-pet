@@ -41,14 +41,13 @@ private let SNAP_WINDOW: TimeInterval = 3.0
 /// schedule (`ElapsedSchedule`) so the two can't drift apart.
 private let ELAPSED_SECONDS_LIMIT = 60
 
-/// The pet sprite alone (imported pack, reacting to mood). Shows a paw
-/// placeholder if no pet is selected yet. The pet id and mood come from the
-/// per-window model rather than the global `PetController`.
+/// The pet's quiet idle/blink loop. Task moods still drive the bubble, never
+/// running or jumping clips. Shows a paw placeholder if no pet is selected.
+/// The pet id and rest cadence come from the per-window model.
 struct PetView: View {
     @ObservedObject var model: PetWindowModel
     var size: CGFloat = 120
     @ObservedObject private var imagePets = ImagePetStore.shared
-    @ObservedObject private var bindings = PetBindingsStore.shared
     @ObservedObject private var pet = PetController.shared
 
     var body: some View {
@@ -59,13 +58,16 @@ struct PetView: View {
 
     @ViewBuilder private var content: some View {
         if let id = model.petID, let pack = imagePets.pack(id: id) {
-            let clip = bindings.clipIndex(packId: pack.id, clipCount: pack.clipCount, mood: model.mood)
-            ImageSpriteView(frames: pack.clip(clip), mood: model.mood,
+            ImageSpriteView(frames: pack.restingFrames,
                             fps: pet.spriteFPS(forMood: model.mood), size: size)
         } else {
-            Image(systemName: "pawprint.fill")
-                .font(.system(size: size * 0.4))
-                .foregroundStyle(.secondary)
+            VStack(spacing: 5) {
+                Image(systemName: "pawprint.fill")
+                    .font(.system(size: size * 0.32))
+                Text(imagePets.loadingMessage(for: model.petID))
+                    .font(.system(size: 11)).multilineTextAlignment(.center)
+            }
+            .foregroundStyle(.secondary)
         }
     }
 }
@@ -95,6 +97,12 @@ struct FloatingPetView: View {
     @ObservedObject private var pet = PetController.shared
     @ObservedObject private var bubbleSettings = BubbleSettings.shared
     @ObservedObject private var appLang = AppLanguage.shared
+    @ObservedObject private var completions = CompletionNoticeStore.shared
+
+    private var completionNotices: [CompletionNotice] {
+        completions.notices(forWindow: model.key, split: pet.splitPet,
+                            mappings: ProjectPetSettings.shared.mappings)
+    }
 
     @State private var petDragging = false
     @State private var petDragStartOrigin: NSPoint = .zero
@@ -103,24 +111,21 @@ struct FloatingPetView: View {
     var body: some View {
         VStack(spacing: 2) {
             if pet.showChat && model.petID != nil {
+                if !completionNotices.isEmpty {
+                    alignedToPet(CompletionBubble(notices: completionNotices, store: completions))
+                }
                 // Gate on the sessions the bubble will actually show: if the
                 // state/kind filters hide all of them, drawing AgentBubble
                 // would leave an empty (off-centre, contentless) bubble.
                 if bubbleSettings.multiAgentBubbleEnabled
                     && !AgentBubble.visible(model.sessions, settings: bubbleSettings).isEmpty {
                     alignedToPet(AgentBubble(sessions: model.sessions))
-                } else if !model.chatLine.isEmpty {
+                } else if completionNotices.isEmpty && !model.chatLine.isEmpty {
                     alignedToPet(ChatBubble(text: model.chatLine,
                                             projectName: pet.splitPet ? model.projectName : nil))
                 }
             }
             PetView(model: model, size: pet.petPoint)
-                .overlay {
-                    if model.petTapCount > 0 {
-                        PetHearts(size: pet.petPoint)
-                            .id(model.petTapCount)
-                    }
-                }
                 .overlay(alignment: .top) {
                     if !model.petReactionLine.isEmpty {
                         Text(model.petReactionLine)
@@ -138,18 +143,9 @@ struct FloatingPetView: View {
                             )
                             .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
                             .offset(y: -16)
-                            .transition(.asymmetric(
-                                insertion: .scale(scale: 0.5, anchor: .bottom).combined(with: .opacity),
-                                removal: .opacity
-                            ))
+                            .transition(.opacity)
                     }
                 }
-                .scaleEffect(
-                    x: model.isPetted ? 1.12 : 1.0,
-                    y: model.isPetted ? 0.82 : 1.0,
-                    anchor: .bottom
-                )
-                .animation(.interpolatingSpring(stiffness: 300, damping: 8), value: model.isPetted)
                 .gesture(petDragOrTap)
                 // Kept under its on-screen spot when the window is pushed back
                 // onto the screen (offset doesn't change the measured size).
@@ -160,7 +156,7 @@ struct FloatingPetView: View {
                 .animation(nil, value: model.petOffset)
         }
         .fixedSize(horizontal: true, vertical: true)
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: model.petReactionLine)
+        .animation(.easeInOut(duration: 0.2), value: model.petReactionLine)
         .background(
             GeometryReader { proxy in
                 Color.clear.preference(key: PetContentSizeKey.self, value: proxy.size)
@@ -636,7 +632,7 @@ private struct BubbleCompactLayout: View {
 
             if hiddenCount > 0 {
                 Button(action: { withAnimation(.easeInOut(duration: 0.2)) { expanded.toggle() } }) {
-                    Text(expanded ? "Show less" : "+\(hiddenCount) more")
+                    Text(expanded ? NSLocalizedString("Show less", comment: "") : String(format: NSLocalizedString("Show %d more", comment: ""), hiddenCount))
                         .font(.system(size: settings.fontSize.secondaryPt, weight: .medium))
                         .foregroundStyle(textColor(0.5))
                 }
@@ -880,7 +876,7 @@ private struct AgentRow: View {
     /// Any displayed session whose terminal we know can be jumped to, whatever
     /// its state (working, waiting, done). Its tab may still be open.
     private var canFocusTerminal: Bool {
-        session.terminalProgram != nil
+        SessionNavigator.destination(for: SessionNavigationTarget(session)) != .unavailable
     }
 
     /// Same orange used for the waiting state dot — applied to the message
@@ -973,7 +969,7 @@ private struct AgentRow: View {
             .layoutPriority(1)
             .fixedSize(horizontal: false, vertical: true)
         case .stateLabel:
-            Text(session.state.rawValue.capitalized)
+            Text(NSLocalizedString(session.state.rawValue.capitalized, comment: "Agent state"))
                 .font(.system(size: secondaryPt, weight: .regular))
                 .foregroundStyle(textColor(0.55))
         case .model:
@@ -1041,7 +1037,7 @@ private struct AgentRow: View {
             let m = session.message?.trimmingCharacters(in: .whitespaces) ?? ""
             if !m.isEmpty { return m }
             return ActivityFormatter.stateMessage(for: session.state)
-                ?? session.state.rawValue.capitalized
+                ?? NSLocalizedString(session.state.rawValue.capitalized, comment: "Agent state")
         }
         // done / waiting / idle: always use the bubble message (custom when set,
         // otherwise the localized built-in default). The hook's own message is
@@ -1049,7 +1045,7 @@ private struct AgentRow: View {
         let line = bubbleMsgs.line(for: session.agentKind, mood: mood, seed: session.id)
         if !line.isEmpty { return line }
         return ActivityFormatter.stateMessage(for: session.state)
-            ?? session.state.rawValue.capitalized
+            ?? NSLocalizedString(session.state.rawValue.capitalized, comment: "Agent state")
     }
 
     private func moodFor(_ state: AgentState) -> PetMood {
@@ -1179,7 +1175,7 @@ private struct TapToFocus: ViewModifier {
         if enabled {
             content
                 .onTapGesture { AppDaemon.shared.focusTerminal(sessionId: sessionId) }
-                .help(NSLocalizedString("Click to open this terminal", comment: "bubble row focus-terminal hint"))
+                .help(NSLocalizedString("Open this agent conversation", comment: "bubble row focus hint"))
         } else {
             content
         }

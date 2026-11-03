@@ -114,6 +114,9 @@ final class PetWindowController: ObservableObject {
         }
     }
 
+    /// Used by diagnostics and regression tests; does not create a window.
+    func displayedPetID(forKey key: String) -> String? { windows[key]?.model.petID }
+
     // MARK: - Multi-window sync
 
     /// The per-window state the coordinator resolves for a spec: the displayed
@@ -270,7 +273,7 @@ final class PetWindowController: ObservableObject {
     // MARK: - Position persistence (agentpet.petPositions)
 
     private func loadPositions() -> [String: [Double]] {
-        guard let data = UserDefaults.standard.data(forKey: Self.positionsKey),
+        guard let data = LocalPreferences.defaults.data(forKey: Self.positionsKey),
               let decoded = try? JSONDecoder().decode([String: [Double]].self, from: data) else { return [:] }
         return decoded
     }
@@ -288,7 +291,7 @@ final class PetWindowController: ObservableObject {
         var all = loadPositions()
         all[managed.model.key] = [Double(origin.x), Double(origin.y)]
         if let data = try? JSONEncoder().encode(all) {
-            UserDefaults.standard.set(data, forKey: Self.positionsKey)
+            LocalPreferences.defaults.set(data, forKey: Self.positionsKey)
         }
     }
 

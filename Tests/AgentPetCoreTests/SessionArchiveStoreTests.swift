@@ -1,4 +1,5 @@
-import XCTest
+import Testing
+import Foundation
 @testable import AgentPetCore
 
 // MARK: - Helpers
@@ -30,10 +31,11 @@ private func makeTmpStore() -> (SessionArchiveStore, URL) {
 
 // MARK: - SessionArchive Model Tests
 
-final class SessionArchiveModelTests: XCTestCase {
+@Suite(.serialized)
+final class SessionArchiveModelTests {
 
     // [TEST] SessionArchive JSON encode/decode round-trip，Date 必須以 ISO8601 保留精度
-    func testJSONRoundTripPreservesAllFields() throws {
+    @Test func testJSONRoundTripPreservesAllFields() throws {
         let startedAt = Date(timeIntervalSince1970: 1_700_000_000)
         let endedAt   = Date(timeIntervalSince1970: 1_700_000_120)
         let archive = SessionArchive(
@@ -56,20 +58,20 @@ final class SessionArchiveModelTests: XCTestCase {
         decoder.dateDecodingStrategy = .iso8601
         let decoded = try decoder.decode(SessionArchive.self, from: data)
 
-        XCTAssertEqual(decoded.sessionId, "abc-123")
-        XCTAssertEqual(decoded.agentKind, .claude)
-        XCTAssertEqual(decoded.project, "/proj/beta")
-        XCTAssertEqual(decoded.title, "Feature: dark mode")
-        XCTAssertEqual(decoded.message, "Implemented successfully")
-        XCTAssertEqual(decoded.tokenCount, 4200)
-        XCTAssertEqual(decoded.duration, 120, accuracy: 0.001)
+        #expect((decoded.sessionId) == ("abc-123"))
+        #expect((decoded.agentKind) == (.claude))
+        #expect((decoded.project) == ("/proj/beta"))
+        #expect((decoded.title) == ("Feature: dark mode"))
+        #expect((decoded.message) == ("Implemented successfully"))
+        #expect((decoded.tokenCount) == (4200))
+        #expect(abs((decoded.duration) - (120)) <= 0.001)
         // ISO8601 精度到秒，允許 1 秒誤差
-        XCTAssertEqual(decoded.startedAt.timeIntervalSince1970, startedAt.timeIntervalSince1970, accuracy: 1)
-        XCTAssertEqual(decoded.endedAt.timeIntervalSince1970, endedAt.timeIntervalSince1970, accuracy: 1)
+        #expect(abs((decoded.startedAt.timeIntervalSince1970) - (startedAt.timeIntervalSince1970)) <= 1)
+        #expect(abs((decoded.endedAt.timeIntervalSince1970) - (endedAt.timeIntervalSince1970)) <= 1)
     }
 
     // tokenCount 為 optional，nil 時不影響其他欄位 encode/decode
-    func testJSONRoundTripWithNilOptionals() throws {
+    @Test func testJSONRoundTripWithNilOptionals() throws {
         let archive = SessionArchive(
             sessionId: "xyz-999",
             agentKind: .codex,
@@ -90,20 +92,21 @@ final class SessionArchiveModelTests: XCTestCase {
         decoder.dateDecodingStrategy = .iso8601
         let decoded = try decoder.decode(SessionArchive.self, from: data)
 
-        XCTAssertEqual(decoded.sessionId, "xyz-999")
-        XCTAssertNil(decoded.project)
-        XCTAssertNil(decoded.title)
-        XCTAssertNil(decoded.message)
-        XCTAssertNil(decoded.tokenCount)
+        #expect((decoded.sessionId) == ("xyz-999"))
+        #expect((decoded.project) == nil)
+        #expect((decoded.title) == nil)
+        #expect((decoded.message) == nil)
+        #expect((decoded.tokenCount) == nil)
     }
 }
 
 // MARK: - SessionArchiveStore Tests
 
-final class SessionArchiveStoreTests: XCTestCase {
+@Suite(.serialized)
+final class SessionArchiveStoreTests {
 
     // [TEST] archive() 後 records(for:) 返回正確記錄
-    func testArchiveAndRetrieveOnSameDay() {
+    @Test func testArchiveAndRetrieveOnSameDay() {
         let (store, dir) = makeTmpStore()
         defer { try? FileManager.default.removeItem(at: dir) }
 
@@ -114,13 +117,13 @@ final class SessionArchiveStoreTests: XCTestCase {
         store.archive(session, startedAt: startedAt, endedAt: endedAt)
 
         let records = store.records(for: startedAt)
-        XCTAssertEqual(records.count, 1)
-        XCTAssertEqual(records.first?.sessionId, "s-001")
-        XCTAssertEqual(records.first?.duration ?? -1, 90, accuracy: 0.001)
+        #expect((records.count) == (1))
+        #expect((records.first?.sessionId) == ("s-001"))
+        #expect(abs((records.first?.duration ?? -1) - (90)) <= 0.001)
     }
 
     // [TEST] 去重：同一 sessionId archive 兩次，records(for:) 只返回一筆
-    func testDeduplicationPreventsDuplicateSessionId() {
+    @Test func testDeduplicationPreventsDuplicateSessionId() {
         let (store, dir) = makeTmpStore()
         defer { try? FileManager.default.removeItem(at: dir) }
 
@@ -132,11 +135,11 @@ final class SessionArchiveStoreTests: XCTestCase {
         store.archive(session, startedAt: startedAt, endedAt: endedAt)
 
         let records = store.records(for: startedAt)
-        XCTAssertEqual(records.count, 1, "same sessionId archived twice should only appear once")
+        #expect((records.count) == (1), Comment(rawValue: "same sessionId archived twice should only appear once"))
     }
 
     // [TEST] app restart 後去重仍然有效（新 store 實例讀取同一 baseURL）
-    func testDeduplicationPersistsAcrossStoreInstances() {
+    @Test func testDeduplicationPersistsAcrossStoreInstances() {
         let dir = FileManager.default.temporaryDirectory
             .appendingPathComponent("SessionArchiveStoreTests-restart-\(UUID().uuidString)", isDirectory: true)
         defer { try? FileManager.default.removeItem(at: dir) }
@@ -154,11 +157,11 @@ final class SessionArchiveStoreTests: XCTestCase {
         store2.archive(session, startedAt: startedAt, endedAt: endedAt)
 
         let records = store2.records(for: startedAt)
-        XCTAssertEqual(records.count, 1, "dedup set must be rebuilt from disk on init so restart cannot create duplicates")
+        #expect((records.count) == (1), Comment(rawValue: "dedup set must be rebuilt from disk on init so restart cannot create duplicates"))
     }
 
     // [TEST] pruneOlderThan(days:) 刪除超過天數嘅檔案，保留符合條件嘅
-    func testPruneOlderThanRemovesOldFilesAndKeepsRecent() {
+    @Test func testPruneOlderThanRemovesOldFilesAndKeepsRecent() {
         let (store, dir) = makeTmpStore()
         defer { try? FileManager.default.removeItem(at: dir) }
 
@@ -181,15 +184,15 @@ final class SessionArchiveStoreTests: XCTestCase {
         store.pruneOlderThan(days: 90)
 
         // 91 日前的應該被刪除
-        XCTAssertTrue(store.records(for: oldDate).isEmpty, "file older than 90 days should be pruned")
+        #expect(store.records(for: oldDate).isEmpty, Comment(rawValue: "file older than 90 days should be pruned"))
         // 45 日前的應該保留
-        XCTAssertEqual(store.records(for: midDate).count, 1, "file within 90 days should be kept")
+        #expect((store.records(for: midDate).count) == (1), Comment(rawValue: "file within 90 days should be kept"))
         // 今天的應該保留
-        XCTAssertEqual(store.records(for: recentDate).count, 1, "today's file should be kept")
+        #expect((store.records(for: recentDate).count) == (1), Comment(rawValue: "today's file should be kept"))
     }
 
     // [TEST] allRecords(since:) 跨日期聚合返回所有符合日期範圍的記錄
-    func testAllRecordsSinceAggregatesAcrossMultipleDays() {
+    @Test func testAllRecordsSinceAggregatesAcrossMultipleDays() {
         let (store, dir) = makeTmpStore()
         defer { try? FileManager.default.removeItem(at: dir) }
 
@@ -202,11 +205,11 @@ final class SessionArchiveStoreTests: XCTestCase {
         store.archive(makeSession(id: "today-s1"), startedAt: now, endedAt: now.addingTimeInterval(60))
 
         let all = store.allRecords(since: day1)
-        XCTAssertEqual(all.count, 3, "allRecords(since:) should include records from day1 up to today")
+        #expect((all.count) == (3), Comment(rawValue: "allRecords(since:) should include records from day1 up to today"))
     }
 
     // [TEST] allRecords(since:) 不返回 since 日期之前的記錄
-    func testAllRecordsSinceExcludesBeforeCutoff() {
+    @Test func testAllRecordsSinceExcludesBeforeCutoff() {
         let (store, dir) = makeTmpStore()
         defer { try? FileManager.default.removeItem(at: dir) }
 
@@ -220,12 +223,12 @@ final class SessionArchiveStoreTests: XCTestCase {
 
         let records = store.allRecords(since: cutoff)
         let ids = records.map(\.sessionId)
-        XCTAssertFalse(ids.contains("before"), "records before cutoff date should be excluded")
-        XCTAssertTrue(ids.contains("after"), "records after cutoff date should be included")
+        #expect(!(ids.contains("before")), Comment(rawValue: "records before cutoff date should be excluded"))
+        #expect(ids.contains("after"), Comment(rawValue: "records after cutoff date should be included"))
     }
 
     // [TEST] 每日 JSON 檔名格式為 YYYY-MM-DD.json
-    func testDailyFileUsesDateBasedFilename() throws {
+    @Test func testDailyFileUsesDateBasedFilename() throws {
         let (store, dir) = makeTmpStore()
         defer { try? FileManager.default.removeItem(at: dir) }
 
@@ -240,16 +243,14 @@ final class SessionArchiveStoreTests: XCTestCase {
         let expectedFilename = formatter.string(from: startedAt) + ".json"
         let expectedPath = dir.appendingPathComponent(expectedFilename)
 
-        XCTAssertTrue(FileManager.default.fileExists(atPath: expectedPath.path),
-                      "archive file should be named \(expectedFilename)")
+        #expect(FileManager.default.fileExists(atPath: expectedPath.path), Comment(rawValue: "archive file should be named \(expectedFilename)"))
     }
 
-    // [TEST] shared singleton baseURL 預設指向 ~/.agentpet/history/
-    func testSharedSingletonBaseURLIsDefaultPath() {
+    // [TEST] shared singleton baseURL 預設指向 the isolated data directory/history/
+    @Test func testSharedSingletonBaseURLIsDefaultPath() {
         let shared = SessionArchiveStore.shared
-        let expectedBase = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".agentpet/history", isDirectory: true)
-        XCTAssertEqual(shared.baseURL, expectedBase,
-                       "shared singleton baseURL must default to ~/.agentpet/history/")
+        let expectedBase = URL(fileURLWithPath: AgentPetPaths.baseDir, isDirectory: true)
+            .appendingPathComponent("history", isDirectory: true)
+        #expect((shared.baseURL) == (expectedBase), Comment(rawValue: "shared singleton baseURL must default to the isolated data directory/history/"))
     }
 }

@@ -32,7 +32,7 @@ if [ "$COMMAND" = build ]; then exit 0; fi
 stop_development_app
 OPEN_ARGS=(-n --env "AGENTPET_ENABLE_DEV_HOOKS=${AGENTPET_ENABLE_DEV_HOOKS:-1}")
 # LaunchServices does not reliably inherit the invoking shell's environment.
-for name in AGENTPET_DATA_DIR AGENTPET_PREFERENCES_SUITE AGENTPET_AUTOCONNECT AGENTPET_EMBERCAT_ENABLED CODEX_HOME; do
+for name in AGENTPET_DATA_DIR AGENTPET_PREFERENCES_SUITE AGENTPET_AUTOCONNECT AGENTPET_EMBERCAT_ENABLED AGENTPET_RELAY_ENABLED CODEX_HOME; do
     value="${!name:-}"
     [ -z "$value" ] || OPEN_ARGS+=(--env "$name=$value")
 done

@@ -158,7 +158,7 @@ public final class ReactiveEngine {
 
     public func start() {
         // Sink 2: PetCareController (evaluates 4 metrics)
-        PetCareController.shared.$states
+        PetCareController.shared.$archive
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in
                 guard let self else { return }

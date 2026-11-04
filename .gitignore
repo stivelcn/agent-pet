@@ -35,3 +35,8 @@ xcuserdata/
 !.env.sample
 *.p12
 *.pfx
+
+# Pet relay local runtime/state (never commit credentials or message databases)
+server/agentpet-relay/.venv/
+server/agentpet-relay/__pycache__/
+server/agentpet-relay/*.sqlite3*

@@ -13,7 +13,8 @@ struct SetupView: View {
     /// panel can slide in on the right. Provided by SettingsWindowController.
     var onResize: (CGFloat) -> Void = { _ in }
 
-    enum Tab { case general, pet, care, bubble, history, about }
+    enum Tab { case general, pet, care, bubble, relay, history, about }
+    var initialTab: Tab = .general
     @State private var tab: Tab = .general
     @State private var demoOpen = false
 
@@ -42,7 +43,7 @@ struct SetupView: View {
         .noFocusRing()
         .environment(\.locale, appLang.locale)
         .id(appLang.lang.rawValue)   // recreate the tree so every Text re-resolves on language change
-        .onAppear { model.refresh() }
+        .onAppear { tab = initialTab; model.refresh() }
     }
 
     private var settingsColumn: some View {
@@ -59,6 +60,8 @@ struct SetupView: View {
                     CareTabView()
                 case .bubble:
                     BubbleSettingsView()
+                case .relay:
+                    PetRelaySettingsView()
                 case .history:
                     HistoryTabView()
                 case .about:
@@ -91,6 +94,7 @@ struct SetupView: View {
             TabButton(icon: "pawprint.fill", label: "Pet", selected: tab == .pet) { tab = .pet }
             TabButton(icon: "fork.knife", label: "Care", selected: tab == .care) { tab = .care }
             TabButton(icon: "bubble.left.and.bubble.right.fill", label: "Bubble", selected: tab == .bubble) { tab = .bubble }
+            TabButton(icon: "envelope.fill", label: "Pet messages", selected: tab == .relay) { tab = .relay }
             TabButton(icon: "clock.arrow.circlepath", label: "History", selected: tab == .history) { tab = .history }
             TabButton(icon: "heart.fill", label: "About", selected: tab == .about) { tab = .about }
         }
@@ -135,7 +139,7 @@ private struct AboutTab: View {
                     Text(verbatim: LocalConfiguration.displayName).font(.title2.bold())
                     Text("A local companion for your AI coding work.")
                         .font(.callout).foregroundStyle(.secondary)
-                    Text("Manual updates only. No account, cloud sync or subscription polling.")
+                    Text("Manual updates only. Pet messaging is optional; no subscription polling.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity).padding(.vertical, 8)
@@ -399,6 +403,9 @@ private struct PetTab: View {
     @ObservedObject var model: SettingsModel
     let selectedPack: ImagePetPack?
     @ObservedObject private var projectSettings = ProjectPetSettings.shared
+    @ObservedObject private var care = PetCareController.shared
+    @State private var showingNewCompanion = false
+    @State private var newCompanionName = ""
     @State private var browsing = false
     @State private var creating = false
     @State private var petQuery = ""
@@ -477,6 +484,19 @@ private struct PetTab: View {
                !projectSettings.mappings.contains(where: { $0.projectPath == path }) {
                 selectedSlot = .defaultPet
             }
+        }
+        .alert("New companion", isPresented: $showingNewCompanion) {
+            TextField("Pet name", text: $newCompanionName)
+            Button("Cancel", role: .cancel) {}
+            Button("Create companion") {
+                if let appearance = pet.selectedPetID,
+                   care.createCompanion(appearanceID: appearance, name: newCompanionName) != nil {
+                    pet.selectedPetID = care.currentAppearanceID
+                    renameText = imagePets.displayName(for: pet.selectedPetID)
+                }
+            }
+        } message: {
+            Text("Start a separate companion at level 0 using the current appearance. Your existing companions and their progress are kept.")
         }
         .sheet(isPresented: $browsing) { BrowsePetsView(onClose: { browsing = false }) }
         .sheet(isPresented: $creating) {
@@ -566,7 +586,7 @@ private struct PetTab: View {
         .buttonStyle(.plain)
         .overlay(alignment: .topLeading) {
             if let petID {
-                let level = PetCare.displayLevel(forXP: PetCareController.shared.states[petID]?.xp ?? 0)
+                let level = PetCare.displayLevel(forXP: care.state(for: petID).xp)
                 Text(verbatim: "等级 \(level)")
                     .font(.system(size: 9, weight: .bold))
                     .padding(.horizontal, 5).padding(.vertical, 1.5)
@@ -624,6 +644,35 @@ private struct PetTab: View {
     }
 
     @ViewBuilder private var defaultPetConfig: some View {
+        Section("Companion") {
+            if let error = care.persistenceError {
+                Text(verbatim: error).foregroundStyle(.red)
+            } else {
+                Picker("Current companion", selection: Binding(
+                    get: { care.currentPetID ?? "" },
+                    set: { id in
+                        care.selectCompanion(id)
+                        pet.selectedPetID = care.currentAppearanceID
+                        renameText = imagePets.displayName(for: pet.selectedPetID)
+                    }
+                )) {
+                    ForEach(care.companions) { companion in
+                        Text(verbatim: care.name(forCompanionID: companion.id) + " · " +
+                             InterfaceText.format("Lv %d", PetCare.displayLevel(forXP: care.state(forCompanionID: companion.id).xp)))
+                            .tag(companion.id)
+                    }
+                }
+                Button {
+                    newCompanionName = ""
+                    showingNewCompanion = true
+                } label: {
+                    Label("New companion…", systemImage: "plus.circle")
+                }
+                .disabled(pet.selectedPetID == nil)
+                Text("Changing appearance keeps this companion's level, name and care history. Only a new companion starts from zero.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+        }
         if let id = pet.selectedPetID {
             Section {
                 HStack {
@@ -631,7 +680,6 @@ private struct PetTab: View {
                         .textFieldStyle(.roundedBorder)
                         .onSubmit { imagePets.rename(id, to: renameText) }
                     Button("Save") { imagePets.rename(id, to: renameText) }
-                        .disabled(renameText.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             } header: {
                 Text("Name")
@@ -642,9 +690,13 @@ private struct PetTab: View {
             .onChange(of: pet.selectedPetID) { _ in
                 renameText = imagePets.displayName(for: pet.selectedPetID)
             }
+            .onChange(of: care.currentPetID) { _ in
+                renameText = imagePets.displayName(for: pet.selectedPetID)
+            }
+            .disabled(care.persistenceError != nil)
         }
 
-        Section("Choose pet") {
+        Section("Change appearance") {
             if imagePets.packs.isEmpty {
                 Text("No pets yet. Tap Browse to add one.").foregroundStyle(.secondary)
             } else {
@@ -652,19 +704,19 @@ private struct PetTab: View {
                     NativeSearchField(text: $petQuery, placeholder: "Search your pets")
                 }
                 PetPager(packs: filteredPacks, selectedID: pet.selectedPetID,
-                         onSelect: { pet.selectedPetID = $0 },
+                         onSelect: { if care.persistenceError == nil { pet.selectedPetID = $0 } },
                          onDelete: { pack in
                              let wasSelected = pet.selectedPetID == pack.id
                              imagePets.delete(pack)
-                             if wasSelected { pet.selectedPetID = imagePets.packs.first?.id }
+                             if wasSelected, imagePets.pack(id: pack.id) == nil { pet.selectedPetID = imagePets.packs.first?.id }
                          })
             }
             HStack {
                 Button { browsing = true } label: {
-                    Label("Browse pets…", systemImage: "square.grid.2x2")
+                    Label("Browse appearances…", systemImage: "square.grid.2x2")
                 }
                 Button { creating = true } label: {
-                    Label("Create pet…", systemImage: "square.and.pencil")
+                    Label("Create appearance…", systemImage: "square.and.pencil")
                 }
             }
         }
@@ -689,7 +741,7 @@ private struct PetTab: View {
     }
 
     @ViewBuilder private func projectPetConfig(path: String) -> some View {
-        Section("Choose pet") {
+        Section("Change appearance") {
             if imagePets.packs.isEmpty {
                 Text("No pets installed.").foregroundStyle(.secondary)
             } else {
@@ -720,14 +772,14 @@ private struct PetTab: View {
     @ViewBuilder private var slotPetPreview: some View {
         if let pack = selectedSlotPack {
             ImageSpriteView(frames: pack.restingFrames,
-                            fps: pet.spriteFPS(forMood: .idle), size: 78)
+                            fps: pet.spriteFPS(forMood: .idle), size: 78, frameDurations: pack.restingFrameDurations)
         } else {
             Image(systemName: "pawprint.fill").font(.system(size: 40)).foregroundStyle(.secondary)
         }
     }
 
     private func levelBadge(for packID: String) -> some View {
-        Text(verbatim: "等级 \(PetCare.displayLevel(forXP: PetCareController.shared.states[packID]?.xp ?? 0))")
+        Text(verbatim: "等级 \(PetCare.displayLevel(forXP: care.state(for: packID).xp))")
             .font(.caption.weight(.bold))
             .padding(.horizontal, 7).padding(.vertical, 2)
             .background(Capsule().fill(Color.systemAccent.opacity(0.2)))
@@ -820,7 +872,7 @@ private struct PetPager: View {
             ForEach(slice) { pack in
                 PetThumb(pack: pack, selected: selectedID == pack.id,
                          select: { onSelect(pack.id) },
-                         onDelete: onDelete.map { d in { d(pack) } })
+                         onDelete: pack.isBuiltin ? nil : onDelete.map { d in { d(pack) } })
             }
         }
     }
@@ -844,11 +896,6 @@ private struct PetThumb: View {
     var onDelete: (() -> Void)? = nil
     @State private var hovering = false
 
-    /// This companion's display level; a never-raised pet reads as Lv 0.
-    private var level: Int {
-        PetCare.displayLevel(forXP: PetCareController.shared.states[pack.id]?.xp ?? 0)
-    }
-
     var body: some View {
         Button(action: select) {
             VStack(spacing: 4) {
@@ -863,12 +910,14 @@ private struct PetThumb: View {
         }
         .buttonStyle(.plain)
         .overlay(alignment: .topLeading) {
-            Text(verbatim: "等级 \(level)")
-                .font(.system(size: 9, weight: .bold))
-                .padding(.horizontal, 5).padding(.vertical, 1.5)
-                .background(Capsule().fill(level > 0 ? Color.systemAccent.opacity(0.85) : Color.secondary.opacity(0.45)))
-                .foregroundStyle(.white)
-                .offset(x: -3, y: -3)
+            if pack.isBuiltin {
+                Text("Built-in")
+                    .font(.system(size: 9, weight: .bold))
+                    .padding(.horizontal, 5).padding(.vertical, 1.5)
+                    .background(Capsule().fill(Color.systemAccent.opacity(0.85)))
+                    .foregroundStyle(.white)
+                    .offset(x: -3, y: -3)
+            }
         }
         .overlay(alignment: .topTrailing) {
             if hovering, let onDelete {
@@ -893,7 +942,7 @@ private struct QuietAnimationPreview: View {
     var body: some View {
         HStack(spacing: 12) {
             ImageSpriteView(frames: pack.restingFrames,
-                            fps: pet.spriteFPS(forMood: .idle), size: 64)
+                            fps: pet.spriteFPS(forMood: .idle), size: 64, frameDurations: pack.restingFrameDurations)
                 .environment(\.animationsEnabled, pet.animationsEnabled)
             VStack(alignment: .leading, spacing: 4) {
                 Text("Quiet companion").font(.headline)

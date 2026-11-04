@@ -17,7 +17,7 @@ struct CreatePetView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("Create pet").font(.headline)
+                Text("Create appearance").font(.headline)
                 Spacer()
                 Button("Cancel") { onCancel() }
             }

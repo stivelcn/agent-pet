@@ -59,7 +59,7 @@ struct PetView: View {
     @ViewBuilder private var content: some View {
         if let id = model.petID, let pack = imagePets.pack(id: id) {
             ImageSpriteView(frames: pack.restingFrames,
-                            fps: pet.spriteFPS(forMood: model.mood), size: size)
+                            fps: pet.spriteFPS(forMood: model.mood), size: size, frameDurations: pack.restingFrameDurations)
         } else {
             VStack(spacing: 5) {
                 Image(systemName: "pawprint.fill")
@@ -98,6 +98,7 @@ struct FloatingPetView: View {
     @ObservedObject private var bubbleSettings = BubbleSettings.shared
     @ObservedObject private var appLang = AppLanguage.shared
     @ObservedObject private var completions = CompletionNoticeStore.shared
+    @ObservedObject private var relay = PetRelayController.shared
 
     private var completionNotices: [CompletionNotice] {
         completions.notices(forWindow: model.key, split: pet.splitPet,
@@ -110,6 +111,10 @@ struct FloatingPetView: View {
 
     var body: some View {
         VStack(spacing: 2) {
+            // Messages are independent of task/chat visibility and appear on the home pet only.
+            if model.key == PetWindowPlanner.defaultKey && !relay.incoming.isEmpty {
+                alignedToPet(PetMessageBubble())
+            }
             if pet.showChat && model.petID != nil {
                 if !completionNotices.isEmpty {
                     alignedToPet(CompletionBubble(notices: completionNotices, store: completions))

@@ -14,6 +14,7 @@ trap cleanup EXIT
 export AGENTPET_ENABLE_DEV_HOOKS=0
 export AGENTPET_AUTOCONNECT=0
 export AGENTPET_EMBERCAT_ENABLED=0
+export AGENTPET_RELAY_ENABLED=0
 python3 "$PWD/scripts/check-test-inventory.py"
 # CLT's Swift build system omits TestingMacros during module emission on this
 # installation. Explicitly load the installed plugin; no download or Xcode needed.

@@ -7,6 +7,7 @@ import AgentPetCore
 struct PetStatsView: View {
     /// The pet whose stats to show. `nil` resolves to the globally selected pet
     /// (preserves today's right-click-on-the-single-pet behaviour).
+    var windowKey: String = PetWindowPlanner.defaultKey
     var petID: String? = nil
     @ObservedObject private var care = PetCareController.shared
     @ObservedObject private var pet = PetController.shared
@@ -49,6 +50,11 @@ struct PetStatsView: View {
                         .font(.system(size: 10)).foregroundStyle(.white.opacity(0.55))
                 }
             }
+            Button {
+                PetWindowController.shared.closeStatsPopover()
+                PetWindowController.shared.showMessageComposer(forKey: windowKey)
+            } label: { Label("Send a pet message", systemImage: "envelope.fill").frame(maxWidth: .infinity) }
+            .buttonStyle(.bordered)
             footer
         }
         .padding(14)

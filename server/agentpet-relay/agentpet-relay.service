@@ -1,0 +1,26 @@
+[Unit]
+Description=AgentPet private two-person message relay
+After=network.target
+
+[Service]
+Type=simple
+DynamicUser=yes
+WorkingDirectory=/srv/agentpet-relay
+ExecStart=/srv/agentpet-relay/.venv/bin/python /srv/agentpet-relay/relay.py
+Environment=RELAY_DB=/var/lib/agentpet-relay/messages.sqlite3
+Environment=PYTHONDONTWRITEBYTECODE=1
+StateDirectory=agentpet-relay
+StateDirectoryMode=0700
+UMask=0077
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateDevices=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+MemoryMax=160M
+
+[Install]
+WantedBy=multi-user.target

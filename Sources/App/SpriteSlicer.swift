@@ -9,6 +9,8 @@ struct ImagePetPack: Identifiable {
     let description: String?
     let clips: [[NSImage]]
     let directory: URL
+    var restingFrameDurations: [TimeInterval]? = nil
+    var isBuiltin: Bool { id == "lulu" || id == "lumei" }
 
     var clipCount: Int { clips.count }
 
@@ -28,6 +30,14 @@ private struct PetManifest: Decodable {
     let displayName: String
     let description: String?
     let spritesheetPath: String
+    let grid: Grid?
+
+    struct Grid: Decodable {
+        let cellWidth: Int
+        let cellHeight: Int
+        let framesPerRow: [Int]
+        let frameDurationsMS: [Double]?
+    }
 }
 
 /// Loads a spritesheet pet pack and slices its frames by detecting the
@@ -54,12 +64,37 @@ enum SpriteSlicer {
         var rect = CGRect(origin: .zero, size: nsImage.size)
         guard let cg = nsImage.cgImage(forProposedRect: &rect, context: nil, hints: nil) else { return nil }
 
-        let clips = slice(cg).map { row in
+        let sliced: [[CGImage]]
+        var durations: [TimeInterval]?
+        if let grid = manifest.grid {
+            guard grid.cellWidth > 0, grid.cellHeight > 0,
+                  cg.width % grid.cellWidth == 0, cg.height % grid.cellHeight == 0,
+                  !grid.framesPerRow.isEmpty,
+                  grid.framesPerRow.count <= cg.height / grid.cellHeight,
+                  grid.framesPerRow.allSatisfy({ $0 > 0 && $0 <= cg.width / grid.cellWidth }) else { return nil }
+            sliced = grid.framesPerRow.enumerated().map { row, count in
+                (0..<count).compactMap { column in
+                    cg.cropping(to: CGRect(x: column * grid.cellWidth, y: row * grid.cellHeight,
+                                          width: grid.cellWidth, height: grid.cellHeight))
+                }
+            }
+            guard zip(sliced, grid.framesPerRow).allSatisfy({ $0.count == $1 }) else { return nil }
+            if let timing = grid.frameDurationsMS {
+                guard timing.count == grid.framesPerRow.first,
+                      timing.allSatisfy({ $0.isFinite && $0 >= 20 && $0 <= 60_000 }) else { return nil }
+                durations = timing.map { $0 / 1000 }
+            }
+        } else {
+            sliced = slice(cg)
+        }
+        let clips = sliced.map { row in
             row.map { NSImage(cgImage: $0, size: NSSize(width: $0.width, height: $0.height)) }
         }
         guard !clips.isEmpty else { return nil }
-        return ImagePetPack(id: manifest.id, displayName: manifest.displayName,
-                            description: manifest.description, clips: clips, directory: directory)
+        return ImagePetPack(id: manifest.id,
+                            displayName: ["lulu": "噜噜", "lumei": "噜妹"][manifest.id] ?? manifest.displayName,
+                            description: manifest.description, clips: clips, directory: directory,
+                            restingFrameDurations: durations)
     }
 
     /// Slices a spritesheet into clips (one per sheet row) using alpha gutter

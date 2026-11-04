@@ -116,6 +116,31 @@ AGENTPET_AUTOCONNECT=0 ./scripts/dev.sh run
 
 v0.2.0 已移除费用估算的界面、价格表、计算与存储字段；保留 Token 统计、速度和养成，并为近七天图表增加逐日精确数量浮窗。旧 JSON 的额外费用字段会被忽略，不需要清空已有历史。项目日明细的保留策略未在本次调整中改变，所有客户端/第三方服务适配仍需分别验证。版本变化见 `CHANGELOG.md`。
 
-在线宠物浏览和下载仍依赖资源服务，应用并非完全离线。暂未随应用内置新的宠物包，也未新增生成模型接口。未来模型提示词必须放在根目录 `model_prompt/` 的对应接口 Markdown 文件中。
+在线宠物浏览和下载仍依赖资源服务，应用并非完全离线。现已内置噜噜和噜妹外观（噜妹仅含待机/呼吸/眨眼），不需要联网下载即可使用；没有新增生成模型接口。未来模型提示词必须放在根目录 `model_prompt/` 的对应接口 Markdown 文件中。
 
 手动 DMG 打包见 `docs/RELEASING.md`；数据流和后续代码入口见 `docs/ARCHITECTURE.md`。
+
+
+## 宠物档案与外观（2026-11-04）
+
+- `Sources/AgentPetCore/PetCompanion.swift` 定义稳定的宠物身份。`PetController.selectedPetID` 仍是用于窗口渲染的**外观 ID**，不能直接当成养成档案 ID。
+- `agentpet.companions.v1` 是新养成存档，单个 JSON 值原子保存版本、当前身份、档案（外观/名字）和完整 `PetCareState`。切换形象不改身份或养成状态；「新建宠物」创建独立 UUID，保留旧档案，可用「当前宠物」切回。
+- 首次启动复制 `agentpet.care.v2`（或 v1）和自定义名字，不删除、不覆盖旧键，也不把不同宠物的经验相加。若旧版选中了未养过的外观，会恢复已有养成身份并保留所选外观；其他历史仍保留。存档无法解码或结构无效时停止写入，设置页显示错误，避免用零值覆盖。
+- `state(forCompanionID:)` 用于明确的档案；原窗口/项目接口 `state(for:)`、喂食参数仍传外观。解析优先当前穿着该外观的档案，其次已有匹配/旧身份；尚未养过的分项目宠物在实际收到食物时创建独立档案，不修改项目关联设置。同外观有多个档案时当前档案优先。
+- 内置资源位于 `Sources/App/Resources/BuiltinPets`。开发的 SwiftPM 使用资源 bundle，打包脚本复制到 `.app/Contents/Resources/BuiltinPets`，移走源码目录仍可加载。有效的同 ID 用户导入包优先，损坏时回退到内置包，内置 ID 禁止在选择器删除。
+- 噜妹显式使用 192×208 固定格、六帧和毫秒时长，正常速度一圈 3.2 秒；困倦时等比例减速。老素材仍兼容透明间隙切帧和恒定 FPS。两者均只播放第一行待机，未新增跑跳动作。
+- 回退应用版本前先导出当前偏好；旧键只是迁移时快照，旧版不会理解新档案，不能把它当成持续同步的备份。
+- `scripts/test.sh` 在临时偏好域/数据目录内检验迁移、换装、重启、新建、喂食路由、内置素材、透明边缘和帧时长；不要给真实用户存档注入测试经验。
+
+
+## 传话开发与部署
+
+客户端源码：`PetRelay.swift`（协议/本地状态机）、`PetRelayAPI.swift`（HTTPS/WSS/钥匙串）、`PetRelayController.swift`（持久化/队列/重连）、`PetRelayViews.swift`（配对/常驻气泡）、`PetRelayComposerModel.swift` / `PetRelayComposerView.swift`（桌宠旁发送/回复）。不依赖模型接口，不新增提示词或模型密钥。
+
+- 接口：`https://imagepro.ycgod.online/agentpet-relay/`。按安装实例配对，与皮肤和养成档案分离。
+- 消息文件：当前数据目录下 `pet-messages.json`（权限 0600）；令牌只在独立 Keychain service 中，不能复制进日志或 JSON。
+- 设置页只做配对、昵称与连接管理。发送与回复使用 `PetWindowController.showMessageComposer` 原生 NSPopover，锚定触发它的宠物；Escape/关闭/点击外部不处理消息。输入框绑定原配对 ID，离线待发阻止重复点击，并允许取消重试。
+- 测试脚本默认 `AGENTPET_RELAY_ENABLED=0`，使用临时目录和 mock 凭据；不会接触真实钥匙串或中转。显式线上测试命令见服务 README。
+- 常驻消息的本机保存失败时不回执；损坏文件保持原样，不覆盖。不自动删除未读，解除配对后仍可手动关闭旧消息。
+- 线上服务只监听回环地址，由现有 Nginx 新增独立 location 转发；依赖全装在专用 venv。配置、SQLite 在线备份和回退边界见 `server/agentpet-relay/README.md`。
+- 本地包是 ad-hoc 签名，不是已公证发行包。后续更新若 macOS 请求访问此前保存的配对钥匙串项，需要用户本人授权，不绕过系统提示。

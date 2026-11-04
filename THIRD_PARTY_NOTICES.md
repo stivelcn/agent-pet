@@ -41,3 +41,7 @@ removed. All required local log-source adapters remain.
 
 `Vendor/CZstd` remains the decompression dependency, with its license and original vendoring notes
 preserved in that directory. Packaging includes these notices and all three retained license texts.
+
+## Bundled pet appearances
+
+`Sources/App/Resources/BuiltinPets/lulu` preserves the user's existing Petdex Lulu sprite and original metadata (submitted by 小艺 粥.). `lumei` uses the user-approved idle materials generated from their supplied reference. These artwork assets are not assigned the repository's MIT license. Source/provenance and the idle-only limitation are recorded in `Sources/App/Resources/BuiltinPets/README.md`; downstream distribution requires its own rights review.

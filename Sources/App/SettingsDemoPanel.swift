@@ -152,7 +152,7 @@ struct SettingsDemoPanel: View {
         if let pack {
             ImageSpriteView(frames: pack.restingFrames,
                             fps: pet.spriteFPS(forMood: mood),
-                            size: min(max(pet.petPoint, 80), 120))
+                            size: min(max(pet.petPoint, 80), 120), frameDurations: pack.restingFrameDurations)
                 .environment(\.animationsEnabled, pet.animationsEnabled)
         } else {
             VStack(spacing: 6) {

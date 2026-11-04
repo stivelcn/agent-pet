@@ -14,6 +14,8 @@ final class PetController: ObservableObject {
 
     @Published var selectedPetID: String? {
         didSet {
+            // Initialize/migrate care before changing the legacy appearance key.
+            if let selectedPetID { PetCareController.shared.changeAppearance(to: selectedPetID) }
             LocalPreferences.defaults.set(selectedPetID, forKey: Self.petKey)
             if hasStarted && oldValue != selectedPetID { refreshChat() }
         }
@@ -85,7 +87,8 @@ final class PetController: ObservableObject {
     private static let celebrateDuration: TimeInterval = 3
 
     init() {
-        selectedPetID = LocalPreferences.defaults.string(forKey: Self.petKey)
+        selectedPetID = PetCareController.shared.currentAppearanceID
+            ?? LocalPreferences.defaults.string(forKey: Self.petKey)
         showChat = (LocalPreferences.defaults.object(forKey: Self.chatKey) as? Bool) ?? true
         showIdleMessage = (LocalPreferences.defaults.object(forKey: Self.idleMsgKey) as? Bool) ?? true
         let saved = LocalPreferences.defaults.object(forKey: Self.sizeKey) as? Double ?? 120
@@ -104,6 +107,12 @@ final class PetController: ObservableObject {
             .sink { [weak self] _ in self?.refreshChat() }
         completionObserver = CompletionNoticeStore.shared.$notices
             .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.syncWindows() }
+        relayObserver = PetRelayController.shared.$mailbox
+            .dropFirst()
+            .map { !$0.incoming.isEmpty }
+            .removeDuplicates()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.syncWindows() }
         syncWindows()
@@ -130,6 +139,7 @@ final class PetController: ObservableObject {
 
     private var projectNamesObserver: AnyCancellable?
     private var completionObserver: AnyCancellable?
+    private var relayObserver: AnyCancellable?
 
     /// Task states share exactly the same calm cadence, so status changes do
     /// not restart playback. Resting slows the existing idle/closed-eye frames.
@@ -439,7 +449,7 @@ final class PetController: ObservableObject {
             split: splitPet,
             mappings: ProjectPetSettings.shared.mappings,
             defaultPetID: selectedPetID,
-            forceDefault: breakState != nil,
+            forceDefault: breakState != nil || !PetRelayController.shared.incoming.isEmpty,
             hideIdleProjects: hideIdleProjectPets
         )
 

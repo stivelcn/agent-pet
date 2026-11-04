@@ -1,0 +1,22 @@
+{
+  "id": "lumei",
+  "displayName": "噜妹",
+  "description": "噜妹：透明背景的待机呼吸与眨眼。仅包含已确认的六帧待机动作，不是完整 Codex v2 动作包。",
+  "spritesheetPath": "spritesheet.png",
+  "source": "user-approved-lumei-idle-v1",
+  "grid": {
+    "cellWidth": 192,
+    "cellHeight": 208,
+    "framesPerRow": [
+      6
+    ],
+    "frameDurationsMS": [
+      1300,
+      360,
+      90,
+      110,
+      160,
+      1180
+    ]
+  }
+}

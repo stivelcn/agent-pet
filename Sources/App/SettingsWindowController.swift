@@ -11,7 +11,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     private var window: NSWindow?
     private let activationOwner = UUID()
 
-    func show() {
+    func show(tab: SetupView.Tab = .general) {
         SettingsModel.shared.refresh()
 
         // Always rebuild so the window opens fresh (default tab, scrolled to top)
@@ -24,7 +24,8 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
 
         let host = NSHostingView(rootView: SetupView(
             onClose: { [weak self] in self?.window?.close() },
-            onResize: { [weak self] width in self?.resize(toContentWidth: width) }
+            onResize: { [weak self] width in self?.resize(toContentWidth: width) },
+            initialTab: tab
         ))
         // A normal window (not NSPanel) so SwiftUI text fields reliably receive
         // keyboard input. Settings intentionally takes focus (shows a Dock icon).

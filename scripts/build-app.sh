@@ -31,6 +31,8 @@ APP="$OUTPUT_DIR/$NAME.app"
 STAGED="$STAGE/$NAME.app"
 mkdir -p "$STAGED/Contents/MacOS" "$STAGED/Contents/Resources"
 cp "$BINDIR/agentpet" "$STAGED/Contents/MacOS/agentpet"
+# Direct app resources: works after moving the app away from the source checkout.
+cp -R "$ROOT/Sources/App/Resources/BuiltinPets" "$STAGED/Contents/Resources/BuiltinPets"
 cp "$ROOT/scripts/AppInfo.plist" "$STAGED/Contents/Info.plist"
 PLIST="$STAGED/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier $IDENTIFIER" "$PLIST"

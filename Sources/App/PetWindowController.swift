@@ -107,7 +107,7 @@ final class PetWindowController: ObservableObject {
                 let b = content.bounds
                 let anchor = NSRect(x: b.midX + managed.model.petOffset - 1, y: b.minY,
                                     width: 2, height: b.height)
-                self.showStatsPopover(relativeTo: anchor, of: content, petID: managed.model.petID)
+                self.showStatsPopover(relativeTo: anchor, of: content, petID: managed.model.petID, windowKey: managed.model.key)
                 return true
             }
             return handled ? nil : event
@@ -318,7 +318,7 @@ final class PetWindowController: ObservableObject {
         statsPopover?.performClose(nil)
     }
 
-    private func showStatsPopover(relativeTo rect: NSRect, of view: NSView, petID: String?) {
+    private func showStatsPopover(relativeTo rect: NSRect, of view: NSView, petID: String?, windowKey: String) {
         if let shown = statsPopover, shown.isShown {
             shown.performClose(nil)
             return
@@ -326,7 +326,7 @@ final class PetWindowController: ObservableObject {
         let popover = NSPopover()
         popover.behavior = .transient
         popover.animates = true
-        let host = NSHostingController(rootView: PetStatsView(petID: petID))
+        let host = NSHostingController(rootView: PetStatsView(windowKey: windowKey, petID: petID))
         // Size the popover to the card before showing it. Otherwise AppKit
         // places it for the hosting view's provisional size and, in binaries
         // linked against an older SDK, does not move it back on screen when the
@@ -341,6 +341,48 @@ final class PetWindowController: ObservableObject {
         // The pet lives in a non-activating panel, so the popover opens without
         // key focus and the first click would just be "focus me". Activate the
         // app and make the popover window key so clicks land immediately.
+        NSApp.activate(ignoringOtherApps: true)
+        popover.contentViewController?.view.window?.makeKey()
+    }
+
+    // MARK: - Lightweight pet messages
+
+    private var messagePopover: NSPopover?
+    private var messageComposer: PetRelayComposerModel?
+    private var messageWindowKey: String?
+
+    /// A small keyboard-capable popover at the pet, never the settings window.
+    /// Native popover placement flips/clamps at screen edges; closing it does not ACK a message.
+    func showMessageComposer(forKey key: String = PetWindowPlanner.defaultKey,
+                             replyTo: PetRelayMessage? = nil) {
+        closeStatsPopover()
+        if let shown = messagePopover, shown.isShown, messageWindowKey == key,
+           messageComposer?.replyTo?.id == replyTo?.id,
+           messageComposer?.pairID == PetRelayController.shared.pair?.id {
+            NSApp.activate(ignoringOtherApps: true)
+            shown.contentViewController?.view.window?.makeKey()
+            return
+        }
+        messagePopover?.performClose(nil)
+        let managed = ensureWindow(for: key)
+        guard let content = managed.panel.contentView else { return }
+        let model = PetRelayComposerModel(relay: .shared, replyTo: replyTo)
+        let popover = NSPopover()
+        popover.behavior = .transient
+        popover.animates = false
+        let host = NSHostingController(rootView: PetRelayComposerView(model: model) { [weak popover] in
+            popover?.performClose(nil)
+        })
+        host.sizingOptions = [.preferredContentSize]
+        popover.contentViewController = host
+        let fitting = host.view.fittingSize
+        if fitting.width > 0, fitting.height > 0 { popover.contentSize = fitting }
+        messagePopover = popover
+        messageComposer = model
+        messageWindowKey = key
+        let b = content.bounds
+        let anchor = NSRect(x: b.midX + managed.model.petOffset - 1, y: b.minY, width: 2, height: b.height)
+        popover.show(relativeTo: anchor, of: content, preferredEdge: content.isFlipped ? .minY : .maxY)
         NSApp.activate(ignoringOtherApps: true)
         popover.contentViewController?.view.window?.makeKey()
     }

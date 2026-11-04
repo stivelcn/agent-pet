@@ -76,7 +76,7 @@ struct OnboardingView: View {
                         .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Color.systemAccent.opacity(0.3)))
                     if let pack = selectedPack {
                         ImageSpriteView(frames: pack.restingFrames,
-                                        fps: pet.spriteFPS(forMood: .idle), size: 90)
+                                        fps: pet.spriteFPS(forMood: .idle), size: 90, frameDurations: pack.restingFrameDurations)
                     } else {
                         Image(systemName: "pawprint.fill").font(.system(size: 40)).foregroundStyle(.white.opacity(0.3))
                     }

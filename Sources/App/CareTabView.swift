@@ -63,7 +63,7 @@ struct CareTabView: View {
                     }
                 }
                 .padding(.vertical, 4)
-                Text("Every pet levels up on its own: experience belongs to the companion you raise it with.")
+                Text("Experience belongs to your companion, not its appearance. Changing appearance never resets progress.")
                     .font(.caption).foregroundStyle(.secondary)
             }
 
@@ -138,7 +138,7 @@ struct CareTabView: View {
                     ForEach(care.raisedPetIDs, id: \.self) { id in
                         companionRow(id: id)
                     }
-                    Text("Each companion keeps its own experience. Switch pets in the Pet tab to raise another one.")
+                    Text("Choose an existing companion or create a new one in the Pet tab. Each companion keeps separate progress; appearances can be changed freely.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
             }
@@ -169,13 +169,13 @@ struct CareTabView: View {
 
     @ViewBuilder
     private func companionRow(id: String) -> some View {
-        let s = care.state(for: id)
+        let s = care.state(forCompanionID: id)
         let lv = PetCare.displayLevel(forXP: s.xp)
         let idx = PetCare.stageIndex(forLevel: PetCare.level(forXP: s.xp))
         let color = Self.stageColors[min(idx, Self.stageColors.count - 1)]
         HStack(spacing: 10) {
             Group {
-                if let frame = imagePets.pack(id: id)?.clip(0).first {
+                if let frame = care.appearanceID(forCompanionID: id).flatMap { imagePets.pack(id: $0) }?.clip(0).first {
                     Image(nsImage: frame).resizable().interpolation(.none).scaledToFit()
                 } else {
                     Image(systemName: Self.stageIcons[min(idx, Self.stageIcons.count - 1)])
@@ -189,7 +189,7 @@ struct CareTabView: View {
             }
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
-                    Text(verbatim: imagePets.displayName(for: id))
+                    Text(verbatim: care.name(forCompanionID: id))
                         .font(.system(size: 13, weight: .semibold))
                     if id == care.currentPetID {
                         Text("Raising").font(.caption2).bold()

@@ -2386,5 +2386,185 @@
   {
     "file": "Tests/AgentPetCoreTests/TranscriptUsageTests.swift",
     "method": "testRepeatedContentBlocksCountTokensOnlyOnce"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetCompanionTests.swift",
+    "method": "appearanceSwitchKeepsEveryCareFieldAndIdentityAcrossReload"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetCompanionTests.swift",
+    "method": "explicitCreationStartsFreshWithoutResettingTheOldCompanion"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetCompanionTests.swift",
+    "method": "migrationKeepsSeparateLegacyHistoriesAndNames"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetCompanionTests.swift",
+    "method": "migrationRecoversRaisedIdentityFromAnUnfedSelectedSkin"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetCompanionTests.swift",
+    "method": "cleanInstallAndUnknownSelectionsDoNotAccidentallyResetProgress"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetCompanionTests.swift",
+    "method": "projectAppearanceResolutionPrefersActiveThenExistingLegacyIdentity"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetCompanionTests.swift",
+    "method": "archiveValidationRejectsAmbiguousOrOrphanedIdentity"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompanionIntegrationTests.swift",
+    "method": "migrationAndRestartPreserveLegacyBytesAndFullCareHistory"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompanionIntegrationTests.swift",
+    "method": "newCompanionAndFeedingRouteToIdentityInsteadOfAppearance"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompanionIntegrationTests.swift",
+    "method": "companionRenameSurvivesSkinSwitchAndClearingIsSupported"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompanionIntegrationTests.swift",
+    "method": "unreadableArchiveIsNeverOverwrittenBySelectionOrFeeding"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompanionIntegrationTests.swift",
+    "method": "legacyV1IsRetainedAndUnreadableV2CannotBeReplaced"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompanionIntegrationTests.swift",
+    "method": "bundledAppearancesLoadInStableOrderAndCannotBeDeleted"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompanionIntegrationTests.swift",
+    "method": "lumeiUsesSixFixedTransparentCellsWithAuthoredTiming"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompanionIntegrationTests.swift",
+    "method": "validLocalBuiltinWinsWithoutDuplicatesAndBrokenLocalFallsBack"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompanionIntegrationTests.swift",
+    "method": "fastLoadingIncludesBothBuiltinsAndSurvivesAnImmediateReload"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompanionIntegrationTests.swift",
+    "method": "petControllerAppearanceSelectionPreservesTheActiveCompanion"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetRelayTests.swift",
+    "method": "pairingCodeRequiresSixASCIICharactersWithBothLettersAndDigits"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetRelayTests.swift",
+    "method": "twentyCharactersMeansGraphemesIncludingChineseAndJoinedEmoji"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetRelayTests.swift",
+    "method": "snapshotsQueueRatherThanOverwriteUnreadMessages"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetRelayTests.swift",
+    "method": "unpairAndNewPairCannotSilentlyClearUnreadOrRetargetOutbox"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetRelayTests.swift",
+    "method": "dismissalTombstoneStopsStaleSnapshotResurrection"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetRelayTests.swift",
+    "method": "unacceptedOrCancelledReplyKeepsParentButAcceptedReplyClearsOnlyParent"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetRelayTests.swift",
+    "method": "lostHTTPResponseIsReconciledByStableClientID"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetRelayTests.swift",
+    "method": "mailboxRestartRetainsInboxAckQueueAndOriginalDraftIdentity"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetRelayTests.swift",
+    "method": "anotherInstallationCannotReplaceMailbox"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetRelayTests.swift",
+    "method": "presetIconsHaveStableProtocolIDsAndSymbols"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "startupWithoutOptInDoesNotRegisterOrUploadAnything"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "deliveryReceiptFollowsDurableLocalPersistenceAndRestartKeepsUnread"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "offlineDismissalPersistsUntilLaterAcknowledgement"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "failedReplyKeepsBubbleAndRetryUsesOriginalClientID"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "closingOrCancellingComposerDoesNotHandleMessage"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "unpairRetainsInboxAndOldOutboxDoesNotGoToNewPartner"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "invalidAndTooLongMessagesNeverEnterOutboxOrNetwork"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "corruptedMailboxIsNotOverwrittenOrAcknowledged"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "failedLocalSavePreventsDeliveryReceipt"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "apiPathsPreserveHTTPSRelayPrefix"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "liveHTTPSRoundTripWhenExplicitlyEnabled"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "desktopComposerSendsTextReplyAndOnlyThenHandlesOriginal"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "desktopComposerSendsGestureWithoutHandlingUnrelatedMessage"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "desktopGestureReplyCarriesOriginalMessageIdentity"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "desktopComposerQueuesFailedReplyWithoutDuplicatesAndCanCancelRetry"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "desktopComposerRecognizesBackgroundRetrySuccess"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "desktopComposerCountsVisibleCharactersAndRejectsLongText"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "desktopComposerNeverRetargetsToNewPairingOrDismissedReply"
   }
 ]

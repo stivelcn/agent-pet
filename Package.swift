@@ -29,7 +29,8 @@ let package = Package(
         .executableTarget(
             name: "agentpet",
             dependencies: ["AgentPetCore", "AgentSpeedCore"],
-            path: "Sources/App"
+            path: "Sources/App",
+            resources: [.copy("Resources/BuiltinPets")]
         ),
         .testTarget(
             name: "AgentPetCoreTests",

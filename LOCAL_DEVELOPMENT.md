@@ -98,7 +98,7 @@ AGENTPET_AUTOCONNECT=0 ./scripts/dev.sh run
 
 本机 CLT 若需要 TestingMacros 插件，脚本显式加载已安装插件并禁用 XCTest 发现。无需为此更改系统工具链。
 
-`Tests/test-inventory.json` 记录当前回归基线，`scripts/check-test-inventory.py` 防止静默丢失测试。添加/退休功能时应维护清单并说明原因。2026-11-03 的清理删除的是已经无运行入口功能的 30 个专属测试；当时保留 593 个测试，其中包括旧动作配置兼容和 EmberCat 集成回归，详见 `docs/CLEANUP.md`。2026-11-04 的 Token-only 与图表悬停改动同步更新了测试清单，当前为 **595 项（核心逻辑 421 项、应用逻辑 174 项）**。
+`Tests/test-inventory.json` 记录当前回归基线，`scripts/check-test-inventory.py` 防止静默丢失测试。添加/退休功能时应维护清单并说明原因。2026-11-03 的清理删除的是已经无运行入口功能的 30 个专属测试；当时保留 593 个测试，其中包括旧动作配置兼容和 EmberCat 集成回归，详见 `docs/CLEANUP.md`。2026-11-04 的 Token-only 与图表悬停改动同步更新了测试清单，当前为 **597 项（核心逻辑 421 项、应用逻辑 176 项）**。
 
 测试覆盖不等于系统级验收。通知授权、真实多屏交互、客户端主动回调、长时间运行仍需分别验证；不要把编译通过当作真实 UI 已验收。
 

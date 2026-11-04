@@ -2336,6 +2336,14 @@
     "method": "replacingAResponseDoesNotDoubleCountTokensOrRequests"
   },
   {
+    "file": "Tests/AgentPetAppTests/TokenSpeedEngineTests.swift",
+    "method": "transcriptParserStateIsAvailableForEveryFamily"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/TokenSpeedEngineTests.swift",
+    "method": "transcriptParserStateReflectsUpdatesForEveryFamily"
+  },
+  {
     "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
     "method": "invalidRecordingCannotSubtractUsage"
   },

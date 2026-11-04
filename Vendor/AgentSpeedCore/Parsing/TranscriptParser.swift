@@ -149,7 +149,16 @@ struct TranscriptParser: Sendable {
     }
 
     var state: AgentState {
-        codex?.state ?? claude?.state ?? dsh?.state ?? gemini?.state ?? omp?.state ?? workbuddy?.state ?? kimi?.state ?? grokBuild?.state ?? antigravity!.state
+        // Keep each expression small enough for Swift 6.0's type checker.
+        if let state = codex?.state { return state }
+        if let state = claude?.state { return state }
+        if let state = dsh?.state { return state }
+        if let state = gemini?.state { return state }
+        if let state = omp?.state { return state }
+        if let state = workbuddy?.state { return state }
+        if let state = kimi?.state { return state }
+        if let state = grokBuild?.state { return state }
+        return antigravity!.state
     }
 
     /// An Antigravity database without the expected tables (`unsupportedFormat`).

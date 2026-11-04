@@ -129,9 +129,13 @@ enum SessionNavigator {
     }
 
     private static func activateOnly(_ url: URL) async -> SessionNavigationResult {
-        do {
-            _ = try await NSWorkspace.shared.openApplication(at: url, configuration: .init())
-            return .applicationOnly
-        } catch { return .failed }
+        await withCheckedContinuation { continuation in
+            // Older SDKs return a non-Sendable NSRunningApplication from the async API.
+            // Inspect it in the callback and send only our result across the actor boundary.
+            NSWorkspace.shared.openApplication(at: url, configuration: .init()) { application, error in
+                let result: SessionNavigationResult = application != nil && error == nil ? .applicationOnly : .failed
+                continuation.resume(returning: result)
+            }
+        }
     }
 }

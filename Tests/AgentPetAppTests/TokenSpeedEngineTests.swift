@@ -78,6 +78,29 @@ struct TokenSpeedEngineTests {
         #expect(usage.averageSpeed == 30)
     }
 
+    @Test func transcriptParserStateIsAvailableForEveryFamily() {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).path
+        for family in TranscriptFamily.allCases {
+            let parser = TranscriptParser(family: family, agentId: root + "/session.jsonl", fileID: 1, root: root)
+            #expect(parser.state.source == family.sources[0])
+            #expect(parser.state.malformedLines == 0)
+        }
+    }
+
+    @Test func transcriptParserStateReflectsUpdatesForEveryFamily() {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).path
+        for family in TranscriptFamily.allCases {
+            var parser = TranscriptParser(family: family, agentId: root + "/session.jsonl", fileID: 1, root: root)
+            var expected = parser.state
+            parser.noteMalformedLine()
+            expected.malformedLines = 1
+            #expect(parser.state == expected)
+            parser.noteMalformedLine()
+            expected.malformedLines = 2
+            #expect(parser.state == expected)
+        }
+    }
+
     @Test func localReportingKeepsValidModelIdentifiersWithoutLookupTables() {
         #expect(ReportModelIds.canonical(" Synthetic-Model ") == "synthetic-model")
         #expect(ReportModelIds.canonical(nil) == ReportModelIds.unknown)

@@ -31,3 +31,10 @@ These are intentional local modifications; the retained Swift sources are no lon
 
 Future upstream updates must re-evaluate dependencies instead of copying removed feature trees back
 wholesale. Keep this note, the license files and the root `THIRD_PARTY_NOTICES.md` synchronized.
+
+## Swift 6.0 build compatibility (2026-11-04)
+
+`TranscriptParser.state` uses sequential optional bindings instead of a long nil-coalescing
+expression to avoid a Swift 6.0 type-checking timeout. Parser selection order and the final
+Antigravity fallback are unchanged. Synthetic regression tests cover state reads and updates
+for every transcript family, including both WorkBuddy editions.

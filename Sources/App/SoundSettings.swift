@@ -59,8 +59,8 @@ final class SoundSettings: ObservableObject {
         let panel = NSOpenPanel()
         panel.allowedContentTypes = [.audio]
         panel.allowsMultipleSelection = false
-        panel.prompt = "Choose"
-        panel.message = "Choose a sound file"
+        panel.prompt = NSLocalizedString("Choose", comment: "sound file picker")
+        panel.message = NSLocalizedString("Choose a sound file", comment: "sound file picker")
         guard panel.runModal() == .OK, let url = panel.url else { return }
 
         let fm = FileManager.default

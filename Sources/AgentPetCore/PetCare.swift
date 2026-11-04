@@ -227,17 +227,31 @@ public enum PetCare {
         state.mealsToday = 0
     }
 
+    /// One calendar day in the pet's token history. The full date is the stable
+    /// identity and hover label; the short label keeps the chart axis compact.
+    public struct DayUsage: Equatable, Identifiable, Sendable {
+        public var id: String
+        public var label: String
+        public var tokens: Int
+
+        public init(id: String, label: String, tokens: Int) {
+            self.id = id
+            self.label = label
+            self.tokens = tokens
+        }
+    }
+
     /// Tokens per day for the trailing `count` days ending today, oldest first.
-    /// Labels are the day-of-month, for compact trend axes.
     public static func recentDays(
         state: PetCareState, now: Date, count: Int = 7, calendar: Calendar = .current
-    ) -> [(label: String, tokens: Int)] {
-        var out: [(String, Int)] = []
+    ) -> [DayUsage] {
+        guard count > 0 else { return [] }
+        var out: [DayUsage] = []
         for offset in stride(from: count - 1, through: 0, by: -1) {
             guard let d = calendar.date(byAdding: .day, value: -offset, to: now) else { continue }
             let key = dayKey(for: d, calendar: calendar)
             let day = calendar.dateComponents([.day], from: d).day ?? 0
-            out.append(("\(day)", state.days?[key] ?? 0))
+            out.append(DayUsage(id: key, label: "\(day)", tokens: state.days?[key] ?? 0))
         }
         return out
     }

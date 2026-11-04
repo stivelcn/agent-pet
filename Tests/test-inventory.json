@@ -1,0 +1,2382 @@
+[
+  {
+    "file": "Tests/AgentPetAppTests/AgentIconsTests.swift",
+    "method": "testEveryBrandKindHasAnImage"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/AgentIconsTests.swift",
+    "method": "testJcodeLogoDecodesAtEmbeddedSize"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/BubbleSettingsTests.swift",
+    "method": "testMultiAgentBubbleDefaultsOn"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/BubbleSettingsTests.swift",
+    "method": "testMultiAgentBubblePersists"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/BubbleSettingsTests.swift",
+    "method": "testSessionGroupingDefaultsToByKind"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/BubbleSettingsTests.swift",
+    "method": "testSessionGroupingPersists"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/BubbleSettingsTests.swift",
+    "method": "testSessionGroupingMigratesFromLegacyCollapseOff"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/BubbleSettingsTests.swift",
+    "method": "testModelTokenExistsAndHasMetadata"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/BubbleSettingsTests.swift",
+    "method": "testModelTokenVisibilityInPresets"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CareChatTests.swift",
+    "method": "testIdlePoolFullHungerNoHungryLines"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CareChatTests.swift",
+    "method": "testIdlePoolHungryAddsHungryLines"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CareChatTests.swift",
+    "method": "testIdlePoolStarvingReplacesPool"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CareFormatTests.swift",
+    "method": "testTokensAreCompactAtEachMagnitude"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CareFormatTests.swift",
+    "method": "testHungerHasADistinctLabelForEveryCase"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CareFormatTests.swift",
+    "method": "testPlainKeepsEveryDigit"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CarouselIndexTests.swift",
+    "method": "testStaleIndexMapsToExistingPage"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CarouselIndexTests.swift",
+    "method": "testEmptyCarouselShowsPageZero"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CarouselIndexTests.swift",
+    "method": "testStepWrapsBothWays"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CarouselIndexTests.swift",
+    "method": "testStepAfterShrinkStaysInRange"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompletionNoticeTests.swift",
+    "method": "completionSurvivesIdleAndSessionRemoval"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompletionNoticeTests.swift",
+    "method": "onlyRealCompletedHookSessionsCreateNotices"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompletionNoticeTests.swift",
+    "method": "duplicateCompletionDoesNotReappearAfterDismissal"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompletionNoticeTests.swift",
+    "method": "newWorkClearsOnlyItsOwnCompletion"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompletionNoticeTests.swift",
+    "method": "waitingIsNotCompletionAndOldActivityDoesNotEraseNewerDone"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompletionNoticeTests.swift",
+    "method": "simultaneousClientsAndProjectsDoNotOverwriteEachOther"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompletionNoticeTests.swift",
+    "method": "remindersAndDismissalsSurviveRestartWithoutWritingUsageRecords"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompletionNoticeTests.swift",
+    "method": "corruptedStateReportsAnErrorRatherThanInventingCompletions"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompletionNoticeTests.swift",
+    "method": "failedSaveKeepsTheVisibleReminderAndReportsIt"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompletionNoticeTests.swift",
+    "method": "lateMetadataPreservesNoticeIdentityAndNavigationSnapshot"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompletionNoticeTests.swift",
+    "method": "successfulNavigationReceivesTheExactSnapshotAndAcknowledgesOnlyThatNotice"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompletionNoticeTests.swift",
+    "method": "failureUnsupportedAndAppOnlyNavigationKeepReminders"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompletionNoticeTests.swift",
+    "method": "anOlderNavigationCannotDismissTheNextCompletedTurn"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompletionNoticeTests.swift",
+    "method": "duplicateClicksDoNotLaunchTwoNavigations"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompletionNoticeTests.swift",
+    "method": "projectRemindersKeepTheCorrectPetWindowAfterPruning"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompletionNoticeTests.swift",
+    "method": "planningReplacesOnlyIdleSnapshotsAndDoesNotDuplicateLiveSessions"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompletionNoticeTests.swift",
+    "method": "explicitClearRemovesNoticesButDoesNotResurrectDuplicateEvents"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompletionNoticeTests.swift",
+    "method": "codexDesktopUsesExistingConversationURLWithoutStartingNewWork"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompletionNoticeTests.swift",
+    "method": "codexInATerminalKeepsItsOriginalTerminalInsteadOfOpeningDesktop"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompletionNoticeTests.swift",
+    "method": "warpCanNavigateWithoutATermProgramButUnsupportedClientsAreHonest"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompletionNoticeTests.swift",
+    "method": "exactTerminalScriptsMustReportWhetherTheTabWasFound"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompletionNoticeTests.swift",
+    "method": "subagentCompletionDoesNotFinishItsParentTask"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/CompletionNoticeTests.swift",
+    "method": "completionUIAndNavigationErrorsAreLocalizedInChinese"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/EmberCatIntegrationTests.swift",
+    "method": "migrationCopiesOnlyRequestedFeaturesAndPreservesExactJSON"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/EmberCatIntegrationTests.swift",
+    "method": "migrationNeverOverwritesExistingPreferencesOrRunsTwice"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/EmberCatIntegrationTests.swift",
+    "method": "missingLegacyDomainCanBeImportedLater"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/EmberCatIntegrationTests.swift",
+    "method": "migrationDoesNotChangeSourceAndSkipsIncorrectTypes"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/EmberCatIntegrationTests.swift",
+    "method": "allIsolatedModesSkipLegacyImport"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/EmberCatIntegrationTests.swift",
+    "method": "rateFormattingAndPrecisionAreStable"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/EmberCatIntegrationTests.swift",
+    "method": "scanningAndMissingSourcesAreNotPresentedAsMeasuredZero"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/EmberCatIntegrationTests.swift",
+    "method": "liveOutputNotTotalDrivesTheLabelAndNeverFeedsPetUsage"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/EmberCatIntegrationTests.swift",
+    "method": "displaySettingsPersistWithoutChangingFlameSettings"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/EmberCatIntegrationTests.swift",
+    "method": "flameToggleUpdatesTheSettingsPanelAndPersists"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/EmberCatIntegrationTests.swift",
+    "method": "disabledIntegrationStartsNoMonitorAndStopIsIdempotent"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/EmberCatIntegrationTests.swift",
+    "method": "allSixAppearanceControlsRoundTripAndInvalidChangesAreRejected"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/EmberCatIntegrationTests.swift",
+    "method": "paletteThresholdsAndColorsPersistAcrossReloads"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/EmberCatIntegrationTests.swift",
+    "method": "invalidStoredConfigurationFallsBackWithoutOverwritingOriginalBytes"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/EmberCatIntegrationTests.swift",
+    "method": "displaySelectionPrefersRealLaptopNotchAndFallsBackWhenClosed"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/EmberCatIntegrationTests.swift",
+    "method": "metalShaderCompilesAndRendersFireOffscreenWithoutOpeningWindows"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/IdleBoostTests.swift",
+    "method": "testLinesKeepPolishedDeveloperTone"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/IdleBoostTests.swift",
+    "method": "testLinesAvoidNoisyPunctuationAndEmoji"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/IdleBoostTests.swift",
+    "method": "testLineSelectionIsStableInsideSameMinute"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/IdleBoostTests.swift",
+    "method": "testLineSelectionRotatesAcrossMinutes"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/InterfaceLocalizationTests.swift",
+    "method": "liveRowsAndNotificationBodiesUseTheSameActivityTranslation"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/InterfaceLocalizationTests.swift",
+    "method": "agentSummariesHandleZeroOneAndSeveralKinds"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/InterfaceLocalizationTests.swift",
+    "method": "elapsedLabelsAreLocalizedAtMinuteAndHourBoundaries"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/InterfaceLocalizationTests.swift",
+    "method": "notificationTitlesPreserveTheActualProjectName"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/InterfaceLocalizationTests.swift",
+    "method": "breakSettingsAndMessagesFormatNumbersInChinese"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/InterfaceLocalizationTests.swift",
+    "method": "careLabelsAndAchievementCountsAreLocalized"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/InterfaceLocalizationTests.swift",
+    "method": "historyOnboardingAndSoundPickerLabelsHaveChineseTranslations"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/InterfaceLocalizationTests.swift",
+    "method": "previewTranslatesTheActionButNotTheFilename"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/InterfaceLocalizationTests.swift",
+    "method": "customBubbleTextIsPreservedEvenWhenItMatchesABuiltInKey"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/KeyedSerialQueueTests.swift",
+    "method": "testSameKeyRunsInSubmissionOrder"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/KeyedSerialQueueTests.swift",
+    "method": "testDifferentKeysDoNotWaitOnEachOther"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/KeyedSerialQueueTests.swift",
+    "method": "testFinishedKeysAreDropped"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/KeyedSerialQueueTests.swift",
+    "method": "testSlowScanOfOneSessionDoesNotSwallowAnotherSessionsFirstTurn"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/KeyedSerialQueueTests.swift",
+    "method": "testForgetQueuedBehindPendingReadLeavesNoEntry"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/LocalPetRegressionTests.swift",
+    "method": "importedImageDecodesAndMissingResourceHasVisibleError"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/LocalPetRegressionTests.swift",
+    "method": "changingSelectedPetUpdatesExistingWindowWithoutAgentEvent"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/LocalPetRegressionTests.swift",
+    "method": "defaultLanguageIsSimplifiedChineseAndConnectionRequiresRealEvent"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/LocalPetRegressionTests.swift",
+    "method": "allBaseKeysHaveSimplifiedChineseTranslations"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetTapLocalizationTests.swift",
+    "method": "allThirteenTapReactionsHaveChineseTranslations"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetTapLocalizationTests.swift",
+    "method": "tapsUseChineseAtEveryTierAndPreserveCooldown"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetTapLocalizationTests.swift",
+    "method": "nextTapResolvesItsCurrentLanguageRatherThanCachingEnglish"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ProjectIdentityTests.swift",
+    "method": "testUsageIdentityUsesTheSameIdAsProjectNames"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ProjectIdentityTests.swift",
+    "method": "testUsageIdentityNameIsTheFolderCappedAtSixty"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/QuietPetAnimationTests.swift",
+    "method": "restingFramesPreserveTheEntireIdleAndBlinkLoop"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/QuietPetAnimationTests.swift",
+    "method": "missingIdleNeverFallsBackToARunningClip"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/QuietPetAnimationTests.swift",
+    "method": "oldSavedActionBindingsCannotReplaceTheRestingLoop"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/QuietPetAnimationTests.swift",
+    "method": "everyTaskStateIncludingCompletionUsesTheIdleCadence"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/QuietPetAnimationTests.swift",
+    "method": "sleepySlowsTheSameIdleLoopWithoutSelectingSadOrRunningActions"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/QuietPetAnimationTests.swift",
+    "method": "legacyFastPreferenceIsClampedWithoutRewritingItOnLoad"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/QuietPetAnimationTests.swift",
+    "method": "statusChangesDoNotResetBlinkingOrApplyBodyTransforms"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/QuietPetAnimationTests.swift",
+    "method": "disabledAnimationAndTeardownStillStopTheIdleTimer"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testRateLimitAbove50PercentIsSilent"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testRateLimitBetween15And50PercentIsLow"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testRateLimitBetween5And15PercentIsHigh"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testRateLimitBelow5PercentIsCritical"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testRateLimitNilValueReturnsSilent"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testDailyTokensBelow1MIsSilent"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testDailyTokensBetween1MAnd3MIsLow"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testDailyTokensBetween3MAnd6MIsMid"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testDailyTokensAbove6MIsHigh"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testSessionCount1To4IsSilent"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testSessionCount5To7IsLow"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testSessionCount8OrMoreIsHigh"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testHungerFullIsSilent"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testHungerSatisfiedIsSilent"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testHungerPeckishIsLow"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testHungerHungryIsMid"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testHungerStarvingIsHigh"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testStreak1To3IsSilent"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testStreak4To6IsLow"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testStreak7To13IsMid"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testStreak14OrMoreIsHigh"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testDailyMealsBelow20IsSilent"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testDailyMeals20To50IsLow"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testDailyMeals50To100IsMid"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testDailyMeals100OrMoreIsHigh"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testSameMetricBlockedWithin600Seconds"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testSameMetricAllowedAfter600Seconds"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testCrossMetricBlockedWithin30Seconds"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testCrossMetricAllowedAfter30Seconds"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testSameMetricGateTakesPriorityOverCrossMetricGate"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testHungerDailyLimitBlocksThirdTriggerSameDay"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testHungerDailyLimitResetsNextDay"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testSilentTierReturnsNil"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testNonSilentTierReturnsNonNilString"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testNilValueReturnsNil"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ReactiveEngineTests.swift",
+    "method": "testCooldownBlockReturnsNil"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/SpriteSlicerTests.swift",
+    "method": "test_slice_detects_grid_rows_and_columns"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/SpriteSlicerTests.swift",
+    "method": "test_slice_frames_preserve_pixel_content"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/SpriteSlicerTests.swift",
+    "method": "test_slice_frames_own_their_backing_store"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/SpriteSlicerTests.swift",
+    "method": "test_slice_returns_empty_for_fully_transparent_image"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "dayMonthAndLifetimeUseTheSameRealLedgerWithoutDoubleCounting"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "dailyBucketsKeepGapsUnknownAndExcludeFutureDays"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "monthlyBucketsAggregateAcrossProjectsAndRespectYearBoundaries"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "leapFebruaryHasTwentyNineDaysAndInvalidPeriodsAreEmpty"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "invalidNegativeAndFutureRowsCannotPolluteTotals"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "sessionOnlyClientsHaveCountsButNoFabricatedZeroTokenValue"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "breakdownUsesProjectIdentityNotDisplayNameAndSupportsDayDrilldown"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "emptyHistoryHasNoInventedCoverageOrTokenData"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "localMidnightAndNewYearRecomputeWithoutNewEvents"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "daylightSavingMonthStillContainsEachCalendarDayOnce"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "nonGregorianSystemCalendarDoesNotChangeStoredDateKeys"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "historicalRowsOlderThanOneHundredTwentyDaysSurviveReloadUnchanged"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "missingProjectMetadataStillRecordsUsageAndStaysOutOfProjectSettings"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "recordingPublishesLiveUpdatesAndPersistsAcrossRestarts"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "recordingAcrossMidnightCreatesSeparateDailyRows"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "heatmapShowsThreeMonthsThroughTodayWithMondayFirstWeeks"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "heatmapHistoricalMonthAndDetailsUseExactlyTheVisibleRange"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "heatmapBlueScaleIsMonotonicAndSharedAcrossClients"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "heatmapMissingTokenCountsRemainGrayEvenWithCompletions"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "emptyHeatmapKeepsRealCalendarWithoutInventingUsage"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "heatmapHandlesLeapDayAndUsesFullHistoricalCalendarMonths"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "heatmapRejectsMalformedAndFuturePeriods"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "heatmapMidnightAndNewYearMoveTheWindowWithoutNewEvents"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "heatmapDaylightSavingDoesNotSkipDuplicateOrShiftWeekdays"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "heatmapEveryMonthEndAlignsPaddingAndNeverLeaksFutureDates"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "chineseCopyKeepsTokenAndTranslatesMenuSections"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "repeatedOpeningReusesWindowAndClosingAllowsFreshReopen"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "closingStatisticsDoesNotDeactivateAnotherOpenAppWindow"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AcceptErrorActionTests.swift",
+    "method": "testInterruptedRetriesImmediately"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AcceptErrorActionTests.swift",
+    "method": "testConnectionAbortedRetriesImmediately"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AcceptErrorActionTests.swift",
+    "method": "testFileDescriptorExhaustionBacksOff"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AcceptErrorActionTests.swift",
+    "method": "testBadListenSocketStops"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AcceptErrorActionTests.swift",
+    "method": "testUnknownErrorBacksOffRatherThanSpinning"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AchievementTests.swift",
+    "method": "testFirstMealUnlocksOnFirstFeeding"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AchievementTests.swift",
+    "method": "testLevelMilestones"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AchievementTests.swift",
+    "method": "testTokenMilestones"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AchievementTests.swift",
+    "method": "testStreakMilestones"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AchievementTests.swift",
+    "method": "testNightOwl"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AchievementTests.swift",
+    "method": "testNoDoubleUnlock"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AchievementTests.swift",
+    "method": "testBackwardCompat"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AchievementTests.swift",
+    "method": "testCheckAchievementsIsPure"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ActivityFormatterTests.swift",
+    "method": "test_rotation_doesNotRepeatConsecutively"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ActivityFormatterTests.swift",
+    "method": "test_rotation_cyclesFullPool"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ActivityFormatterTests.swift",
+    "method": "test_toolCategory_matchesClaudeToolNames"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ActivityFormatterTests.swift",
+    "method": "test_toolCategory_matchesCursorToolNames"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ActivityFormatterTests.swift",
+    "method": "test_extensionHint_testFile_reading"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ActivityFormatterTests.swift",
+    "method": "test_extensionHint_testFile_writing"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ActivityFormatterTests.swift",
+    "method": "test_extensionHint_markdown_reading"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ActivityFormatterTests.swift",
+    "method": "test_extensionHint_markdown_writing"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ActivityFormatterTests.swift",
+    "method": "test_extensionHint_json_reading"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ActivityFormatterTests.swift",
+    "method": "test_extensionHint_plist_writing"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ActivityFormatterTests.swift",
+    "method": "test_stateMessage_done_returnsPhrase"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ActivityFormatterTests.swift",
+    "method": "test_stateMessage_waiting_returnsPhrase"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ActivityFormatterTests.swift",
+    "method": "test_stateMessage_idle_returnsNil"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ActivityFormatterTests.swift",
+    "method": "test_stateMessage_working_returnsNil"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ActivityFormatterTests.swift",
+    "method": "test_stateMessage_done_rotates"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ActivityLocalizationTests.swift",
+    "method": "allBuiltInActivityKeysHaveChineseAndEnglishTranslations"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ActivityLocalizationTests.swift",
+    "method": "everyPoolInEveryThemeUsesThePresentationLocalizer"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ActivityLocalizationTests.swift",
+    "method": "screenshotSproutingStatusIsLocalizedAndWhitespaceIsHandled"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ActivityLocalizationTests.swift",
+    "method": "languageSwitchDoesNotCacheAPreviousTranslation"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ActivityLocalizationTests.swift",
+    "method": "clientContentPathsAndOtherUIKeysAreNotTranslated"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ActivityLocalizationTests.swift",
+    "method": "fileHintsStillEmitStableKeysAndTranslateAtDisplayTime"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ActivityLocalizationTests.swift",
+    "method": "tickerTranslatesBuiltInStatusButPreservesProjectAndClient"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ActivityLocalizationTests.swift",
+    "method": "tickerTranslatesFallbackStatesAndGenericAgentLabel"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ActivityLocalizationTests.swift",
+    "method": "tickerDoesNotTranslateArbitraryMessagesOrProjectAliases"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AgentCatalogTests.swift",
+    "method": "testHookAgentsSupported"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AgentEventTests.swift",
+    "method": "testApprovalFieldsDefaultToNil"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AgentEventTests.swift",
+    "method": "testCodableRoundTripPreservesApprovalFields"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AgentEventTests.swift",
+    "method": "testCodableRoundTripWithNilApprovalFields"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AgentUsageTests.swift",
+    "method": "testTotalsSumTodayAndMonthPerAgent"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AgentUsageTests.swift",
+    "method": "testOtherMonthsAreLeftOut"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AgentUsageTests.swift",
+    "method": "testSortsByMonthTokensThenName"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AgentUsageTests.swift",
+    "method": "testSessionOnlyAgentIsKeptAndEmptyOneDropped"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AgentUsageTests.swift",
+    "method": "testLabels"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AgentUsageTests.swift",
+    "method": "testKeyIsTheKindForKnownAgents"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AgentUsageTests.swift",
+    "method": "testKeyIsTheRawNameForCustomAgents"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AgentUsageTests.swift",
+    "method": "testKeyFallsBackToUnknownWithoutAName"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AgentUsageTests.swift",
+    "method": "testUnnamedCustomAgentIsLabelledOther"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AgentUsageTests.swift",
+    "method": "testSessionOnlyMeansNoTokensButSessions"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AntigravityHookPayloadTests.swift",
+    "method": "testPreToolUseIsWorking"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AntigravityHookPayloadTests.swift",
+    "method": "testDecodesModel"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AntigravityHookPayloadTests.swift",
+    "method": "testStopWithTerminationReasonIsDone"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AntigravityHookPayloadTests.swift",
+    "method": "testStopWithOnlyFullyIdleIsDone"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AntigravityHookPayloadTests.swift",
+    "method": "testPreInvocationIsWorking"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AntigravityHookPayloadTests.swift",
+    "method": "testPostToolUseIsWorking"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AntigravityHookPayloadTests.swift",
+    "method": "testMissingConversationIdIsNil"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/AntigravityHookPayloadTests.swift",
+    "method": "testRoutedThroughHookPayloads"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ApprovalRoundTripTests.swift",
+    "method": "testApproveRoundTrip"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ApprovalRoundTripTests.swift",
+    "method": "testDenyRoundTrip"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ApprovalRoundTripTests.swift",
+    "method": "testTimeoutReturnsAskWithoutHanging"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ApprovalRoundTripTests.swift",
+    "method": "testNoDaemonReturnsAskImmediately"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ApprovalRoundTripTests.swift",
+    "method": "testNonApprovalEventClosesConnectionAfterSend"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ApprovalRoundTripTests.swift",
+    "method": "testReceiveTimeoutFailsOncePeerHasClosed"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ApprovalRoundTripTests.swift",
+    "method": "testApprovalResponseJSONForAllow"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ApprovalRoundTripTests.swift",
+    "method": "testApprovalResponseJSONForDeny"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ApprovalRoundTripTests.swift",
+    "method": "testApprovalResponseJSONForAsk"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/BreakClockTests.swift",
+    "method": "testFiresBreakDueAfterWorkInterval"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/BreakClockTests.swift",
+    "method": "testAbsenceResetsClockSoNoNagAfterLunch"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/BreakClockTests.swift",
+    "method": "testFiresBreakOverAfterBreakLength"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/BreakClockTests.swift",
+    "method": "testHugeDeltaResetsAndDoesNotFire"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/BreakClockTests.swift",
+    "method": "testDisabledNeverFires"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/BreakClockTests.swift",
+    "method": "testIntervalShrinkMidFlightFiresNextTick"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/BreakClockTests.swift",
+    "method": "testShortAbsenceKeepsAccumulatedTime"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ClaudeHookPayloadTests.swift",
+    "method": "testDecodesSessionStart"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ClaudeHookPayloadTests.swift",
+    "method": "testDecodesNotificationWithMessage"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ClaudeHookPayloadTests.swift",
+    "method": "testIgnoresUnknownFields"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ClaudeHookPayloadTests.swift",
+    "method": "testNilWhenMissingEssentialFields"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ClaudeHookPayloadTests.swift",
+    "method": "testDecodesModelDisplayName"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ClaudeHookPayloadTests.swift",
+    "method": "testFallsBackToModelIdWhenNoDisplayName"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ClaudeHookPayloadTests.swift",
+    "method": "testDecodesBareStringModel"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ClaudeHookPayloadTests.swift",
+    "method": "testNilModelWhenAbsent"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ClaudeHookPayloadTests.swift",
+    "method": "testMalformedModelDoesNotBreakDecode"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ClaudeHookPayloadTests.swift",
+    "method": "testCodexPreToolUseActivityMessage"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ClaudeHookPayloadTests.swift",
+    "method": "testGeminiBeforeToolActivityMessage"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ClaudeHookPayloadTests.swift",
+    "method": "testPreToolUseBashPopulatesApprovalFields"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ClaudeHookPayloadTests.swift",
+    "method": "testPreToolUseBashTruncatesSummaryTo80Characters"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ClaudeHookPayloadTests.swift",
+    "method": "testPreToolUseBashWithNoCommandFallsBackToToolName"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ClaudeHookPayloadTests.swift",
+    "method": "testPreToolUseNonGatedToolLeavesApprovalFieldsNil"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ClaudeHookPayloadTests.swift",
+    "method": "testEmptyGatedToolsDisablesApprovalEvenForBash"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ClaudeHookPayloadTests.swift",
+    "method": "testNonPreToolUseEventLeavesApprovalFieldsNilEvenForBash"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ClaudeHookPayloadTests.swift",
+    "method": "testPreToolUseBashForNonClaudeKindLeavesApprovalFieldsNil"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ClaudeHookPayloadTests.swift",
+    "method": "testMissingConfigMeansGateOff"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ClaudeHookPayloadTests.swift",
+    "method": "testValidConfigEnablesListedTools"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ClaudeHookPayloadTests.swift",
+    "method": "testMalformedConfigMeansGateOff"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ClaudeHookPayloadTests.swift",
+    "method": "testSetEnabledWritesFileAndIsEnabledReadsIt"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ClaudeHookPayloadTests.swift",
+    "method": "testSetEnabledFalseRemovesFile"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/CodexHookConfigTests.swift",
+    "method": "testEmptyConfigAddsFeaturesTable"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/CodexHookConfigTests.swift",
+    "method": "testAlreadyEnabledHooksIsNoOp"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/CodexHookConfigTests.swift",
+    "method": "testCodexHooksAliasAloneStillAddsModernKey"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/CodexHookConfigTests.swift",
+    "method": "testFlipsHooksFalseToTrue"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/CodexHookConfigTests.swift",
+    "method": "testFlipsCodexHooksFalseToTrueWithoutDuplicate"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/CodexHookConfigTests.swift",
+    "method": "testInsertsUnderExistingFeaturesPreservingOtherKeys"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/CodexHookConfigTests.swift",
+    "method": "testAppendsFeaturesWhenAbsentPreservingContent"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/CodexHookConfigTests.swift",
+    "method": "testCommentedFlagIsNotTreatedAsEnabled"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/CodexUsageTests.swift",
+    "method": "testSumsFreshInputPlusOutputMinusCache"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/CodexUsageTests.swift",
+    "method": "testIncrementalNoDoubleCount"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/CodexUsageTests.swift",
+    "method": "testIgnoresNonTokenLines"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/CustomAgentTests.swift",
+    "method": "testUnrecognizedAgentBecomesUnknownAndKeepsRawName"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/CustomAgentTests.swift",
+    "method": "testMissingAgentStillDefaultsToClaude"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/CustomAgentTests.swift",
+    "method": "testRecognizedAgentMapsToItsKindWithoutRawName"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/CustomAgentTests.swift",
+    "method": "testDistinctCustomAgentsGetDistinctGroupKeys"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/CustomAgentTests.swift",
+    "method": "testSameCustomAgentSharesGroupKeyCaseInsensitively"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/CustomAgentTests.swift",
+    "method": "testKnownKindGroupsByKindNotName"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/CustomAgentTests.swift",
+    "method": "testStoreCarriesAndKeepsCustomAgentName"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/DroidHookTests.swift",
+    "method": "testDroidSpec"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/DroidHookTests.swift",
+    "method": "testDroidInstallShapeAndRoundTrip"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/DroidHookTests.swift",
+    "method": "testDroidInstallPreservesForeignHooks"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/DroidHookTests.swift",
+    "method": "testDroidStates"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/DroidHookTests.swift",
+    "method": "testDroidSessionEnd"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/DroidHookTests.swift",
+    "method": "testDroidPayloadDecodesWithKind"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/DroidHookTests.swift",
+    "method": "testDroidInCatalog"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/EventSocketServerTests.swift",
+    "method": "testReceivesEventOverSocket"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/EventSocketServerTests.swift",
+    "method": "testDrainQueueEmitsAndRemovesFiles"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/EventSocketServerTests.swift",
+    "method": "testSilentClientDoesNotBlockLaterEvents"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/GrokHookTests.swift",
+    "method": "testGrokPayloadIsNotAClaudeEvent"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/GrokHookTests.swift",
+    "method": "testGrokPayloadDecodesAsGrok"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/GrokHookTests.swift",
+    "method": "testGrokFallsBackToWorkspaceRoot"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/GrokHookTests.swift",
+    "method": "testGrokStateMapping"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/GrokHookTests.swift",
+    "method": "testGrokSessionEnd"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/GrokHookTests.swift",
+    "method": "testGrokSpec"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/GrokHookTests.swift",
+    "method": "testGrokInstallRoundTrip"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/GrokHookTests.swift",
+    "method": "testGrokInCatalog"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/HookAndSenderTests.swift",
+    "method": "testParseAllFlags"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/HookAndSenderTests.swift",
+    "method": "testParseIgnoresUnknownFlags"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/HookAndSenderTests.swift",
+    "method": "testMakeEventRequiresEventAndSession"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/HookAndSenderTests.swift",
+    "method": "testMakeEventDefaultsToClaude"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/HookAndSenderTests.swift",
+    "method": "testParsesFlagsThenCommand"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/HookAndSenderTests.swift",
+    "method": "testNoFlagsJustCommand"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/HookAndSenderTests.swift",
+    "method": "testNoCommand"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/HookAndSenderTests.swift",
+    "method": "testSenderDeliversOverSocket"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/HookAndSenderTests.swift",
+    "method": "testSenderFallsBackToQueueWhenNoServer"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/HookInstallerTests.swift",
+    "method": "testInstallIntoEmptyAddsAllEvents"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/HookInstallerTests.swift",
+    "method": "testInstallIsIdempotent"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/HookInstallerTests.swift",
+    "method": "testInstallPreservesForeignHooks"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/HookInstallerTests.swift",
+    "method": "testUninstallRemovesOursKeepsForeign"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/HookInstallerTests.swift",
+    "method": "testUninstallFromCleanIsNoop"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/HookInstallerTests.swift",
+    "method": "testDiskRoundTrip"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/HookInstallerTests.swift",
+    "method": "testInstallRefusesToRewriteUnparseableSettings"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/HookInstallerTests.swift",
+    "method": "testUninstallRefusesToRewriteUnparseableSettings"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/HookInstallerTests.swift",
+    "method": "testInstallRefusesNonObjectRoot"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/HookInstallerTests.swift",
+    "method": "testEmptyFileIsTreatedAsEmptySettings"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/HookInstallerTests.swift",
+    "method": "testIsInstalledOnDiskIsFalseForUnreadableSettings"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeHookTests.swift",
+    "method": "testEnvPayloadBuildsEvent"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeHookTests.swift",
+    "method": "testMissingSessionOrEventIsIgnored"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeHookTests.swift",
+    "method": "testTurnEndingOnQuestionIsWaiting"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeHookTests.swift",
+    "method": "testTurnEndingWithSummaryIsDone"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeHookTests.swift",
+    "method": "testStateMapping"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeHookTests.swift",
+    "method": "testSpecUsesObserversOnly"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeHookTests.swift",
+    "method": "testInCatalog"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeHookTests.swift",
+    "method": "testInstallAddsKeysInsideHooksTableOnly"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeHookTests.swift",
+    "method": "testInstallIsIdempotent"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeHookTests.swift",
+    "method": "testInstallCreatesHooksTableWhenMissing"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeHookTests.swift",
+    "method": "testHeaderVariantsAreFoundNotDuplicated"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeHookTests.swift",
+    "method": "testForeignHookIsNeverOverwritten"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeHookTests.swift",
+    "method": "testCommentedKeysAndSimilarNamesAreIgnored"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeHookTests.swift",
+    "method": "testCommandWithApostropheUsesBasicString"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeHookTests.swift",
+    "method": "testDiskRoundTrip"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeUsageTests.swift",
+    "method": "testClaudeUsageCountsUncachedInputPlusOutput"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeUsageTests.swift",
+    "method": "testOpenAIUsageSubtractsCachedPrompt"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeUsageTests.swift",
+    "method": "testSumsAllMessagesAndSkipsQuotedKey"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeUsageTests.swift",
+    "method": "testPrettyPrintedKeyIsFound"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeUsageTests.swift",
+    "method": "testNotASessionGivesZero"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeUsageTests.swift",
+    "method": "testSessionPathRejectsTraversal"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeUsageTests.swift",
+    "method": "testTotalAddsJournalToSnapshot"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeUsageTests.swift",
+    "method": "testTurnFeedsOnlyItsOwnTokens"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeUsageTests.swift",
+    "method": "testFirstSightingFeedsNothing"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeUsageTests.swift",
+    "method": "testShrinkingTotalMovesBaseline"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeUsageTests.swift",
+    "method": "testTrackerKeepsOnlyRecentSessions"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/JcodeUsageTests.swift",
+    "method": "testBaselineDoesNotOverwriteAndForgetResets"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/KiroCopilotHookTests.swift",
+    "method": "testCopilotSpec"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/KiroCopilotHookTests.swift",
+    "method": "testCopilotInstallShapeAndRoundTrip"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/KiroCopilotHookTests.swift",
+    "method": "testCopilotStates"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/KiroCopilotHookTests.swift",
+    "method": "testCopilotPayloadDecodesWithKind"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/KiroCopilotHookTests.swift",
+    "method": "testKiroSpec"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/KiroCopilotHookTests.swift",
+    "method": "testKiroInstallShapePreservesAgentFields"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/KiroCopilotHookTests.swift",
+    "method": "testKiroSeedsNameWhenCreatingFresh"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/KiroCopilotHookTests.swift",
+    "method": "testKiroStates"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/LocalConfigurationTests.swift",
+    "method": "testReleaseAndDevelopmentDataAreIndependentOfUpstream"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/LocalConfigurationTests.swift",
+    "method": "testAbsoluteDataOverrideIsStandardized"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/LocalConfigurationTests.swift",
+    "method": "testRelativeAndEmptyOverridesAreIgnored"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/LocalConfigurationTests.swift",
+    "method": "testRuntimePathsFollowTheSameDataRoot"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/LocalConfigurationTests.swift",
+    "method": "testPreferencesIdentitiesAreIndependent"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/LocalConfigurationTests.swift",
+    "method": "testLocalConnectionsAreEnabledUnlessExplicitlyDisabled"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/LocalConfigurationTests.swift",
+    "method": "testPreferencesDoNotUseBundleIdentifierAndRemainWritable"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/LocalConnectionTests.swift",
+    "method": "leftoverConfigurationIsNotAnInstalledClient"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/LocalConnectionTests.swift",
+    "method": "detectsExecutableFromPathAndUserLocalBin"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/LocalConnectionTests.swift",
+    "method": "doesNotDetectNonExecutableFiles"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/LocalConnectionTests.swift",
+    "method": "detectsChatGPTBundledCodexWithoutConfusingClaudeDesktop"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/LocalConnectionTests.swift",
+    "method": "installsBothFilesAndSecondLaunchDoesNotRewriteOrBackUpAgain"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/LocalConnectionTests.swift",
+    "method": "backsUpOriginalConfigurationAndPreservesOtherSettings"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/LocalConnectionTests.swift",
+    "method": "disconnectKeepsForeignHandlerInMixedGroup"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/LocalConnectionTests.swift",
+    "method": "preservesDifferentPetInstallationWithoutOverwritingIt"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/LocalConnectionTests.swift",
+    "method": "malformedJSONIsNotOverwritten"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/LocalConnectionTests.swift",
+    "method": "failedSecondWriteRollsBackFirstWrite"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/LocalConnectionTests.swift",
+    "method": "nestedFeatureKeysDoNotEnableRootHookFeature"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/LocalConnectionTests.swift",
+    "method": "hookWordInOtherTablesIsNotRewritten"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/LocalConnectionTests.swift",
+    "method": "disconnectDoesNotDisableGlobalCodexFeatures"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/LocalConnectionTests.swift",
+    "method": "normalLaunchEnablesConfigurationAndTestsCanDisableIt"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/LocalizationParityTests.swift",
+    "method": "testBaseFileHasEveryKeyEachTranslationDeclares"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/LocalizationParityTests.swift",
+    "method": "testSimplifiedChineseCoversEveryBaseKey"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/LocalizationParityTests.swift",
+    "method": "testSimplifiedChinesePreservesFormatArguments"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/MultiAgentHookTests.swift",
+    "method": "testCursorInstallShape"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/MultiAgentHookTests.swift",
+    "method": "testCursorIdempotentAndForeignPreserved"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/MultiAgentHookTests.swift",
+    "method": "testWindsurfInstallShape"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/MultiAgentHookTests.swift",
+    "method": "testAntigravityInstallShape"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/MultiAgentHookTests.swift",
+    "method": "testAntigravityIdempotentAndForeignPreserved"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/MultiAgentHookTests.swift",
+    "method": "testAntigravityStateMapping"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/MultiAgentHookTests.swift",
+    "method": "testAntigravityPayloadDecode"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/MultiAgentHookTests.swift",
+    "method": "testOpencodeBinaryPathExtraction"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/MultiAgentHookTests.swift",
+    "method": "testOpencodePluginContent"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/MultiAgentHookTests.swift",
+    "method": "testCursorPayloadDecode"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/MultiAgentHookTests.swift",
+    "method": "testCursorPayloadDecodesModel"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/MultiAgentHookTests.swift",
+    "method": "testCursorPayloadModelAbsentIsNil"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/MultiAgentHookTests.swift",
+    "method": "testWindsurfPayloadDecodesModel"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/MultiAgentHookTests.swift",
+    "method": "testCursorPreToolUseReadFileActivityMessage"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/MultiAgentHookTests.swift",
+    "method": "testCursorPreToolUseRunCommandActivityMessage"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/MultiAgentHookTests.swift",
+    "method": "testCursorStopHasNoActivityMessage"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/MultiAgentHookTests.swift",
+    "method": "testWindsurfPayloadDecode"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/MultiAgentHookTests.swift",
+    "method": "testCursorStateMapping"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/MultiAgentHookTests.swift",
+    "method": "testWindsurfStateMapping"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/MultiAgentHookTests.swift",
+    "method": "testOpencodeNormalisedStatePassThrough"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/MultiAgentHookTests.swift",
+    "method": "testSessionEndRemovesSession"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/MultiAgentHookTests.swift",
+    "method": "testIsSessionEnd"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/MultiAgentHookTests.swift",
+    "method": "testDiskRoundTripAllStyles"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PendingApprovalRegistryTests.swift",
+    "method": "testResolveWritesDecisionJSONAndClosesFD"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PendingApprovalRegistryTests.swift",
+    "method": "testResolveIsIdempotentAndReturnsFalseOnSecondCall"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PendingApprovalRegistryTests.swift",
+    "method": "testResolveUnknownRequestIdReturnsFalse"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PendingApprovalRegistryTests.swift",
+    "method": "testUnresolvedRequestAutoResolvesToAskAfterTimeout"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PendingApprovalRegistryTests.swift",
+    "method": "testManualResolveBeforeTimeoutPreventsAutoAskOverwrite"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PendingApprovalRegistryTests.swift",
+    "method": "testResolveAfterPeerClosedDoesNotCrash"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PerKeyThrottleTests.swift",
+    "method": "testFirstCallForKeyRuns"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PerKeyThrottleTests.swift",
+    "method": "testSecondCallWithinIntervalIsSkipped"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PerKeyThrottleTests.swift",
+    "method": "testCallAfterIntervalRunsAgain"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PerKeyThrottleTests.swift",
+    "method": "testKeysAreIndependent"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetCareTests.swift",
+    "method": "testLevelCurve"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetCareTests.swift",
+    "method": "testProgressWithinLevel"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetCareTests.swift",
+    "method": "testStages"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetCareTests.swift",
+    "method": "testFeedTokensGrantsXPWithCarry"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetCareTests.swift",
+    "method": "testNoDailyCapAllTokensCountTowardXP"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetCareTests.swift",
+    "method": "testTokensToNextLevel"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetCareTests.swift",
+    "method": "testMealGrantsFixedXP"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetCareTests.swift",
+    "method": "testHungerThresholds"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetCareTests.swift",
+    "method": "testStreakCountsConsecutiveDays"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetCareTests.swift",
+    "method": "testDayRolloverResetsDailyCounters"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetCareTests.swift",
+    "method": "testDailyHistoryTracksFullBurnAndPrunes"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetCareTests.swift",
+    "method": "testOldStateWithoutDaysStillDecodes"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetCareTests.swift",
+    "method": "testStatePersistsThroughCodable"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetTests.swift",
+    "method": "testEmptyIsIdle"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetTests.swift",
+    "method": "testWorkingWins"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetTests.swift",
+    "method": "testWaitingBeatsDone"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetTests.swift",
+    "method": "testRegisteredIsNotWorking"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetTests.swift",
+    "method": "testDoneOnly"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testSplitOffSingleAggregateSpec"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testSplitOffIdleWhenNothingActive"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testConfiguredProjectGetsOwnWindowRestMergeToDefault"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testSubfolderSessionsCollapseToConfiguredRoot"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testConfiguredProjectPersistsWhenIdle"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testRemovingMappingFoldsBackToMainPet"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testProjectlessSessionsGoToMainPet"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testRegisteredAndIdleNotActive"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testSplitAlwaysHasMainPetWindow"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testHideIdleProjectsDropsIdleConfiguredWindow"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testForceDefaultDoesNotDuplicateMainPet"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testWindowKeysSplitOffAlwaysReturnsDefault"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testWindowKeysSplitOnMappedPet"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testWindowKeysSplitOnSelectedPetIncludesDefault"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testWindowKeysSplitOnSharedPetMultipleKeys"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testWindowKeysSplitOnUnknownPetFallsToDefault"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testInsidePositionIsUnchanged"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testOffRightEdgeClampsBackIn"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testOffLeftAndBottomClampToMinEdges"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testWindowLargerThanScreenPinsToMinEdge"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testOffscreenOriginOnShiftedScreenClamps"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testDroppedBelowBottomComesBackUp"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testWindowTallerThanScreenKeepsBottomVisible"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testNearestRectPicksContainingThenClosest"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testLayoutCentredWhenRoomOnBothSides"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testLayoutNearRightEdgeShiftsWindowButNotPet"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testLayoutNearLeftEdgeOnShiftedScreen"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testLayoutPetPastEdgeIsPulledInsideWindow"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testLayoutWindowWiderThanScreenPinsToMinX"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testSettledWideBubbleStaysPutAndTailPointsAtPet"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testNarrowBubbleMovesOverPet"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testShrinkingBubbleUsesOldWindowWidth"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testTailClearOfCorners"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetWindowPlannerTests.swift",
+    "method": "testNoOffsetIsNoShift"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PiHookTests.swift",
+    "method": "testPiSpec"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PiHookTests.swift",
+    "method": "testPiExtensionContent"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PiHookTests.swift",
+    "method": "testPiExtensionInstallRoundTrip"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PiHookTests.swift",
+    "method": "testPiNormalisedStatesSentByExtension"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PiHookTests.swift",
+    "method": "testPiNativeEventNamesFallback"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PiHookTests.swift",
+    "method": "testPiEventViaExplicitFlags"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PiHookTests.swift",
+    "method": "testPiInCatalog"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ProjectNamesTests.swift",
+    "method": "testFolderNameIsLastComponentAndWholePathForRoot"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ProjectNamesTests.swift",
+    "method": "testLabelFallsBackToFolderWhenNoOrBlankName"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ProjectNamesTests.swift",
+    "method": "testLabelUsesCustomNameKeyedByPathId"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ProjectNamesTests.swift",
+    "method": "testCleanTrimsAndCaps"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ProjectNamesTests.swift",
+    "method": "testIdMatchesKnownFnv1aVectors"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ProjectNamesTests.swift",
+    "method": "testTickerLineUsesCustomName"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ProjectPetResolverTests.swift",
+    "method": "testExactMatch"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ProjectPetResolverTests.swift",
+    "method": "testSubfolderMatches"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ProjectPetResolverTests.swift",
+    "method": "testLongestMatchWins"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ProjectPetResolverTests.swift",
+    "method": "testDirectoryBoundaryNotPrefixString"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ProjectPetResolverTests.swift",
+    "method": "testTrailingSlashNormalized"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ProjectPetResolverTests.swift",
+    "method": "testNilOrEmptyCwdReturnsNil"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/ProjectPetResolverTests.swift",
+    "method": "testNoMatchReturnsNil"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/QuestionDetectorTests.swift",
+    "method": "testEndsWithQuestionMark"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/QuestionDetectorTests.swift",
+    "method": "testTrailingWhitespaceAfterQuestionMarkStillDetected"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/QuestionDetectorTests.swift",
+    "method": "testDirectQuestionWithoutQuestionMark"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/QuestionDetectorTests.swift",
+    "method": "testCompletionWithPoliteFollowUpIsNotAQuestion"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/QuestionDetectorTests.swift",
+    "method": "testCompletionWithActionQuestionInLastSentence"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/QuestionDetectorTests.swift",
+    "method": "testPlainCompletionStatementIsNotAQuestion"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/QuestionDetectorTests.swift",
+    "method": "testEmptyAndWhitespaceOnlyAreNotQuestions"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/RestoreMergeTests.swift",
+    "method": "testGrowOnlyNeverShrinksLocal"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/RestoreMergeTests.swift",
+    "method": "testCloudHigherLiftsLocal"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/RestoreMergeTests.swift",
+    "method": "testRestoreOntoEmptyDevice"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/RestoreMergeTests.swift",
+    "method": "testStreakFollowsMoreRecentCloud"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/RestoreMergeTests.swift",
+    "method": "testStreakKeepsMoreRecentLocal"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/RestoreMergeTests.swift",
+    "method": "testAdoptingCloudFeedingSetsDayKey"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/RestoreMergeTests.swift",
+    "method": "testAchievementsUnion"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/RestoreMergeTests.swift",
+    "method": "testReconcilesBadgesFromMergedStats"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/RestoreMergeTests.swift",
+    "method": "testRealPayloadDecodesAndMerges"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionArchiveStoreTests.swift",
+    "method": "testJSONRoundTripPreservesAllFields"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionArchiveStoreTests.swift",
+    "method": "testJSONRoundTripWithNilOptionals"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionArchiveStoreTests.swift",
+    "method": "testArchiveAndRetrieveOnSameDay"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionArchiveStoreTests.swift",
+    "method": "testDeduplicationPreventsDuplicateSessionId"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionArchiveStoreTests.swift",
+    "method": "testDeduplicationPersistsAcrossStoreInstances"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionArchiveStoreTests.swift",
+    "method": "testPruneOlderThanRemovesOldFilesAndKeepsRecent"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionArchiveStoreTests.swift",
+    "method": "testAllRecordsSinceAggregatesAcrossMultipleDays"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionArchiveStoreTests.swift",
+    "method": "testAllRecordsSinceExcludesBeforeCutoff"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionArchiveStoreTests.swift",
+    "method": "testDailyFileUsesDateBasedFilename"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionArchiveStoreTests.swift",
+    "method": "testSharedSingletonBaseURLIsDefaultPath"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreArchiveTests.swift",
+    "method": "testIdleSessionPruneArchivesWithCorrectTimestamps"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreArchiveTests.swift",
+    "method": "testSessionEndEventArchivesBeforeRemoval"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreArchiveTests.swift",
+    "method": "testStaleWorkingSessionPruneArchives"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreArchiveTests.swift",
+    "method": "testNilArchiveStoreDoesNotCrashOnPrune"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreArchiveTests.swift",
+    "method": "testNilArchiveStoreDoesNotCrashOnSessionEnd"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreArchiveTests.swift",
+    "method": "testExistingBehaviourUnaffected_applyCreatesSession"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreArchiveTests.swift",
+    "method": "testExistingBehaviourUnaffected_pruneRemovesLongIdle"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreArchiveTests.swift",
+    "method": "testSameSessionNotArchivedTwiceAcrossPruneCycles"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreArchiveTests.swift",
+    "method": "testCreatedAtIsSetOnFirstApplyAndNotUpdatedBySubsequentEvents"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testClaudeEventMapping"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testUnknownEventIsIgnored"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testDirectStateNameMapsForAnyKind"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testCodexMapping"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testGeminiMapping"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testHookSpecsCoverInstallEvents"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testApplyCreatesSession"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testApplyUpdatesExistingAndKeepsProjectWhenNil"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testApplyKeepsModelWhenLaterEventOmitsIt"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testApplySetsModelOnNewSession"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testApplySetsTerminalOnNewSession"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testApplyKeepsTerminalWhenLaterEventOmitsIt"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testApplyIgnoresUnmappedEvent"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testRefineStateAppliesWhenStateAndSinceStillMatch"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testRefineStateNoOpsWhenANewerEventAlreadyChangedState"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testRefineStateNoOpsWhenSinceNoLongerMatches"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testPruneDemotesDoneToIdle"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testPruneRemovesLongIdle"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testPruneRemovesStaleActiveSession"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testPruneRemovesStaleRegisteredSooner"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testClearRemovesAll"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testSortedByAttentionPriority"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testApplyWithApprovalRequestIdSetsWaitingStateAndPendingApproval"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testSubsequentEventWithoutApprovalIdClearsPendingApproval"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testSecondApprovalRequestOverwritesPendingApprovalNewestWins"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testResolveApprovalClearsPendingApprovalAndSetsWorkingWhenIdMatches"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testResolveApprovalNoOpsWhenRequestIdMismatches"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/SessionStoreTests.swift",
+    "method": "testResolveApprovalNoOpsWhenSessionMissing"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TerminalInfoTests.swift",
+    "method": "testCaptureReadsTermProgramFromEnv"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TerminalInfoTests.swift",
+    "method": "testCaptureTreatsMissingTermProgramAsNil"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TerminalInfoTests.swift",
+    "method": "testCaptureTreatsEmptyTermProgramAsNil"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TerminalInfoTests.swift",
+    "method": "testCaptureReadsWarpFocusURL"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TerminalInfoTests.swift",
+    "method": "testCaptureFocusURLNilWhenAbsent"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TerminalInfoTests.swift",
+    "method": "testProcInfoMatchesPS"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TerminalInfoTests.swift",
+    "method": "testProcInfoNilForMissingProcess"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TickerFormatterTests.swift",
+    "method": "testAgentLabelKnownKinds"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TickerFormatterTests.swift",
+    "method": "testAgentLabelFallbacks"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TickerFormatterTests.swift",
+    "method": "testLineWithMessage"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TickerFormatterTests.swift",
+    "method": "testLineWithoutMessage"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TickerFormatterTests.swift",
+    "method": "testLineWithWhitespaceOnlyMessage"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TickerFormatterTests.swift",
+    "method": "testLineFallsBackToIdWhenNoProject"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TickerFormatterTests.swift",
+    "method": "testSortedWaitingFirst"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TickerFormatterTests.swift",
+    "method": "testSortedWorkingByMostRecentFirst"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TranscriptReaderLatestAssistantTextTests.swift",
+    "method": "testReturnsLatestAssistantTextVerbatim"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TranscriptReaderLatestAssistantTextTests.swift",
+    "method": "testSkipsTrailingNonAssistantLines"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TranscriptReaderLatestAssistantTextTests.swift",
+    "method": "testReturnsNilForUnreadablePath"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TranscriptReaderLatestAssistantTextTests.swift",
+    "method": "testReturnsNilWhenNoAssistantLineExists"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TranscriptReaderLatestAssistantTextTests.swift",
+    "method": "testLatestAssistantModelReturnsMostRecent"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TranscriptReaderLatestAssistantTextTests.swift",
+    "method": "testLatestAssistantModelNilWhenAbsent"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TranscriptUsageTests.swift",
+    "method": "testSumsUsageAcrossLines"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TranscriptUsageTests.swift",
+    "method": "testSecondCallReturnsOnlyTheDelta"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TranscriptUsageTests.swift",
+    "method": "testIgnoresLinesWithoutUsage"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TranscriptUsageTests.swift",
+    "method": "testPartialTrailingLineIsLeftForNextCall"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TranscriptUsageTests.swift",
+    "method": "testUnreadableFileReturnsNil"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TranscriptUsageTests.swift",
+    "method": "testReplyWrittenAsSeveralBlocksCountsOnce"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TranscriptUsageTests.swift",
+    "method": "testReplyBlocksSplitAcrossReadsCountOnce"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TranscriptUsageTests.swift",
+    "method": "testReplyCopiedIntoAnotherTranscriptCountsOnce"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TranscriptUsageTests.swift",
+    "method": "testUsageWrittenBeforeCountingStartedIsSkipped"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetUsageTrendTests.swift",
+    "method": "everyDayTooltipStaysWithinTheChartEdges"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetUsageTrendTests.swift",
+    "method": "hoverOverlaysRenderWithoutChangingChartSize"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetUsageTrendTests.swift",
+    "method": "tooltipShowsTheExactCountIncludingZero"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ProjectUsagePersistenceTests.swift",
+    "method": "legacyLedgerSurvivesAppendAndReloadWithOnlyTokenFields"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ProjectUsagePersistenceTests.swift",
+    "method": "legacyRowsDecodeWithOrWithoutRetiredFields"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/ProjectUsagePersistenceTests.swift",
+    "method": "tokensAndSessionsAcrossAgentsSurviveReload"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/TokenSpeedEngineTests.swift",
+    "method": "dailyAggregationPreservesModelsAndTokenCounts"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/TokenSpeedEngineTests.swift",
+    "method": "inflightTokenSpeedEstimatesDoNotBecomeRecordedUsage"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/TokenSpeedEngineTests.swift",
+    "method": "localReportingKeepsValidModelIdentifiersWithoutLookupTables"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/TokenSpeedEngineTests.swift",
+    "method": "measuredTokensAndSpeedRemainExact"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/TokenSpeedEngineTests.swift",
+    "method": "midnightRollsOverDailyTokensWithoutLosingStoredResponses"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/TokenSpeedEngineTests.swift",
+    "method": "replacingAResponseDoesNotDoubleCountTokensOrRequests"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/UsageHistoryTests.swift",
+    "method": "invalidRecordingCannotSubtractUsage"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetCareTrendTests.swift",
+    "method": "emptyHistoryStillHasSevenHoverableZeroDays"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetCareTrendTests.swift",
+    "method": "localDateAndDSTDoNotShiftOrDuplicateDays"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetCareTrendTests.swift",
+    "method": "nonpositiveDayCountsAreEmpty"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetCareTrendTests.swift",
+    "method": "recentDaysKeepFullDatesAcrossMonthBoundaryAndExactTokens"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TranscriptIncrementTests.swift",
+    "method": "clearingCacheRestartsTheTokenScan"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TranscriptIncrementTests.swift",
+    "method": "differentModelsCountTokensWithoutNeedingModelMetadata"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TranscriptIncrementTests.swift",
+    "method": "repeatedScanWithoutNewLinesReturnsZero"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TranscriptIncrementTests.swift",
+    "method": "tokensIncludeInputAndOutputWithoutChangingCacheSemantics"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TranscriptIncrementTests.swift",
+    "method": "unreadableTranscriptReturnsNil"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/TranscriptUsageTests.swift",
+    "method": "testRepeatedContentBlocksCountTokensOnlyOnce"
+  }
+]

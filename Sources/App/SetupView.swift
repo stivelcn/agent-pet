@@ -272,11 +272,11 @@ private struct GeneralTab: View {
                     Spacer()
                     ColorSwitch(isOn: $breaks.enabled)
                 }
-                Stepper("Work for: \(breaks.workIntervalMinutes) min",
+                Stepper(InterfaceText.format("Work for: %d min", breaks.workIntervalMinutes),
                         value: $breaks.workIntervalMinutes, in: 15...240, step: 15)
                     .disabled(!breaks.enabled)
                     .opacity(breaks.enabled ? 1 : 0.5)
-                Stepper("Break length: \(breaks.breakLengthMinutes) min",
+                Stepper(InterfaceText.format("Break length: %d min", breaks.breakLengthMinutes),
                         value: $breaks.breakLengthMinutes, in: 1...30, step: 1)
                     .disabled(!breaks.enabled)
                     .opacity(breaks.enabled ? 1 : 0.5)

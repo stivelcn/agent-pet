@@ -11,7 +11,6 @@ struct PetStatsView: View {
     @ObservedObject private var care = PetCareController.shared
     @ObservedObject private var pet = PetController.shared
     @ObservedObject private var imagePets = ImagePetStore.shared
-    @ObservedObject private var usageStore = ProjectUsageStore.shared
     @State private var hoveredAchievement: Achievement?
 
     private static let stageColors: [Color] = [.green, .teal, .blue, .purple, .orange]
@@ -41,7 +40,6 @@ struct PetStatsView: View {
             achievementBlock
             statGrid(state)
             trendBlock(state)
-            costBlock
             AgentUsageRows(limit: 3)
             if let last = state.lastFedAt {
                 HStack {
@@ -254,49 +252,8 @@ struct PetStatsView: View {
     // MARK: - 7-day trend
 
     private func trendBlock(_ state: PetCareState) -> some View {
-        let series = PetCare.recentDays(state: state, now: Date())
-        let peak = max(series.map(\.tokens).max() ?? 0, 1)
-        return VStack(alignment: .leading, spacing: 5) {
-            HStack {
-                Text("Burn, last 7 days")
-                    .font(.system(size: 9, weight: .semibold)).tracking(0.8)
-                    .foregroundStyle(.white.opacity(0.35))
-                Spacer()
-                Text(verbatim: CareFormat.tokens(series.map(\.tokens).reduce(0, +)))
-                    .font(.system(size: 9, weight: .semibold)).foregroundStyle(.white.opacity(0.55))
-            }
-            HStack(alignment: .bottom, spacing: 5) {
-                ForEach(Array(series.enumerated()), id: \.offset) { i, day in
-                    VStack(spacing: 2) {
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(i == series.count - 1 ? stageColor : stageColor.opacity(0.4))
-                            .frame(height: max(3, CGFloat(day.tokens) / CGFloat(peak) * 34))
-                            .frame(maxWidth: .infinity)
-                        Text(verbatim: day.label)
-                            .font(.system(size: 8)).foregroundStyle(.white.opacity(0.35))
-                    }
-                }
-            }
-            .frame(height: 48, alignment: .bottom)
-        }
-    }
-
-    // MARK: - Cost
-
-    private var costBlock: some View {
-        HStack {
-            Text("Est. cost (Claude)")
-                .font(.system(size: 9, weight: .semibold)).tracking(0.8)
-                .foregroundStyle(.white.opacity(0.35))
-            Spacer()
-            Text(verbatim: String(format: NSLocalizedString("Today %@ · Month %@", comment: "cost row: today / this month estimate"),
-                                   Self.costString(usageStore.todayCostUSD), Self.costString(usageStore.monthlyCostUSD)))
-                .font(.system(size: 9, weight: .semibold)).foregroundStyle(.white.opacity(0.55))
-        }
-    }
-
-    private static func costString(_ usd: Double) -> String {
-        String(format: "$%.2f", usd)
+        PetUsageTrendView(days: PetCare.recentDays(state: state, now: Date()), accent: stageColor)
+            .zIndex(1)
     }
 
     // MARK: - Derived

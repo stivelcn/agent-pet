@@ -1,44 +1,30 @@
-# Contributing to AgentPet
+# 合并版开发约定
 
-Thanks for your interest in improving AgentPet! Contributions of all sizes are welcome.
+本仓库只维护 AgentPet + EmberCat 火焰/速度的 macOS 应用，不维护旧网站和其他平台客户端。
 
-## Getting started
+## 基本流程
 
-```bash
-git clone https://github.com/ntd4996/agentpet.git
-cd agentpet
-swift build          # build
-swift test           # run the test suite
-./scripts/build-app.sh release   # produce AgentPet.app
-open build/AgentPet.app
-```
+1. 文件增删改之前，先说明范围并得到项目维护者同意。
+2. 保留未提交改动；涉及清理/迁移时，先将源码和必要的数据快照保存在项目外。
+3. 优先交付能运行的小改动，不为整理而大规模搬目录、改标识或重构。
+4. 使用 `scripts/swiftpm.sh`、`scripts/test.sh`、`scripts/build-app.sh`；不要改动系统工具链来迁就构建。
+5. 改行为要补回归测试；有意退休功能时，同步记录原因、删除专属测试，并维护 `Tests/test-inventory.json`。不能仅因测试失败而删测试。
+6. 明确区分编译/单元测试通过与真实 UI、权限、多屏及客户端接入验收。
 
-Requires macOS 13+ and a recent Swift toolchain (Swift 6 / Xcode 15+).
+## 数据与运行保护
 
-## Project layout
+- 不改 Bundle ID、偏好 suite、数据目录或既有偏好键，除非明确设计并批准迁移。
+- 测试只使用临时数据目录和独立偏好 suite，禁用真实客户端配置与实时扫描。
+- 不向正在使用的应用注入模拟事件；不擅自重启应用或操作用户窗口。
+- 本地宠物资源和使用数据不是仓库清理对象，不要提交到源码。
+- `.git/` 是开发历史；`.build/` 是可再生缓存；`build/` 可能含正在使用的应用，不能一概删除。
 
-- `Sources/AgentPetCore/` — pure, testable core: session state, event model, hook
-  parsing/installing, the Unix-socket server. No AppKit/SwiftUI here.
-- `Sources/App/` — the macOS app: menu bar, floating pet, Settings, controllers.
-- `Tests/AgentPetCoreTests/` — unit tests for the core.
-- `scripts/` — app packaging and asset generation.
+## 模块边界
 
-The split keeps logic (Core) independent of UI so it stays unit-testable.
+纯逻辑放在 `Sources/AgentPetCore/`，macOS 界面和应用协调放在 `Sources/App/`。EmberCat 适配留在 `Sources/App/EmberCat/`，不要重新引入第二个应用入口或菜单栏宠物。
 
-## Guidelines
+`Vendor/AgentSpeedCore/` 是依赖裁剪后的副本，不是完整上游仓库。更新依赖要检查实时监测、所有保留的日志适配器以及共享类型；维护来源和许可证说明。详见 `docs/ARCHITECTURE.md`。
 
-- Keep changes focused; match the surrounding style.
-- Add or update tests in `AgentPetCore` for any behavior change.
-- Run `swift test` before opening a PR; CI must stay green.
-- Conventional commit messages (`feat:`, `fix:`, `docs:`, `refactor:`...).
+## 模型调用
 
-## Pets
-
-AgentPet bundles no pet art. Pets use the open Codex pet-pack format
-(`pet.json` + an 8×9 spritesheet) and are added at runtime via Browse or import.
-Please do not commit pet assets to this repository.
-
-## Reporting issues
-
-Open an issue with steps to reproduce, your macOS version, and which agent
-(Claude Code / Codex / Gemini CLI) you were running.
+未来若引入模型接口，提示词必须从根目录 `model_prompt/` 下的 Markdown 文件读写；文件名与接口名一致，内容与接口定义一致。没有模型接口时不创建空的提示词目录。密钥不写入代码、文档、日志或分发包。

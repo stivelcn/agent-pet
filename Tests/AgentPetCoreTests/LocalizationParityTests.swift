@@ -15,6 +15,8 @@ import Foundation
 /// locale's keys must exist in the base file) — a key that is *only* in
 /// en.lproj is fine, since new strings routinely land untranslated and get
 /// a locale follow-up later (see `f817127` + `1469780`, or issue #43).
+/// The local macOS build additionally requires complete Simplified Chinese
+/// coverage, including dynamic status vocabulary and matching format arguments.
 @Suite(.serialized)
 final class LocalizationParityTests {
     private static let localizationsDir: URL = {
@@ -45,4 +47,26 @@ final class LocalizationParityTests {
             #expect(missingFromBase.isEmpty, Comment(rawValue: "en.lproj is missing keys that \(locale).lproj already translates: \(missingFromBase.sorted())"))
         }
     }
+
+    @Test func testSimplifiedChineseCoversEveryBaseKey() throws {
+        let missing = try keys(forLocale: "en").subtracting(keys(forLocale: "zh-Hans"))
+        #expect(missing.isEmpty, Comment(rawValue: "Missing Chinese translations: \(missing.sorted())"))
+    }
+
+    @Test func testSimplifiedChinesePreservesFormatArguments() throws {
+        let enPath = Self.localizationsDir.appendingPathComponent("en.lproj/Localizable.strings")
+        let zhPath = Self.localizationsDir.appendingPathComponent("zh-Hans.lproj/Localizable.strings")
+        let en = try #require(NSDictionary(contentsOf: enPath) as? [String: String])
+        let zh = try #require(NSDictionary(contentsOf: zhPath) as? [String: String])
+        let expression = try NSRegularExpression(pattern: #"%(?:\d+\$)?[-+ #0]*(?:\d+|\*)?(?:\.(?:\d+|\*))?(?:hh|ll|[hlLzjtq])?[@diuoxXfFeEgGaAcCsSp%]"#)
+        func placeholders(_ text: String) -> [String] {
+            expression.matches(in: text, range: NSRange(text.startIndex..., in: text)).map {
+                (text as NSString).substring(with: $0.range)
+            }
+        }
+        for (key, value) in en {
+            #expect(placeholders(value) == placeholders(zh[key] ?? ""), Comment(rawValue: key))
+        }
+    }
+
 }

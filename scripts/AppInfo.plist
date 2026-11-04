@@ -24,11 +24,11 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.1.0</string>
+	<string>0.2.0</string>
 	<key>CFBundleVersion</key>
-	<string>0.1.0</string>
+	<string>0.2.0</string>
 	<key>LSMinimumSystemVersion</key>
-	<string>13.0</string>
+	<string>14.0</string>
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -39,7 +39,7 @@
 	<key>NSAppleEventsUsageDescription</key>
 	<string>AgentPet brings the terminal running an agent to the front when you click its bubble row.</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>MIT License</string>
+	<string>AgentPet and Agent Speed: MIT. EmberCat flame integration: see THIRD_PARTY_NOTICES.md.</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>AgentPetDevelopmentBuild</key>

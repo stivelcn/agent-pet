@@ -68,18 +68,20 @@ struct QuietPetAnimationTests {
         let idle = try frame(.red)
         let action = try frame(.blue)
         let pet = pack([[idle]] + Array(repeating: [action], count: 8), id: id)
-        let oldBindings = PetBindingsStore()
-        for (index, mood) in PetMood.allCases.enumerated() {
-            oldBindings.setClip(index + 1, mood: mood, packId: id, clipCount: 9)
-        }
-        // Reload actual persisted bindings, including an old non-idle "idle" mapping.
-        let reloaded = PetBindingsStore()
+        // Isolated synthetic fixture in the old on-disk format. Compatibility must
+        // not require shipping the retired action-binding store in production.
+        let legacyBindings = Dictionary(uniqueKeysWithValues:
+            PetMood.allCases.enumerated().map { ($0.element.rawValue, $0.offset + 1) })
+        let saved = try JSONEncoder().encode(legacyBindings)
+        LocalPreferences.defaults.set(saved, forKey: preferenceKey)
+        let persisted = try #require(LocalPreferences.defaults.data(forKey: preferenceKey))
+        let reloaded = try JSONDecoder().decode([String: Int].self, from: persisted)
         for mood in PetMood.allCases {
-            #expect(reloaded.clipIndex(packId: id, clipCount: 9, mood: mood) > 0)
+            #expect(try #require(reloaded[mood.rawValue]) > 0)
             #expect(pet.restingFrames.count == 1)
             #expect(pet.restingFrames[0] === idle)
         }
-        #expect(LocalPreferences.defaults.data(forKey: preferenceKey) != nil)
+        #expect(LocalPreferences.defaults.data(forKey: preferenceKey) == saved)
     }
 
     @Test func everyTaskStateIncludingCompletionUsesTheIdleCadence() {

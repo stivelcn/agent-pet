@@ -16,11 +16,6 @@ xcuserdata/
 # Brainstorm scratch
 .superpowers/
 
-# Cloudflare Pages local dev state
-landing/.wrangler/
-landing/node_modules/
-.wrangler/
-
 # Local AI memory notes (not committed)
 .agent-memory/
 
@@ -29,3 +24,14 @@ landing/node_modules/
 
 # Local agent memory , never commit
 /CLAUDE.md
+
+# Local generated artwork, requests and scratch files
+/output/
+
+# Local environment and signing credentials
+.env
+.env.*
+!.env.example
+!.env.sample
+*.p12
+*.pfx

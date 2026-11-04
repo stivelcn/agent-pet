@@ -146,7 +146,7 @@ struct OnboardingView: View {
         .themedCard()
     }
 
-    private func stepLabel(_ n: Int, _ title: String) -> some View {
+    private func stepLabel(_ n: Int, _ title: LocalizedStringKey) -> some View {
         HStack(spacing: 8) {
             Text("\(n)")
                 .font(.system(size: 12, weight: .bold)).foregroundStyle(.white)

@@ -5,6 +5,7 @@ import AgentPetCore
 /// Rich menu bar popover: a blurred dark card with an arrow pointing at the
 /// status item, a live agent list, and a footer bar.
 struct MenuContentView: View {
+    @ObservedObject private var language = AppLanguage.shared
     @ObservedObject private var daemon = AppDaemon.shared
     @ObservedObject private var petWindow = PetWindowController.shared
     @ObservedObject private var statusBar = StatusBarController.shared
@@ -33,6 +34,7 @@ struct MenuContentView: View {
         .frame(width: 300)
         .background(.regularMaterial)
         .environment(\.colorScheme, .dark)
+        .environment(\.locale, language.locale)
         .noFocusRing()
     }
 
@@ -136,7 +138,7 @@ struct MenuContentView: View {
 
     private var xpLine: String {
         let (inLevel, span) = PetCare.xpWithinLevel(forXP: care.current.xp)
-        return "\(inLevel) / \(span) XP"
+        return InterfaceText.format("%@ / %@ XP", CareFormat.plain(inLevel), CareFormat.plain(span))
     }
 
     private var todayLine: String {
@@ -206,6 +208,23 @@ struct MenuContentView: View {
             controlRow(icon: "square.split.2x1", label: "Split pet", isOn: $pet.splitPet)
             animationRow
             sizeRow
+            Button {
+                StatusBarController.shared.closeAndThen {
+                    EmberCatSettingsWindowController.shared.show()
+                }
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "flame").frame(width: 16)
+                    Text(verbatim: "EmberCat 设置…")
+                    Spacer()
+                    Image(systemName: "chevron.right").font(.caption)
+                }
+                .font(.system(size: 13)).foregroundStyle(.white)
+                .padding(.horizontal, 14).padding(.vertical, 10)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("embercat-settings-entry")
         }
     }
 
@@ -317,6 +336,7 @@ private struct FooterButton: View {
 }
 
 private struct AgentRow: View {
+    @ObservedObject private var language = AppLanguage.shared
     let session: AgentSession
     var onClear: () -> Void = {}
     @ObservedObject private var projectNames = ProjectNameStore.shared
@@ -356,8 +376,7 @@ private struct AgentRow: View {
 
     /// The agent's context (waiting reason / running tool) when known, else its state.
     private var subtitle: String {
-        if let message = session.message, !message.isEmpty { return message }
-        return NSLocalizedString(session.state.rawValue.capitalized, comment: "Agent state")
+        InterfaceText.activity(session.message, fallback: session.state.rawValue.capitalized)
     }
 
     private var dotColor: Color {

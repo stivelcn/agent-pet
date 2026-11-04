@@ -1,7 +1,7 @@
 import AgentPetCore
 import Foundation
 
-/// Opt-in resize trace for `scripts/bubble_selftest.py`. Launch the app with
+/// Opt-in local resize trace for diagnosing pet window layout. Launch the app with
 /// `AGENTPET_METRICS=1` and every measured content size and applied window
 /// size is appended to `AgentPetPaths.baseDir/metrics.log` as
 /// `<uptime> content|window w=<W> h=<H>`. Off by default: nothing is opened

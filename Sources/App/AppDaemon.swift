@@ -163,11 +163,11 @@ final class AppDaemon: ObservableObject {
             lastLiveFeed[event.sessionId] = now
             let project = event.project
             Task.detached(priority: .utility) {
-                guard let delta = TranscriptReader.newUsageDelta(at: path), delta.tokens > 0 else { return }
+                guard let tokens = TranscriptReader.newUsageTokens(at: path), tokens > 0 else { return }
                 await MainActor.run {
-                    PetCareController.shared.feedTokens(delta.tokens,
+                    PetCareController.shared.feedTokens(tokens,
                         petID: AppDaemon.shared.careTarget(forProject: project))
-                    ProjectUsageStore.shared.recordTokens(delta.tokens, project: project, agent: "claude", costUSD: delta.costUSD)
+                    ProjectUsageStore.shared.recordTokens(tokens, project: project, agent: "claude")
                 }
             }
         case .codex:
@@ -228,11 +228,11 @@ final class AppDaemon: ObservableObject {
         let project = event.project
         let agent = event.agentKind.rawValue
         Task.detached(priority: .utility) {
-            guard let delta = TranscriptReader.newUsageDelta(at: path), delta.tokens > 0 else { return }
+            guard let tokens = TranscriptReader.newUsageTokens(at: path), tokens > 0 else { return }
             await MainActor.run {
-                PetCareController.shared.feedTokens(delta.tokens,
+                PetCareController.shared.feedTokens(tokens,
                     petID: AppDaemon.shared.careTarget(forProject: project))
-                ProjectUsageStore.shared.recordTokens(delta.tokens, project: project, agent: agent, costUSD: delta.costUSD)
+                ProjectUsageStore.shared.recordTokens(tokens, project: project, agent: agent)
             }
         }
     }
@@ -282,12 +282,12 @@ final class AppDaemon: ObservableObject {
             let isQuestion = TranscriptReader.latestAssistantText(at: path)
                 .map(QuestionDetector.looksLikeQuestion) ?? false
             // The turn just ended either way — feed the pet the tokens it burnt.
-            let delta = TranscriptReader.newUsageDelta(at: path)
+            let tokens = TranscriptReader.newUsageTokens(at: path) ?? 0
             await MainActor.run { [weak self] in
                 guard let self else { return }
-                PetCareController.shared.feedTokens(delta?.tokens ?? 0,
+                PetCareController.shared.feedTokens(tokens,
                     petID: self.careTarget(forProject: project))
-                ProjectUsageStore.shared.recordTokens(delta?.tokens ?? 0, project: project, agent: "claude", costUSD: delta?.costUSD ?? 0)
+                ProjectUsageStore.shared.recordTokens(tokens, project: project, agent: "claude")
                 if isQuestion {
                     self.store.refineState(id: sessionId, from: .done, to: .waiting, since: stateSince)
                 }
@@ -349,12 +349,14 @@ final class AppDaemon: ObservableObject {
         switch session.state {
         case .waiting:
             NotificationManager.shared.notify(
-                title: "\(project) needs input", body: session.message ?? "Waiting for you")
+                title: InterfaceText.format("%@ needs input", project),
+                body: InterfaceText.activity(session.message, fallback: "Waiting for you"))
             SoundSettings.shared.play(.waiting)
         case .done:
             CompletionNoticeStore.shared.record(session, at: completionAt)
             NotificationManager.shared.notify(
-                title: "\(project) finished", body: "Agent completed its turn")
+                title: InterfaceText.format("%@ finished", project),
+                body: NSLocalizedString("Agent completed its turn", comment: "completion notification"))
             SoundSettings.shared.play(.done)
             PetCareController.shared.recordMeal(petID: careTarget(forProject: session.project))
             ProjectUsageStore.shared.recordSession(

@@ -37,15 +37,8 @@ public enum TranscriptReader {
         f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return f
     }()
-    // Guards `usageOffsets` and the token/cost scan against concurrent callers.
+    // Guards `usageOffsets` and the token scan against concurrent callers.
     private static let stateLock = NSLock()
-
-    /// Tokens + estimated USD cost computed together from one scan, so callers
-    /// never observe a token count paired with a mismatched cost.
-    public struct UsageDelta: Equatable {
-        public let tokens: Int
-        public let costUSD: Double
-    }
 
     /// Returns the title for the transcript at `path`, or `nil` if unreadable.
     public static func title(at path: String) -> String? {
@@ -119,25 +112,18 @@ public enum TranscriptReader {
     public static func newUsageTokens(at path: String) -> Int? {
         stateLock.lock()
         defer { stateLock.unlock() }
-        return scanUsageDelta(path)?.tokens
+        return scanUsageTokens(path)
     }
 
-    /// Same scan as `newUsageTokens`, but returns tokens and estimated USD cost together from one pass so the two values can never mismatch. `nil` when unreadable.
-    public static func newUsageDelta(at path: String) -> UsageDelta? {
-        stateLock.lock()
-        defer { stateLock.unlock() }
-        return scanUsageDelta(path)
-    }
-
-    // Advances usageOffsets[path] past every complete new line and returns the summed tokens/cost. Callers must hold stateLock.
-    private static func scanUsageDelta(_ path: String) -> UsageDelta? {
+    // Advances usageOffsets[path] past every complete new line and returns the summed tokens. Callers must hold stateLock.
+    private static func scanUsageTokens(_ path: String) -> Int? {
         guard let handle = FileHandle(forReadingAtPath: path) else { return nil }
         defer { try? handle.close() }
 
         let size = (try? handle.seekToEnd()) ?? 0
         var start = usageOffsets[path] ?? 0
         if start > size { start = 0 }   // truncated/replaced file: start over
-        guard size > start else { return UsageDelta(tokens: 0, costUSD: 0) }
+        guard size > start else { return 0 }
 
         try? handle.seek(toOffset: start)
         let raw = handle.readDataToEndOfFile()
@@ -146,13 +132,12 @@ public enum TranscriptReader {
         if let nl = raw.lastIndex(of: UInt8(ascii: "\n")) {
             consumable = raw[raw.startIndex...nl]
         } else {
-            return UsageDelta(tokens: 0, costUSD: 0)
+            return 0
         }
         usageOffsets[path] = start + UInt64(consumable.count)
 
-        guard let text = String(data: consumable, encoding: .utf8) else { return UsageDelta(tokens: 0, costUSD: 0) }
+        guard let text = String(data: consumable, encoding: .utf8) else { return 0 }
         var total = 0
-        var costAccumulator = 0.0
         for line in text.components(separatedBy: "\n") {
             // Fast reject: most lines carry no usage object at all.
             guard line.contains("\"usage\"") else { continue }
@@ -176,15 +161,8 @@ public enum TranscriptReader {
             let outputTokens = usage["output_tokens"] as? Int ?? 0
             total += inputTokens
             total += outputTokens
-            costAccumulator += ModelPricing.costUSD(
-                model: message["model"] as? String,
-                inputTokens: inputTokens,
-                outputTokens: outputTokens,
-                cacheCreateTokens: usage["cache_creation_input_tokens"] as? Int ?? 0,
-                cacheReadTokens: usage["cache_read_input_tokens"] as? Int ?? 0
-            )
         }
-        return UsageDelta(tokens: total, costUSD: costAccumulator)
+        return total
     }
 
     // MARK: - Codex (rollout) usage

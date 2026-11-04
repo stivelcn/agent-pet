@@ -178,7 +178,7 @@ struct BubbleSettingsView: View {
                 .pickerStyle(.menu)
                 ForEach(BubbleMessages.editableMoods, id: \.self) { mood in
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(moodLabel(mood) + (mood == .working ? " (blank = live activity)" : ""))
+                        Text(moodLabel(mood) + (mood == .working ? NSLocalizedString(" (blank = live activity)", comment: "custom activity hint") : ""))
                             .font(.caption).foregroundStyle(.secondary)
                         GrowingTextEditor(text: Binding(
                             get: { bubbleMsgs.text(for: editingAgentKey, mood: mood) },
@@ -582,12 +582,13 @@ private struct ChipDropDelegate: DropDelegate {
 /// Renders a mock agent row using the current BubbleSettings, so the user
 /// can see exactly how the bubble will look as they edit the layout.
 private struct BubbleRowPreview: View {
+    @ObservedObject private var language = AppLanguage.shared
     @ObservedObject private var settings = BubbleSettings.shared
 
-    private let mockTitle    = "Fix login bug"
+    private var mockTitle: String { NSLocalizedString("Fix login bug", comment: "preview task title") }
     private let mockProject  = "agentpet"
-    private let mockMessage  = "Editing SettingsModel.swift"
-    private let mockElapsed  = "3m"
+    private var mockMessage: String { InterfaceText.format("Editing %@", "SettingsModel.swift") }
+    private var mockElapsed: String { InterfaceText.elapsed(seconds: 180) }
     private let mockModel    = "Sonnet 4.6"
 
     var body: some View {

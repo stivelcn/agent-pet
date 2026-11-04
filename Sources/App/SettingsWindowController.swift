@@ -56,7 +56,8 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     }
 
     @objc private func appBecameActive() {
-        guard UsageHistoryWindowController.shared.window == nil else { return }
+        guard UsageHistoryWindowController.shared.window == nil,
+              !EmberCatSettingsWindowController.shared.hasOpenWindow else { return }
         window?.makeKeyAndOrderFront(nil)
     }
 

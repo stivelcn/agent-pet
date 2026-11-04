@@ -16,7 +16,7 @@ struct HistoryTabView: View {
             Section {
                 Picker("Period", selection: $filter) {
                     ForEach(Filter.allCases, id: \.self) { f in
-                        Text(f.rawValue).tag(f)
+                        Text(LocalizedStringKey(f.rawValue)).tag(f)
                     }
                 }
                 .pickerStyle(.segmented)

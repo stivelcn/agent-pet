@@ -383,11 +383,13 @@ struct SettingsDemoPanel: View {
         switch state {
         case .working:
             let (tool, path) = sampleTool(kind)
+            // Store the same stable activity key as a real hook. AgentRow
+            // resolves it using the current language when drawing the preview.
             return ActivityFormatter.activityMessage(
                 eventName: "PreToolUse", sessionId: "demo-\(kind.rawValue)",
                 toolName: tool, toolInput: ToolActivityInput(filePath: path),
                 explicitMessage: nil
-            ) ?? "正在工作…"
+            ) ?? "Working…"
         case .waiting:    return "等待你的输入"
         case .done:       return NSLocalizedString("Done", comment: "pet mood")
         case .registered: return "正在启动…"

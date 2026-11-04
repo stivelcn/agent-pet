@@ -196,7 +196,38 @@ public enum ActivityFormatter {
         }
     }
 
+    /// Hooks run in a separate process and deliberately emit stable English keys.
+    /// Resolve only our own status vocabulary at presentation time, using the
+    /// app's current language. Never translate arbitrary client/user content.
+    public static func localizedMessage(_ message: String, bundle: Bundle = .main) -> String {
+        let key = message.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard builtInMessageKeys.contains(key) else { return message }
+        return bundle.localizedString(forKey: key, value: key, table: nil)
+    }
+
+    public static let builtInMessageKeys: Set<String> = {
+        var keys = Set(FileActivityHint.allCases.map(\.rawValue))
+        for theme in ActivityTheme.allCases {
+            for pool in [theme.reading, theme.writing, theme.running, theme.searching,
+                         theme.delegating, theme.thinking, theme.done, theme.waiting,
+                         theme.skill, theme.generic] {
+                keys.formUnion(pool)
+            }
+        }
+        keys.insert("Working…")
+        return keys
+    }()
+
     // MARK: Private
+
+    private enum FileActivityHint: String, CaseIterable {
+        case reviewingTests = "Reviewing tests…"
+        case refiningTests = "Refining tests…"
+        case readingDocs = "Reading the docs…"
+        case updatingDocs = "Updating the docs…"
+        case parsingConfig = "Parsing config…"
+        case adjustingConfig = "Adjusting config…"
+    }
 
     private enum ActivityCategory {
         case reading, writing, running, searching, delegating, skill, generic
@@ -248,12 +279,12 @@ public enum ActivityFormatter {
                   || lower.hasSuffix(".plist") || lower.hasSuffix(".toml")
         let isRead  = category == .reading
         let isWrite = category == .writing
-        if isTest  && isRead  { return "Reviewing tests…" }
-        if isTest  && isWrite { return "Refining tests…" }
-        if isDoc   && isRead  { return "Reading the docs…" }
-        if isDoc   && isWrite { return "Updating the docs…" }
-        if isCfg   && isRead  { return "Parsing config…" }
-        if isCfg   && isWrite { return "Adjusting config…" }
+        if isTest  && isRead  { return FileActivityHint.reviewingTests.rawValue }
+        if isTest  && isWrite { return FileActivityHint.refiningTests.rawValue }
+        if isDoc   && isRead  { return FileActivityHint.readingDocs.rawValue }
+        if isDoc   && isWrite { return FileActivityHint.updatingDocs.rawValue }
+        if isCfg   && isRead  { return FileActivityHint.parsingConfig.rawValue }
+        if isCfg   && isWrite { return FileActivityHint.adjustingConfig.rawValue }
         return nil
     }
 

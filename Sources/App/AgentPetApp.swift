@@ -50,7 +50,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         SettingsModel.shared.autoConnectDetectedClients()
         BreakReminderController.shared.start()
         StatusBarController.shared.start()
+        EmberCatIntegration.shared.start()
         SettingsWindowController.shared.showOnFirstLaunch()
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        EmberCatSettingsWindowController.shared.shutdown()
+        EmberCatIntegration.shared.dispose()
     }
 
 }

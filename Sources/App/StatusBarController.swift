@@ -53,6 +53,9 @@ final class StatusBarController: NSObject, ObservableObject {
         item.button?.target = self
         item.button?.action = #selector(toggle)
         statusItem = item
+        item.button?.font = .monospacedDigitSystemFont(ofSize: 12, weight: .medium)
+        EmberCatIntegration.shared.onMenuBarChange = { [weak self] in self?.refreshTokenRate() }
+        updateStatus(lastSessions)
 
         popover.behavior = .transient
         popover.animates = true
@@ -92,7 +95,7 @@ final class StatusBarController: NSObject, ObservableObject {
 
         let hasAgents = waiting > 0 || running > 0
 
-        button.title = ""
+        refreshTokenRate()
         if showCount, hasAgents {
             let count = waiting > 0 ? waiting : running
             button.image = Self.menuBarImage(count: count, waiting: waiting > 0)
@@ -102,6 +105,24 @@ final class StatusBarController: NSObject, ObservableObject {
 
         refreshChatBubble()
         refreshAgentBubble()
+    }
+
+    /// Live speed ticks must not rebuild the pet UI or restart its chat timers.
+    private func refreshTokenRate() {
+        guard let button = statusItem?.button else { return }
+        let ember = EmberCatIntegration.shared
+        let title = ember.menuBarText.isEmpty ? "" : " " + ember.menuBarText
+        if button.title != title {
+            button.title = title
+            button.imagePosition = title.isEmpty ? .imageOnly : .imageLeading
+            // Keep an existing menu-bar bubble anchored when the label width changes.
+            refreshAgentBubble()
+        }
+        let rate = ember.snapshot.state == .running
+            ? EmberCatRateFormat.text(speed: ember.speed, precision: ember.ratePrecision)
+            : "— token/s"
+        button.toolTip = "智能桌宠 · " + ember.statusLine + "\n" + rate
+            + (ember.snapshot.state == .running ? " · " + ember.estimateDescription : "")
     }
 
     /// Builds the menu bar image: the paw alone, or the paw plus a count laid out

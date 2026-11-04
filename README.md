@@ -1,287 +1,120 @@
-> **AgentPet Local — 本地自用分支（macOS）**
->
-> 本分支不接原作者自动更新、不登录/云同步；开发版与正式版的数据互相隔离。
-> 开发、测试、手动 DMG 分发请先阅读 [LOCAL_DEVELOPMENT.md](LOCAL_DEVELOPMENT.md)。
-> 下方保留上游项目介绍与致谢；其中原版下载、云端和自动更新说明不适用于此分支。
+# AgentPet · 智能桌宠
 
-<div align="center">
-  <img src="assets/banner.png" alt="AgentPet" width="100%" />
-  <p>
-    <a href="https://trendshift.io/repositories/46602?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-46602" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/46602/daily?language=Swift" alt="ntd4996%2Fagentpet | Trendshift" width="250" height="55"/></a>
-  </p>
-  <p>
-    <img src="https://img.shields.io/badge/platform-macOS%2013%2B%20%C2%B7%20Windows%2010%2F11%20%C2%B7%20Linux-black" alt="macOS 13+ · Windows 10/11 · Linux" />
-    <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT" />
-    <img src="https://img.shields.io/badge/Swift-SwiftUI-orange" alt="Swift" />
-    <a href="https://github.com/ntd4996/agentpet/actions"><img src="https://github.com/ntd4996/agentpet/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-    <a href="https://github.com/ntd4996/agentpet"><img src="https://img.shields.io/github/stars/ntd4996/agentpet?style=social" alt="GitHub stars" /></a>
-    <a href="https://ko-fi.com/ntd4996"><img src="https://img.shields.io/badge/Ko--fi-FF5E5B?logo=ko-fi&logoColor=white" alt="Ko-fi" /></a>
-    <a href="https://buymeacoffee.com/ntd4996"><img src="https://img.shields.io/badge/Buy%20me%20a%20coffee-FFDD00?logo=buymeacoffee&logoColor=black" alt="Buy me a coffee" /></a>
-  </p>
-  <p><b>A desktop pet that reacts while your AI coding agents work , and grows the more you code.</b></p>
-  <p>
-    <a href="https://agentpet.thenightwatcher.online">Website</a> ·
-    <a href="https://agentpet.thenightwatcher.online/install">Install</a> ·
-    <a href="https://agentpet.thenightwatcher.online/gallery">Pet gallery</a> ·
-    <a href="https://agentpet.thenightwatcher.online/leaderboard">Leaderboard</a> ·
-    <a href="https://discord.gg/kzFJKsZav">Discord</a>
-  </p>
-  <p><b>If AgentPet brightens your workflow, please <a href="https://github.com/ntd4996/agentpet">give it a star</a> , it genuinely helps others find it.</b></p>
-  <p>
-    <b>English</b> ·
-    <a href="docs/readme/README.vi.md">Tiếng Việt</a> ·
-    <a href="docs/readme/README.zh-Hans.md">简体中文</a> ·
-    <a href="docs/readme/README.ja.md">日本語</a>
-  </p>
-</div>
+**让桌宠陪你写代码，也让 AI 编程助手的工作状态一眼可见。**
 
----
+面向 **macOS** 的中文桌面伴侣：把桌宠、会话状态、本地 Token 统计、刘海火焰和实时输出速度放进同一个应用，只保留一个菜单栏入口。
 
-Run several coding agents at once (Claude Code, Codex, Gemini, Cursor and more) and it gets hard to tell who is **working**, who is **done**, and who is **waiting for your input**. AgentPet answers that at a glance: a menu-bar monitor shows every agent's live state, and a little pixel pet floats on your desktop and reacts to it all.
+**当前版本：v0.2.0 · 2026-11-04**
 
-It is also a **tamagotchi**. The pet is fed by real work , the tokens your agents burn and the sessions they finish , so it earns XP, levels up, unlocks achievements, and evolves as you code. Free, open source, and fully offline unless you choose to connect.
+本仓库维护独立的 macOS 版本，版本号与上游项目分别管理。
 
-<div align="center">
-  <h3>Enjoying AgentPet? Help keep it free.</h3>
-  <p>It is built and given away for free. A coffee (or a star) keeps the features coming.</p>
-  <p>
-    <a href="https://ko-fi.com/ntd4996"><img src="https://img.shields.io/badge/Ko--fi-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Ko-fi" height="42" /></a>
-    &nbsp;
-    <a href="https://buymeacoffee.com/ntd4996"><img src="https://img.shields.io/badge/Buy%20me%20a%20coffee-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=black" alt="Buy me a coffee" height="42" /></a>
-    &nbsp;
-    <a href="https://github.com/ntd4996/agentpet"><img src="https://img.shields.io/badge/Star%20on%20GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="Star on GitHub" height="42" /></a>
-  </p>
-</div>
+## 主要功能
 
-## Table of contents
-
-- [Highlights](#highlights)
-- [Features](#features)
-- [Supported agents](#supported-agents)
-- [Screenshots](#screenshots)
-- [Install](#install)
-- [Getting started](#getting-started)
-- [Usage dashboard](#usage-dashboard)
-- [Pets](#pets)
-- [Platforms](#platforms)
-- [Community ports](#community-ports)
-- [Contributors](#contributors)
-- [Acknowledgements](#acknowledgements)
-- [Support](#support)
-- [License](#license)
-
-## Highlights
-
-- 🐾 **Ambient desktop pet** that mirrors your agents' state without breaking your focus.
-- 📊 **Menu-bar monitor** with every agent, its project, what it's doing, and a live timer.
-- 🎮 **Raise your pet**: real tokens and finished sessions feed it, level it up, and unlock 14 achievements.
-- 🗂️ **Per-project pets** and a **per-project token usage dashboard** (daily and monthly).
-- 🔌 **11 coding agents** supported out of the box, plus a universal wrapper for anything else.
-- ☁️ **Optional web profile, leaderboard, and cross-device restore** , everything works offline if you skip it.
-- 🌍 **Localized** in English, Tiếng Việt, 简体中文 and 繁體中文.
-- 🍎 **macOS** (native Swift/SwiftUI, notarized), 🪟 **Windows** and 🐧 **Linux** (one Tauri app), with auto-update on macOS and Windows.
-
-## Features
-
-**Monitor your agents**
-
-- **Multi-agent monitor** in the menu bar: a live list of every agent with a colored status dot, the project, what it's doing (running tool / reason it's waiting), and a per-state timer counting in real time.
-- **At-a-glance icon**: shows how many agents are running, and turns **orange with a count** when one needs your input.
-- **Native notifications** when an agent finishes or asks for input, with sounds you can toggle.
-- **Reactive, themed speech bubbles** per agent, with a model badge, plus fully custom messages and appearance if you want them.
-- **Session history**: the last 90 days of sessions are kept locally so you can look back.
-
-**Raise your companion (tamagotchi)**
-
-- Your pet eats the **real tokens your agents burn** and the **sessions they finish** (including subagents). It earns XP, levels up, and evolves through five stages: Hatchling → Companion → Scout → Hero → Legend.
-- **Every pet keeps its own level**, so the more you code with a companion, the more it grows.
-- **14 achievements** from real milestones: first session, level-ups, token burns (1M / 10M / 50M), session counts, feeding streaks, a Night Owl badge, and more.
-- **Stats HUD**: right-click the pet for a game-style card , level, XP, hunger, a 7-day burn chart, your streak, and your live **Claude / Codex subscription limits read directly from your sign-ins** (no extra tool needed).
-- **Break reminder** (off by default) nudges you to step away after long stretches.
-
-**Work across projects**
-
-- **Per-project pets**: assign a companion to a project folder, and that project's XP goes to it.
-- **Split pet**: configured projects get their own on-screen pet; everything else shares your main one.
-- **Usage dashboard**: see exactly where your tokens go, per project and per agent, day by day and month by month (see below).
-
-**Share and sync (all optional)**
-
-- **Web profile & leaderboard**: sign in with GitHub to show your companions at [agentpet.thenightwatcher.online](https://agentpet.thenightwatcher.online/profile) and climb the community [leaderboard](https://agentpet.thenightwatcher.online/leaderboard) by level, sessions, or tokens.
-- **Cross-device restore**: sign in on a second machine (or after a fresh install) and your pets come back at the level you raised them. Progress merges forward only, so it is never undone on either machine.
-- **Community pet gallery**: browse thousands of pets, adopt one in a click, submit your own, and request new ones.
-
-AgentPet runs completely offline. Connecting only adds the web profile, leaderboard and cross-device sync , nothing leaves your machine until you sign in.
-
-## Supported agents
-
-Install a hook from **Settings** with one click, or wrap any command.
-
-| Agent | State detail |
+| 功能 | 说明 |
 | --- | --- |
-| Claude Code, Codex, Gemini CLI, opencode, Factory Droid | working · **waiting for input** · done |
-| Cursor, Windsurf, Antigravity, GitHub Copilot, Kiro CLI, Pi | working · done |
-| GLM (Z.AI) | works through Claude Code automatically |
-| **Anything else** | `agentpet run -- <command>` , working while it runs, done when it exits |
+| 桌宠与项目 | 管理宠物、关联项目，通过状态气泡查看编程助手正在做什么 |
+| 会话与提醒 | 查看会话状态、保留完成提醒，并跳转到对应终端或会话 |
+| 本地 Token 统计 | 查看用量历史、日/月统计与日历热力图；只统计 Token，不估算费用 |
+| 近七天趋势 | 右键宠物查看每日趋势，悬停任意一天显示完整日期和准确的 Token 数量 |
+| 刘海火焰 | 随实时输出变化的火焰效果，支持开关、颜色梯度、六项外观参数及原生预览编辑 |
+| 实时输出速度 | 在菜单栏查看 `token/s`，可设置是否显示及小数位数 |
+| 陪伴与养成 | 宠物成长、成就、休息提醒，以及更安静的待机与眨眼动画 |
 
-## Screenshots
+保留 Claude Code、Codex、Gemini CLI、Cursor、opencode 等编程助手的本地事件接入与日志解析。不同客户端提供的信息和连接方式不同，具体以应用的连接设置为准；并非所有客户端都经过相同程度的实机验证。
 
-<div align="center">
-  <img src="assets/screenshot-hud.png" width="300" alt="Right-click the pet for a stats HUD: level, XP, hunger, 7-day burn and live subscription limits" />
-  <p><sub><b>Right-click the pet</b> for a game-style HUD , level, XP, hunger, a 7-day burn chart and your live Claude/Codex limits.</sub></p>
-</div>
+## v0.2.0 更新重点
 
-<table align="center">
-  <tr>
-    <td align="center" width="50%"><img src="assets/screenshot-menubar.png" width="380" alt="Menu bar monitor" /><br/><sub>Menu-bar monitor , every agent at a glance</sub></td>
-    <td align="center" width="50%"><img src="assets/screenshot-care.png" width="380" alt="Pet care tab" /><br/><sub>Care tab , raise your pet with real work</sub></td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><img src="assets/screenshot-settings.png" width="380" alt="Settings" /><br/><sub>Native, tabbed Settings</sub></td>
-    <td align="center" width="50%"><img src="assets/screenshot-pet.png" width="380" alt="Desktop pet" /><br/><sub>The desktop pet</sub></td>
-  </tr>
-</table>
+- **只看 Token，不看预估费用**：移除菜单栏、宠物右键菜单、历史界面的金额展示，以及模型价格表、费用计算和持久化字段。已有 Token 历史和养成数据继续保留。
+- **近七天统计支持悬停明细**：小浮窗显示当天日期与准确数量，例如 `54,321 tokens`；零用量日期也能查看，首尾日期的浮窗不会越出图表边界。
+- **合并刘海火焰与实时速度**：集成 EmberCat 相关能力，不再需要第二个应用入口或菜单栏图标；实时速度不会重复写入用量和养成统计。
+- **聚焦 macOS 本地体验**：完善中文界面，整理开发脚本与测试，移除不再维护的网页、Windows/Linux 客户端、云端报表上传与官方订阅额度探测。
 
-<div align="center">
-  <br/>
-  <img src="assets/screenshot-leaderboard.png" width="660" alt="Community leaderboard of raised companions" />
-  <p><sub>Community <a href="https://agentpet.thenightwatcher.online/leaderboard">leaderboard</a> , by level, sessions or tokens.</sub></p>
-  <img src="assets/demo.gif" width="600" alt="Pet reacting to agent activity" />
-</div>
+### 版本变化
 
-## Install
+| 版本 | 日期 | 主要变化 |
+| --- | --- | --- |
+| **v0.2.0** | 2026-11-04 | 刘海火焰与实时速度集成；移除费用估算；新增七天趋势悬停明细；聚焦 macOS |
+| **v0.1.0** | 2026-11-03 | 本地中文桌宠基础版本，完成编程助手连接、会话展示与本地使用体验 |
 
-### macOS , Homebrew
+完整记录见 [CHANGELOG.md](CHANGELOG.md)。这里的版本记录对应本仓库的开发阶段，不代表上游版本或已发布的安装包。
 
-```bash
-brew install --cask ntd4996/tap/agentpet
-```
+## 在 Mac 上运行
 
-### macOS , direct download
+### 环境要求
 
-Grab the latest `AgentPet.dmg` from [Releases](https://github.com/ntd4996/agentpet/releases/latest), open it, and drag AgentPet to Applications. Builds are Developer ID-signed and notarized by Apple, so they open without a Gatekeeper warning, and update themselves via the menu-bar **Updates** button.
+- **macOS 14 或更新版本**。
+- **Swift 6** 与匹配的 macOS SDK，可使用相应版本的 Xcode 或 Command Line Tools。
+- 仓库包含所需的本地依赖源码，无需另外安装 EmberCat 或 Agent Speed。
 
-### Windows
-
-Download the installer or portable build from the [website](https://agentpet.thenightwatcher.online/install) or the [releases](https://github.com/ntd4996/agentpet/releases). The first launch may show a SmartScreen warning (the Windows build isn't code-signed yet); click **More info → Run anyway**. It installs per-user (no admin) and auto-updates.
-
-### Linux
-
-Download an AppImage, `.deb`, or `.rpm` from the [website](https://agentpet.thenightwatcher.online/install) or the [releases](https://github.com/ntd4996/agentpet/releases):
+### 从源码启动
 
 ```bash
-# AppImage , any distro
-chmod +x AgentPet_*_amd64.AppImage && ./AgentPet_*_amd64.AppImage
-
-# Debian / Ubuntu
-sudo dpkg -i AgentPet_*_amd64.deb
-
-# Fedora / openSUSE
-sudo rpm -i AgentPet-*.x86_64.rpm
-```
-
-Same Tauri app as Windows, so it has full feature parity with macOS. From 0.1.5 the AppImage auto-updates in-app; still unsigned. If the tray icon is missing on GNOME, install an AppIndicator extension.
-
-Or install with one line , grabs the latest AppImage, no root:
-
-```bash
-curl -fsSL https://agentpet.thenightwatcher.online/install.sh | sh
-```
-
-### Build from source (macOS)
-
-```bash
-# Run from this local fork
+git clone https://github.com/stivelcn/agent-pet.git
+cd agent-pet
 ./scripts/dev.sh run
-# Manual distribution, when needed:
-# ./scripts/release.sh universal
 ```
 
-Requires Xcode 16 / Swift 6. The Windows app lives under [`windows/`](windows/) (Tauri + Rust).
+构建成功后会启动 `build/AgentPet Local Dev.app`。以后修改代码，再运行同一条命令即可重新构建并重启本仓库的开发实例，不需要反复打 DMG 安装。
 
-## Getting started
-
-1. Launch AgentPet , it lives in the menu bar.
-2. Open **Settings → General** and click **Install** next to Claude Code (or your agent), then **Enable** notifications.
-3. Run an agent. The pet reacts, and the menu-bar icon shows who is working or waiting.
-4. (Optional) Open **Settings → Care → Sign in with GitHub** to sync your companions and unlock the web profile, leaderboard and cross-device restore.
-
-### Uninstall
-
-1. In **Settings → General**, click **Remove** next to each connected agent (this strips AgentPet's hooks so the agents don't error after the app is gone).
-2. Remove the app and its data:
+> **首次启动提示：** 应用默认检测已安装的编程助手并配置连接。写入前会备份客户端配置，保留其他回调；客户端要求的信任或权限确认仍由你完成。只想先看界面、不希望改动真实客户端配置时，使用下面的命令。
 
 ```bash
-brew uninstall --cask agentpet          # or drag /Applications/AgentPet.app to Trash
-rm -rf ~/.agentpet                        # downloaded pets + local state
-rm -f  ~/Library/Preferences/com.agentpet.app.plist
+AGENTPET_ENABLE_DEV_HOOKS=0 ./scripts/dev.sh run
 ```
 
-## Usage dashboard
+### 基本使用
 
-Sign in and open the **Usage dashboard** (in your profile menu on the website) to see where your tokens actually go:
+1. 从菜单栏小爪子打开设置，管理宠物、项目和编程助手连接。
+2. 编程助手运行时，通过桌宠气泡查看会话进展；按需打开刘海火焰与实时速度显示。
+3. 右键宠物查看统计，把鼠标移到近七天图表的某一天，即可查看当日 Token 数量。
+4. 在历史与养成界面查看长期记录、热力图和宠物成长。
 
-- **By project and by agent**, so you can tell which repo and which model is burning the most.
-- **Daily and monthly** views, with a chart and per-project / per-agent breakdowns.
-- Only the **last folder name** of each project is ever sent, never the full path, and nothing is logged until you connect.
+### 构建、测试与打包
 
-Admins get a community-wide view plus a per-user drill-down.
+```bash
+./scripts/dev.sh build           # 只构建默认开发包，不启动
+./scripts/test.sh                # 使用隔离数据和偏好运行回归测试
+./scripts/release.sh native      # 为当前 Mac 架构生成本地 DMG
+./scripts/release.sh universal   # 生成 arm64 + x86_64 通用 DMG
+```
 
-## Pets
+构建与测试统一经过 `scripts/swiftpm.sh` 处理项目级工具链兼容，不建议绕过脚本直接运行裸 `swift build`。DMG 默认使用本地 ad-hoc 签名，**不等于经过 Apple 公证**；签名、公证和分发说明见 [打包文档](docs/RELEASING.md)。
 
-Pets use the open Codex pet-pack format (`pet.json` + a spritesheet). You can:
+要验证打包而不替换正在使用的应用包，可以指定独立输出目录：
 
-- **Browse** the online library and adopt a pet in one click (Settings → Pet → Browse pets, or the [web gallery](https://agentpet.thenightwatcher.online/gallery)).
-- **Map animations** to states, resize, rename, and customise chat lines.
-- **Make your own** and [submit it](https://agentpet.thenightwatcher.online/submit) to the community gallery.
+```bash
+./scripts/build-app.sh debug native /tmp/agentpet-package-check
+```
 
-A starter pet is installed on first launch. **AgentPet bundles no pet art** , every pack is added at runtime, and each asset is owned by its submitter under their own license.
+## 数据、连接与联网边界
 
-## Platforms
+- **本地统计**：用量历史与养成保存在本机；实时速度与累计用量采用独立通路，不重复记账。功能不要求填写云端模型 API 密钥。
+- **开发与正式版隔离**：开发版使用 `local.agentpet.dev.preferences` 和 `~/.agentpet-local-dev/`；本地正式版使用 `local.agentpet.preferences` 和 `~/.agentpet-local/`，两者不会自动迁移。
+- **兼容已有设置**：首次运行仅只读导入原 EmberCat 的四类火焰/速度偏好，不覆盖已有 AgentPet 设置，也不改写原 EmberCat 配置。
+- **不是完全离线应用**：在线宠物浏览和下载仍访问相应资源服务。本仓库不再维护网站服务端或云端用量报表上传。
+- **不包含个人数据**：源码不附带用户宠物库、真实会话记录、客户端登录信息或模型密钥。备份时还应考虑 UserDefaults 中的偏好和统计，而不只是数据文件夹。
 
-- **macOS 13 Ventura or later** , native Swift / SwiftUI, notarized, Sparkle auto-update, Homebrew cask. Apple Silicon and Intel.
-- **Windows 10 / 11 (64-bit)** , Tauri (Rust), auto-update. Feature parity with macOS.
-- **Linux (64-bit)** , the same Tauri app, shipped as AppImage / `.deb` / `.rpm`. Feature parity with macOS. In-app auto-update from 0.1.5 (AppImage); still unsigned.
+## 开发文档与目录
 
-Under the hood: a Unix-socket daemon receives agent events from lightweight hooks, an on-device store drives the pet, and an optional Astro + Cloudflare Workers/D1 backend powers the web profile, leaderboard and usage dashboard. See [`docs/specs`](docs/specs) for the design.
+| 目录 | 职责 |
+| --- | --- |
+| `Sources/AgentPetCore/` | 会话、事件、客户端连接、本地统计、存储与纯逻辑 |
+| `Sources/App/` | macOS 应用、桌宠、设置、菜单栏及历史界面 |
+| `Sources/App/EmberCat/` | 火焰渲染与编辑、实时速度桥接、原偏好导入 |
+| `Vendor/` | 裁剪后的 Agent Speed 引擎及 zstd 本地依赖 |
+| `Tests/` | 核心逻辑、应用逻辑回归测试与测试清单 |
+| `Localizations/` | 本地化资源 |
+| `scripts/` | 开发、测试、打包与工具链兼容脚本 |
+| `docs/` | 架构、打包及历史清理记录 |
 
-## Community ports
+- [本地开发与配置隔离](LOCAL_DEVELOPMENT.md)
+- [架构与数据流](docs/ARCHITECTURE.md)
+- [版本更新记录](CHANGELOG.md)
+- [开发约定](CONTRIBUTING.md)
+- [手动打包](docs/RELEASING.md)
 
-Alongside the official macOS, Windows, and Linux builds, the community has reimagined AgentPet with its own stack:
+## 致谢与许可证
 
-- **Linux (Rust + GTK4)** , [agentpet-linux](https://github.com/tranhuuhuy297/agentpet-linux) by [@tranhuuhuy297](https://github.com/tranhuuhuy297). An independent, from-scratch GTK4 port for Ubuntu (Claude Code + Codex) , distinct from the official Tauri Linux build above.
+感谢 [AgentPet](https://github.com/ntd4996/agentpet) 的桌宠基础、[EmberCat](https://github.com/johann15910358798-lab/EmberCat.git) 的刘海火焰与外观编辑实现，以及 [Agent Speed](https://github.com/zoefix/agent-speed) 的实时速度引擎。
 
-These are separate community projects, not maintained here. Building one? Open an issue and we'll link it.
-
-## Contributors
-
-AgentPet is a community effort. Huge thanks to everyone who has shipped code, pets, translations and ports , see the full [Hall of Fame](https://agentpet.thenightwatcher.online/contributors).
-
-- **[@ntd4996](https://github.com/ntd4996)** , creator and maintainer
-- **[@hoangphison](https://github.com/hoangphison)** , co-founder
-- ...and many more contributors on the [website](https://agentpet.thenightwatcher.online/contributors) and in the repo's [contributors list](https://github.com/ntd4996/agentpet/graphs/contributors).
-
-Contributions are welcome , features, agent integrations, pets, translations and bug fixes. Open an issue or a pull request.
-
-## Acknowledgements
-
-AgentPet stands on the shoulders of an open community.
-
-- **The idea and the pet-pack format come from [Petdex](https://github.com/crafter-station/petdex)** (MIT). AgentPet is an independent, interoperable client: it reads packs in Petdex's format and can adopt them from Petdex's public API.
-- **The pets themselves are the community's.** The gallery mirrors thousands of companions from **Petdex** and **OpenPets**, alongside pets **submitted directly by AgentPet users**. Every pet asset is owned by its respective creator under their own license.
-- **Contributors and community ports** (above) shaped much of what AgentPet is today.
-
-AgentPet bundles no pet art of its own. If you hold rights to a character and want it removed, please see our [takedown page](https://agentpet.thenightwatcher.online/legal), and for pets sourced from Petdex, direct takedowns there.
-
-## Support
-
-If AgentPet saves you some tab-hunting:
-
-- ⭐ **[Star the repo](https://github.com/ntd4996/agentpet)** so more people find it.
-- ☕ **[Buy me a coffee](https://buymeacoffee.com/ntd4996)** or **[support on Ko-fi](https://ko-fi.com/ntd4996)** to fuel more features.
-
-Built by **[Nguyễn Thành Đạt (@ntd4996)](https://github.com/ntd4996)** and the community.
-
-## License
-
-MIT , see [LICENSE](LICENSE). Application code only; pet assets are not part of this repository and belong to their respective creators.
+原 AgentPet 的 MIT 声明保留在 [LICENSE](LICENSE)，Agent Speed 与 zstd 的许可证保留在 `Vendor/`。EmberCat 来源文件单独记录来源与授权信息，**不将根目录 MIT 声明扩展为全部第三方代码的许可**；详情见 [第三方说明](THIRD_PARTY_NOTICES.md)。

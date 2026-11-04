@@ -137,18 +137,14 @@ final class TranscriptUsageTests {
         #expect((TranscriptReader.newUsageTokens(at: other)) == (7))
     }
 
-    @Test func testCostCountsTheReplyOnceToo() {
+    @Test func testRepeatedContentBlocksCountTokensOnlyOnce() {
         setUp()
         defer { tearDown() }
         append([
             reply(id: "msg_1", input: 1_000_000, output: 0, block: "thinking"),
             reply(id: "msg_1", input: 1_000_000, output: 0, block: "text"),
         ])
-        let delta = TranscriptReader.newUsageDelta(at: path)
-        #expect((delta?.tokens) == (1_000_000))
-        let once = ModelPricing.costUSD(model: nil, inputTokens: 1_000_000, outputTokens: 0,
-                                        cacheCreateTokens: 0, cacheReadTokens: 0)
-        #expect(abs((delta?.costUSD ?? 0) - (once)) <= 1e-9)
+        #expect(TranscriptReader.newUsageTokens(at: path) == 1_000_000)
     }
 
     /// After a relaunch every transcript is read from the start again, and a

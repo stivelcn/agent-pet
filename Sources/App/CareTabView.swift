@@ -43,7 +43,7 @@ struct CareTabView: View {
                         HStack(spacing: 8) {
                             Text(verbatim: currentName)
                                 .font(.title3).bold()
-                            Text(verbatim: "Lv \(care.level)")
+                            Text(verbatim: InterfaceText.format("Lv %d", care.level))
                                 .font(.title3).foregroundStyle(.secondary)
                             StageBadge(stageIndex: care.stageIndex, size: 22)
                             Text(NSLocalizedString(care.stageKey, comment: "evolution stage"))
@@ -130,7 +130,7 @@ struct CareTabView: View {
             } header: {
                 Text("Achievements")
             } footer: {
-                Text(verbatim: "\(care.achievements.count) of \(Achievement.allCases.count) unlocked")
+                Text(verbatim: InterfaceText.format("%d of %d unlocked", care.achievements.count, Achievement.allCases.count))
             }
 
             if care.raisedPetIDs.count > 1 {
@@ -204,8 +204,8 @@ struct CareTabView: View {
             }
             Spacer()
             VStack(alignment: .trailing, spacing: 2) {
-                Text(verbatim: "Lv \(lv)").font(.system(size: 12, weight: .bold))
-                Text(verbatim: "\(CareFormat.plain(s.xp)) XP")
+                Text(verbatim: InterfaceText.format("Lv %d", lv)).font(.system(size: 12, weight: .bold))
+                Text(verbatim: InterfaceText.format("%@ XP", CareFormat.plain(s.xp)))
                     .font(.caption2).foregroundStyle(.secondary)
             }
         }

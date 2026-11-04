@@ -214,16 +214,15 @@ struct UsageHistoryTests {
         }
     }
 
-    @Test func invalidRecordingCannotSubtractUsageOrPersistNaNCost() {
+    @Test func invalidRecordingCannotSubtractUsage() {
         withDefaults { defaults in
             let store = ProjectUsageStore(defaults: defaults, now: { now }, calendar: calendar)
             store.recordTokens(-1, project: "/synthetic/p", agent: "codex")
             store.recordTokens(50, project: "/synthetic/p", agent: "  ")
             #expect(store.recordedRows().isEmpty)
-            store.recordTokens(10, project: "/synthetic/p", agent: "codex", costUSD: .nan)
-            store.recordTokens(20, project: "/synthetic/p", agent: "codex", costUSD: -1)
+            store.recordTokens(10, project: "/synthetic/p", agent: "codex")
+            store.recordTokens(20, project: "/synthetic/p", agent: "codex")
             #expect(store.recordedRows().first?.tokens == 30)
-            #expect(store.recordedRows().first?.costUSD == 0)
             let restored = ProjectUsageStore(defaults: defaults, now: { now }, calendar: calendar)
             #expect(restored.recordedRows().first?.tokens == 30)
         }

@@ -611,6 +611,7 @@ private final class HorizontalSwipeNSView: NSView {
 // MARK: - Compact (summary header + 2 rows + fold)
 
 private struct BubbleCompactLayout: View {
+    @ObservedObject private var language = AppLanguage.shared
     let groups: [GroupedSession]
     let totalCount: Int
     var chatStyle: Bool = false
@@ -643,12 +644,7 @@ private struct BubbleCompactLayout: View {
     }
 
     private var summaryLabel: String {
-        let n = totalCount
-        let kinds = groups.count
-        if kinds <= 1 {
-            return "\(n) agent\(n == 1 ? "" : "s")"
-        }
-        return "\(n) agent\(n == 1 ? "" : "s") · \(kinds) kind\(kinds == 1 ? "" : "s")"
+        InterfaceText.agentSummary(count: totalCount, kinds: groups.count)
     }
 
     private var visibleGroups: [GroupedSession] {
@@ -856,6 +852,7 @@ private struct AnimatedStatusText: View {
 /// One row per agent session. Iterates `BubbleSettings.effectiveLayout` tokens
 /// in order on a single line; project/title shrink before the message does.
 private struct AgentRow: View {
+    @ObservedObject private var language = AppLanguage.shared
     let session: AgentSession
     var count: Int = 1
     var chatStyle: Bool = false
@@ -1034,18 +1031,15 @@ private struct AgentRow: View {
                 let custom = bubbleMsgs.line(for: session.agentKind, mood: .working, seed: session.id)
                 if !custom.isEmpty { return custom }
             }
-            let m = session.message?.trimmingCharacters(in: .whitespaces) ?? ""
-            if !m.isEmpty { return m }
-            return ActivityFormatter.stateMessage(for: session.state)
-                ?? NSLocalizedString(session.state.rawValue.capitalized, comment: "Agent state")
+            return InterfaceText.activity(session.message, fallback: session.state.rawValue.capitalized)
         }
         // done / waiting / idle: always use the bubble message (custom when set,
         // otherwise the localized built-in default). The hook's own message is
         // unlocalized (a separate process), so we never fall back to it here.
         let line = bubbleMsgs.line(for: session.agentKind, mood: mood, seed: session.id)
         if !line.isEmpty { return line }
-        return ActivityFormatter.stateMessage(for: session.state)
-            ?? NSLocalizedString(session.state.rawValue.capitalized, comment: "Agent state")
+        return InterfaceText.activity(ActivityFormatter.stateMessage(for: session.state),
+                                      fallback: session.state.rawValue.capitalized)
     }
 
     private func moodFor(_ state: AgentState) -> PetMood {
@@ -1074,11 +1068,7 @@ private struct AgentRow: View {
     }
 
     private func elapsedString(since date: Date, now: Date = Date()) -> String {
-        let s = max(0, Int(now.timeIntervalSince(date)))
-        if s < ELAPSED_SECONDS_LIMIT { return "\(s)s" }
-        let m = s / 60
-        if m < 60  { return "\(m)m" }
-        return "\(m / 60)h \(m % 60)m"
+        InterfaceText.elapsed(seconds: Int(now.timeIntervalSince(date)), secondsLimit: ELAPSED_SECONDS_LIMIT)
     }
 }
 

@@ -5,7 +5,7 @@ import Foundation
 public enum TickerFormatter {
 
     /// Short display label for an agent kind.
-    public static func agentLabel(for kind: AgentKind) -> String {
+    public static func agentLabel(for kind: AgentKind, bundle: Bundle = .main) -> String {
         switch kind {
         case .claude:    return "Claude"
         case .cursor:    return "Cursor"
@@ -20,21 +20,22 @@ public enum TickerFormatter {
         case .pi:        return "Pi"
         case .grok:      return "Grok"
         case .jcode:     return "jcode"
-        case .cli:       return "Agent"
-        case .unknown:   return "Agent"
+        case .cli, .unknown: return bundle.localizedString(forKey: "Agent", value: "Agent", table: nil)
         }
     }
 
     /// One ticker line for a single session.
     /// Format: `<AgentLabel> [<project>] → <message>`
-    public static func line(for session: AgentSession, projectNames: [String: String] = [:]) -> String {
-        let label   = agentLabel(for: session.agentKind)
+    public static func line(for session: AgentSession, projectNames: [String: String] = [:],
+                            bundle: Bundle = .main) -> String {
+        let label   = agentLabel(for: session.agentKind, bundle: bundle)
         let project = session.project.map { ProjectNames.label(for: $0, names: projectNames) } ?? session.id
         let msg: String
-        if let m = session.message, !m.trimmingCharacters(in: .whitespaces).isEmpty {
-            msg = m
+        if let m = session.message, !m.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            msg = ActivityFormatter.localizedMessage(m, bundle: bundle)
         } else {
-            msg = session.state.rawValue.capitalized
+            let key = session.state.rawValue.capitalized
+            msg = bundle.localizedString(forKey: key, value: key, table: nil)
         }
         return "\(label) [\(project)] → \(msg)"
     }

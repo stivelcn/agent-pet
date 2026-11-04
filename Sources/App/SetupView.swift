@@ -151,6 +151,7 @@ private struct AboutTab: View {
                     .textSelection(.enabled)
             }
             Section("Acknowledgements") {
+                Link("LuMate · 噜伴 · GitHub", destination: LocalConfiguration.repositoryURL)
                 Link("Original AgentPet project (MIT)", destination: URL(string: "https://github.com/ntd4996/agentpet")!)
                 Text("Pet artwork keeps its own creator and license information.")
                     .font(.caption).foregroundStyle(.secondary)
@@ -223,7 +224,7 @@ private struct GeneralTab: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Launch at login")
-                        Text("AgentPet starts automatically when you sign in.")
+                        Text("LuMate starts automatically when you sign in.")
                             .font(.caption).foregroundStyle(.secondary)
                     }
                     Spacer()
@@ -344,7 +345,7 @@ private struct GeneralTab: View {
             }
 
             Section {
-                Button("Quit AgentPet") { NSApplication.shared.terminate(nil) }
+                Button("Quit LuMate") { NSApplication.shared.terminate(nil) }
             }
         }
         .formStyle(.grouped)
@@ -370,7 +371,7 @@ private struct GeneralTab: View {
 
     private var notificationDetail: String {
         switch model.notificationState {
-        case .unavailable: return NSLocalizedString("Available once installed as AgentPet.app", comment: "")
+        case .unavailable: return NSLocalizedString("Available once installed as LuMate.app", comment: "")
         case .denied: return NSLocalizedString("Turn on in System Settings to get alerts", comment: "")
         case .enabled: return model.notificationsEnabled
             ? NSLocalizedString("Alerts when an agent finishes or needs input", comment: "")
@@ -968,7 +969,7 @@ private struct CodexHelpView: View {
     private let steps: [Step] = [
         .init(n: 1, text: "确认 Codex 一栏显示“已配置，等待客户端事件”。如有错误，先按提示处理，不要覆盖已有配置。"),
         .init(n: 2, text: "在 Codex 中新建会话。如果未加载新的连接配置，保存当前工作后重新打开客户端。"),
-        .init(n: 3, text: "如果客户端要求确认外部命令，请核对路径确实指向本机的智能桌宠，再按客户端提示确认这一项。"),
+        .init(n: 3, text: "如果客户端要求确认外部命令，请核对路径确实指向本机的 LuMate · 噜伴，再按客户端提示确认这一项。"),
         .init(n: 4, text: "在 Codex 中执行一个正常任务。桌宠收到事件后，这里会显示事件时间，并展示对应会话状态。"),
     ]
 

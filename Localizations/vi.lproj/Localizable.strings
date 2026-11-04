@@ -1,4 +1,4 @@
-/* AgentPet , Tiếng Việt */
+/* LuMate , Tiếng Việt */
 
 /* Tabs */
 "General" = "Chung";
@@ -9,7 +9,7 @@
 /* General / common */
 "Launch" = "Khởi động";
 "Launch at login" = "Khởi động khi đăng nhập";
-"AgentPet starts automatically when you sign in." = "AgentPet tự chạy khi bạn đăng nhập.";
+"LuMate starts automatically when you sign in." = "LuMate tự chạy khi bạn đăng nhập.";
 "Notifications" = "Thông báo";
 "Show chat bubble" = "Hiện bong bóng chat";
 "Messages" = "Tin nhắn";
@@ -24,7 +24,7 @@
 "Coming soon" = "Sắp có";
 "Enable" = "Bật";
 "Open Settings" = "Mở Cài đặt";
-"Quit AgentPet" = "Thoát AgentPet";
+"Quit LuMate" = "Thoát LuMate";
 "Upload…" = "Tải lên…";
 "Default" = "Mặc định";
 "Working" = "Đang làm";
@@ -78,7 +78,7 @@
 "Star on GitHub" = "Star trên GitHub";
 "Join the Discord" = "Tham gia Discord";
 "Buy me a coffee" = "Mời tôi ly cà phê";
-"If AgentPet helps your workflow, a star means a lot. Thank you!" = "Nếu AgentPet giúp ích cho bạn, một ngôi sao có ý nghĩa rất lớn. Cảm ơn!";
+"If LuMate helps your workflow, a star means a lot. Thank you!" = "Nếu LuMate giúp ích cho bạn, một ngôi sao có ý nghĩa rất lớn. Cảm ơn!";
 "Author" = "Tác giả";
 "Version" = "Phiên bản";
 "Choose pet" = "Chọn thú cưng";
@@ -155,7 +155,7 @@
 "Notifications denied" = "Thông báo bị từ chối";
 "Notifications unavailable" = "Thông báo không khả dụng";
 "Enable notifications" = "Bật thông báo";
-"Available once installed as AgentPet.app" = "Khả dụng sau khi cài dưới dạng AgentPet.app";
+"Available once installed as LuMate.app" = "Khả dụng sau khi cài dưới dạng LuMate.app";
 "Turn on in System Settings to get alerts" = "Bật trong Cài đặt hệ thống để nhận thông báo";
 "Alerts when an agent finishes or needs input" = "Báo khi agent xong hoặc cần nhập";
 "Muted, the toggle turns alerts back on" = "Đang tắt tiếng, gạt công tắc để bật lại";
@@ -227,7 +227,7 @@
 "Create pet" = "Tạo thú cưng";
 "Get alerted when an agent finishes or needs input." = "Được báo khi một agent xong hoặc cần bạn nhập.";
 "Get started" = "Bắt đầu";
-"Install a hook so AgentPet can see when an agent works, finishes, or needs you." = "Cài hook để AgentPet biết khi agent làm việc, hoàn tất, hoặc cần bạn.";
+"Install a hook so LuMate can see when an agent works, finishes, or needs you." = "Cài hook để LuMate biết khi agent làm việc, hoàn tất, hoặc cần bạn.";
 "Loading pets…" = "Đang tải thú cưng…";
 "Nothing running right now." = "Hiện không có gì đang chạy.";
 "Pet info" = "Thông tin thú cưng";
@@ -236,11 +236,11 @@
 "Sort by agent kind" = "Sắp xếp theo loại agent";
 "Spritesheet" = "Spritesheet";
 "Use the same 8×9 transparent spritesheet format as downloaded pets." = "Dùng cùng định dạng spritesheet 8×9 trong suốt như pet tải về.";
-"Welcome to AgentPet" = "Chào mừng đến với AgentPet";
+"Welcome to LuMate" = "Chào mừng đến với LuMate";
 
 /* Codex connection help */
 "Connect Codex" = "Kết nối Codex";
-"The hook is installed. Codex blocks unknown command hooks until you trust them once , a Codex security feature, not an AgentPet bug. Do this one time:" = "Hook đã được cài. Codex chặn các command hook lạ cho tới khi bạn duyệt một lần , đây là cơ chế bảo mật của Codex, không phải lỗi AgentPet. Chỉ cần làm một lần:";
+"The hook is installed. Codex blocks unknown command hooks until you trust them once , a Codex security feature, not an LuMate bug. Do this one time:" = "Hook đã được cài. Codex chặn các command hook lạ cho tới khi bạn duyệt một lần , đây là cơ chế bảo mật của Codex, không phải lỗi LuMate. Chỉ cần làm một lần:";
 "Open Terminal and run: codex (launches the Codex CLI)" = "Mở Terminal và chạy: codex (mở Codex CLI)";
 "Type /hooks and press Enter to list the hooks." = "Gõ /hooks rồi nhấn Enter để liệt kê các hook.";
 "Press t to Trust all hooks." = "Nhấn phím t để Trust tất cả hook.";
@@ -364,7 +364,7 @@
 
 /* Coffee / donate */
 "Buy me a coffee" = "Mời mình ly cà phê";
-"Thanks for using AgentPet" = "Cảm ơn bạn đã dùng AgentPet";
+"Thanks for using LuMate" = "Cảm ơn bạn đã dùng LuMate";
 "It's free and open source. If it makes your day a little nicer, a coffee is always appreciated, never expected." = "App miễn phí và mã nguồn mở. Nếu nó giúp ngày của bạn dễ chịu hơn, một ly cà phê luôn được trân trọng, nhưng không bao giờ bắt buộc.";
 "Quét mã bằng app ngân hàng bất kỳ" = "Quét mã bằng app ngân hàng bất kỳ";
 "Sao chép số tài khoản" = "Sao chép số tài khoản";

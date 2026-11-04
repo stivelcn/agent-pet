@@ -11,9 +11,9 @@ if [ -n "$PROFILE" ] && [ -z "$IDENTITY" ]; then
     echo "NOTARY_PROFILE requires your own SIGNING_IDENTITY." >&2; exit 2
 fi
 "$ROOT/scripts/build-app.sh" release "$ARCH"
-APP="$ROOT/build/AgentPet Local.app"
+APP="$ROOT/build/LuMate.app"
 VERSION="$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$APP/Contents/Info.plist")"
-DMG="$ROOT/build/AgentPet-Local-$VERSION-$ARCH.dmg"
+DMG="$ROOT/build/LuMate-$VERSION-$ARCH.dmg"
 STAGE="$(mktemp -d "$ROOT/build/.dmg-stage.XXXXXX")"
 trap 'rm -rf "$STAGE"' EXIT
 
@@ -29,10 +29,10 @@ if [ -n "$PROFILE" ]; then
     xcrun stapler validate "$APP"
 fi
 mkdir "$STAGE/contents"
-ditto "$APP" "$STAGE/contents/AgentPet Local.app"
+ditto "$APP" "$STAGE/contents/LuMate.app"
 ln -s /Applications "$STAGE/contents/Applications"
 cp "$ROOT/LICENSE" "$STAGE/contents/LICENSE"
-hdiutil create -volname "AgentPet Local" -srcfolder "$STAGE/contents" -ov -format UDZO "$STAGE/distribution.dmg"
+hdiutil create -volname "LuMate" -srcfolder "$STAGE/contents" -ov -format UDZO "$STAGE/distribution.dmg"
 if [ -n "$IDENTITY" ]; then
     codesign --force --timestamp --sign "$IDENTITY" "$STAGE/distribution.dmg"
 fi

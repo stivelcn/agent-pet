@@ -1,4 +1,4 @@
-/* AgentPet , 正體中文 */
+/* LuMate , 正體中文 */
 
 /* Tabs */
 "General" = "通用";
@@ -9,7 +9,7 @@
 /* General / common */
 "Launch" = "啟動";
 "Launch at login" = "登入時啟動";
-"AgentPet starts automatically when you sign in." = "登入時自動啟動 AgentPet。";
+"LuMate starts automatically when you sign in." = "登入時自動啟動 LuMate。";
 "Notifications" = "通知";
 "Show chat bubble" = "顯示聊天氣泡";
 "Messages" = "訊息";
@@ -24,7 +24,7 @@
 "Coming soon" = "即將推出";
 "Enable" = "啟用";
 "Open Settings" = "開啟設定";
-"Quit AgentPet" = "退出 AgentPet";
+"Quit LuMate" = "退出 LuMate";
 "Upload…" = "上傳…";
 "Default" = "預設";
 "Working" = "工作中";
@@ -78,7 +78,7 @@
 "Star on GitHub" = "在 GitHub 上點亮 Star";
 "Join the Discord" = "加入 Discord";
 "Buy me a coffee" = "請我喝杯咖啡";
-"If AgentPet helps your workflow, a star means a lot. Thank you!" = "如果 AgentPet 幫到了你，點個 Star 意義非凡。謝謝！";
+"If LuMate helps your workflow, a star means a lot. Thank you!" = "如果 LuMate 幫到了你，點個 Star 意義非凡。謝謝！";
 "Author" = "作者";
 "Version" = "版本";
 "Choose pet" = "選擇寵物";
@@ -155,7 +155,7 @@
 "Notifications denied" = "通知被拒絕";
 "Notifications unavailable" = "通知不可用";
 "Enable notifications" = "啟用通知";
-"Available once installed as AgentPet.app" = "以 AgentPet.app 安裝後可用";
+"Available once installed as LuMate.app" = "以 LuMate.app 安裝後可用";
 "Turn on in System Settings to get alerts" = "在系統設定中開啟以接收提醒";
 "Alerts when an agent finishes or needs input" = "Agent 完成或需要輸入時提醒";
 "Muted, the toggle turns alerts back on" = "已靜音，撥動開關重新開啟提醒";
@@ -227,7 +227,7 @@
 "Create pet" = "建立寵物";
 "Get alerted when an agent finishes or needs input." = "Agent 完成或需要輸入時收到提醒。";
 "Get started" = "開始";
-"Install a hook so AgentPet can see when an agent works, finishes, or needs you." = "安裝 hook，讓 AgentPet 知道 Agent 何時工作、完成或需要你。";
+"Install a hook so LuMate can see when an agent works, finishes, or needs you." = "安裝 hook，讓 LuMate 知道 Agent 何時工作、完成或需要你。";
 "Loading pets…" = "正在載入寵物…";
 "Nothing running right now." = "當前沒有執行中的 Agent。";
 "Pet info" = "寵物資訊";
@@ -236,11 +236,11 @@
 "Sort by agent kind" = "按 Agent 型別排序";
 "Spritesheet" = "精靈圖";
 "Use the same 8×9 transparent spritesheet format as downloaded pets." = "使用與下載寵物相同的 8×9 透明精靈圖格式。";
-"Welcome to AgentPet" = "歡迎使用 AgentPet";
+"Welcome to LuMate" = "歡迎使用 LuMate";
 
 /* Codex connection help */
 "Connect Codex" = "連線 Codex";
-"The hook is installed. Codex blocks unknown command hooks until you trust them once , a Codex security feature, not an AgentPet bug. Do this one time:" = "Hook 已安裝。Codex 會攔截未知的命令 hook，直到你信任一次 , 這是 Codex 的安全機制，並非 AgentPet 的問題。只需操作一次：";
+"The hook is installed. Codex blocks unknown command hooks until you trust them once , a Codex security feature, not an LuMate bug. Do this one time:" = "Hook 已安裝。Codex 會攔截未知的命令 hook，直到你信任一次 , 這是 Codex 的安全機制，並非 LuMate 的問題。只需操作一次：";
 "Open Terminal and run: codex (launches the Codex CLI)" = "開啟終端並執行：codex（啟動 Codex CLI）";
 "Type /hooks and press Enter to list the hooks." = "輸入 /hooks 並回車以列出 hook。";
 "Press t to Trust all hooks." = "按 t 鍵信任所有 hook。";
@@ -363,7 +363,7 @@
 "resets in %dm" = "%d 分鐘後重置";
 
 /* Coffee / donate */
-"Thanks for using AgentPet" = "感謝使用 AgentPet";
+"Thanks for using LuMate" = "感謝使用 LuMate";
 "It's free and open source. If it makes your day a little nicer, a coffee is always appreciated, never expected." = "本應用免費開源。如果它讓你的一天更愉快，一杯咖啡總是受歡迎的，但絕不強求。";
 "Quét mã bằng app ngân hàng bất kỳ" = "用任意銀行 App 掃碼";
 "Sao chép số tài khoản" = "複製賬號";

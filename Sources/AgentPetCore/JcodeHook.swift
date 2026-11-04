@@ -43,7 +43,7 @@ public enum JcodeHookConfigError: LocalizedError, Equatable {
     public var errorDescription: String? {
         switch self {
         case .conflictingHook(let event, let path):
-            return "\(path) already sets hooks.\(event); remove it or add AgentPet's command to it manually."
+            return "\(path) already sets hooks.\(event); remove it or add LuMate's command to it manually."
         }
     }
 }

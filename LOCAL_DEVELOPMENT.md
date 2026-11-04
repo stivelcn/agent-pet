@@ -1,6 +1,6 @@
-# 合并版：本地开发与验证
+# LuMate · 噜伴：本地开发与验证
 
-界面名称为“智能桌宠”，开发版为“智能桌宠（开发版）”。应用包名保持英文，兼容已有脚本和客户端回调路径。当前维护范围是 macOS AgentPet + EmberCat 刘海火焰/实时速度。
+界面名称为“LuMate · 噜伴”，开发版为“LuMate · 噜伴（开发版）”。应用包为 `LuMate.app` / `LuMate Dev.app`。当前维护范围是 LuMate macOS 桌宠，基于 AgentPet 并集成 EmberCat 刘海火焰/实时速度。内部可执行文件、Bundle ID、数据目录、偏好键和 `AGENTPET_*` 环境变量保持原标识。
 
 ## 1. 日常命令
 
@@ -14,7 +14,7 @@
 ./scripts/test.sh --filter EmberCatIntegrationTests
 ```
 
-默认产物为 `build/AgentPet Local Dev.app`。`run` 不是热更新，但不需要打 DMG 或重新安装。构建失败不会停止当前实例；脚本按完整可执行文件路径识别实例，不按通用进程名批量退出应用。
+默认产物为 `build/LuMate Dev.app`。`run` 不是热更新，但不需要打 DMG 或重新安装。构建失败不会停止当前实例；脚本按完整可执行文件路径识别实例，不按通用进程名批量退出应用。
 
 **只验证打包、不替换当前应用包**时，指定独立的绝对输出目录：
 
@@ -43,11 +43,19 @@
 | Bundle ID | `local.agentpet` | `local.agentpet.dev` |
 | 偏好 suite | `local.agentpet.preferences` | `local.agentpet.dev.preferences` |
 | 文件数据目录 | `~/.agentpet-local/` | `~/.agentpet-local-dev/` |
-| 默认应用包 | `build/AgentPet Local.app` | `build/AgentPet Local Dev.app` |
+| 默认应用包 | `build/LuMate.app` | `build/LuMate Dev.app` |
 
 宠物文件、历史归档、socket 等保存在数据目录；部分设置、累计养成和项目用量由 macOS UserDefaults 持久化，不能只备份数据文件夹就认为包含全部使用状态。
 
 不自动导入原版 AgentPet 数据。保留原版安装不代表共享存储。
+
+### 从 AgentPet Local 升级到 LuMate
+
+只改对外品牌，不迁移或清空数据；同一构建类型继续使用原有 Bundle ID、偏好域、数据目录及钥匙串标识。开发版与正式版仍不共享进度。
+
+应用包路径已经改变，旧 Hook 不会被静默覆盖。已有连接请先在**旧版设置中断开编程助手连接**，退出旧版，再启动同类型 LuMate 并重新连接；如客户端提示外部命令信任，核对新路径并自行确认。旧应用已移走时，可暂时从原路径打开旧包完成断开；不要直接覆盖整个客户端配置或关闭安全机制。登录启动项如仍指向旧包，可在 LuMate 中关闭再开启并按 macOS 提示确认。
+
+`dev.sh run/stop` 只会识别本仓库 `build/LuMate Dev.app` 与旧 `build/AgentPet Local Dev.app` 两个完整路径，不按进程名批量终止，也不删除旧包。构建或测试不会主动启动应用、迁移 Hook 或改写登录启动项。
 
 ### EmberCat 原偏好
 

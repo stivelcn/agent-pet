@@ -1,43 +1,47 @@
-# AgentPet · 智能桌宠
+<div align="center">
 
-**让桌宠陪你写代码，也让 AI 编程助手的工作状态一眼可见。**
+# LuMate · 噜伴
 
-面向 **macOS** 的中文桌面伴侣：把桌宠、会话状态、本地 Token 统计、刘海火焰和实时输出速度放进同一个应用，只保留一个菜单栏入口。
+**你的 AI 助手在忙，你的桌面有伴。**
 
-**当前版本：v0.2.0 · 2026-11-04**
+<img src="docs/assets/lumate-pets.png" alt="LuMate 的两只内置宠物：挎包噜噜和粉裙噜妹并排站立" width="520" />
 
-本仓库维护独立的 macOS 版本，版本号与上游项目分别管理。
+面向 **macOS** 的桌面宠物与 AI 编程状态伴侣。<br />
+内置噜噜和噜妹，也支持选择、导入其他宠物。
 
-## 主要功能
+**macOS 14+ · Swift 6 · 本地 Token 统计 · 一个菜单栏入口**
+
+[认识两位伙伴](#认识噜噜和噜妹) · [主要功能](#不只是桌宠) · [在 Mac 上运行](#在-mac-上运行) · [更新记录](CHANGELOG.md)
+
+</div>
+
+## 认识噜噜和噜妹
+
+| 噜噜 | 噜妹 |
+| :---: | :---: |
+| <img src="docs/assets/lulu.png" alt="噜噜：背着绿色挎包的黄色小伙伴" width="144" /> | <img src="docs/assets/lumei.png" alt="噜妹：戴着小帽、穿着粉色裙子的黄色小伙伴" width="144" /> |
+| 背上小挎包，陪你开工。 | 穿上小粉裙，安静陪在身边。 |
+
+**Lu** 来自噜噜与噜妹，**Mate** 是伙伴；连起来读，也有一点“噜妹”的谐音。
+
+它们是 LuMate 的两位内置伙伴，不是仅有的选择：你可以切换其他外观，也可以导入自己的宠物。**切换形象不清空成长；新建宠物会创建独立档案**，旧宠物仍可切回。噜妹目前提供呼吸、眨眼的六帧待机动画，不是完整动作包。
+
+> **源码状态：** 最近记录版本为 **v0.2.0（2026-11-04）**；本分支还包含品牌升级、内置双宠/独立档案与双人传话等未发布改动。仓库尚未提供 GitHub Release 安装包，以下以源码构建为准。本仓库版本号独立于上游项目。
+
+## 不只是桌宠
 
 | 功能 | 说明 |
 | --- | --- |
 | 桌宠与项目 | 管理宠物、关联项目，通过状态气泡查看编程助手正在做什么 |
 | 会话与提醒 | 查看会话状态、保留完成提醒，并跳转到对应终端或会话 |
-| 本地 Token 统计 | 查看用量历史、日/月统计与日历热力图；只统计 Token，不估算费用 |
-| 近七天趋势 | 右键宠物查看每日趋势，悬停任意一天显示完整日期和准确的 Token 数量 |
-| 刘海火焰 | 随实时输出变化的火焰效果，支持开关、颜色梯度、六项外观参数及原生预览编辑 |
-| 实时输出速度 | 在菜单栏查看 `token/s`，可设置是否显示及小数位数 |
-| 双人传话（未发布版） | 6 位字母数字配对码；20 字内短消息和小图标；未读气泡手动关闭/回复后消失，离线可补收 |
-| 陪伴与养成 | 宠物成长、成就、休息提醒，以及更安静的待机与眨眼动画 |
+| 本地 Token 统计 | 用量历史、日/月统计与日历热力图；只统计 Token，不估算费用 |
+| 近七天趋势 | 右键宠物查看每日趋势，悬停显示完整日期和准确 Token 数量 |
+| 刘海火焰 | 随实时输出变化，支持开关、颜色梯度、六项外观参数与原生预览编辑 |
+| 实时输出速度 | 在菜单栏查看 `token/s`，可设置显示开关及小数位数 |
+| 双人传话（未发布） | 6 位配对码，20 字短消息和小图标；未读气泡手动关闭或回复后消失，离线可补收 |
+| 陪伴与养成 | 独立宠物档案、成长、成就、休息提醒，以及安静的待机与眨眼动画 |
 
-保留 Claude Code、Codex、Gemini CLI、Cursor、opencode 等编程助手的本地事件接入与日志解析。不同客户端提供的信息和连接方式不同，具体以应用的连接设置为准；并非所有客户端都经过相同程度的实机验证。
-
-## v0.2.0 更新重点
-
-- **只看 Token，不看预估费用**：移除菜单栏、宠物右键菜单、历史界面的金额展示，以及模型价格表、费用计算和持久化字段。已有 Token 历史和养成数据继续保留。
-- **近七天统计支持悬停明细**：小浮窗显示当天日期与准确数量，例如 `54,321 tokens`；零用量日期也能查看，首尾日期的浮窗不会越出图表边界。
-- **合并刘海火焰与实时速度**：集成 EmberCat 相关能力，不再需要第二个应用入口或菜单栏图标；实时速度不会重复写入用量和养成统计。
-- **聚焦 macOS 本地体验**：完善中文界面，整理开发脚本与测试，移除不再维护的网页、Windows/Linux 客户端、云端报表上传与官方订阅额度探测。
-
-### 版本变化
-
-| 版本 | 日期 | 主要变化 |
-| --- | --- | --- |
-| **v0.2.0** | 2026-11-04 | 刘海火焰与实时速度集成；移除费用估算；新增七天趋势悬停明细；聚焦 macOS |
-| **v0.1.0** | 2026-11-03 | 本地中文桌宠基础版本，完成编程助手连接、会话展示与本地使用体验 |
-
-完整记录见 [CHANGELOG.md](CHANGELOG.md)。这里的版本记录对应本仓库的开发阶段，不代表上游版本或已发布的安装包。
+支持 Claude Code、Codex、Gemini CLI、Cursor、opencode 等编程助手的本地事件接入与日志解析。不同客户端提供的信息和连接方式不同，以应用连接设置为准；并非所有客户端都经过相同程度的实机验证。
 
 ## 在 Mac 上运行
 
@@ -50,42 +54,63 @@
 ### 从源码启动
 
 ```bash
-git clone https://github.com/stivelcn/agent-pet.git
-cd agent-pet
+git clone https://github.com/stivelcn/lumate.git
+cd lumate
 ./scripts/dev.sh run
 ```
 
-构建成功后会启动 `build/AgentPet Local Dev.app`。以后修改代码，再运行同一条命令即可重新构建并重启本仓库的开发实例，不需要反复打 DMG 安装。
+构建成功后启动 `build/LuMate Dev.app`。以后修改代码，运行同一条命令即可重新构建并重启本仓库的开发实例，不需要反复打 DMG 安装。
 
-> **首次启动提示：** 应用默认检测已安装的编程助手并配置连接。写入前会备份客户端配置，保留其他回调；客户端要求的信任或权限确认仍由你完成。只想先看界面、不希望改动真实客户端配置时，使用下面的命令。
+> **首次启动：** 应用默认检测已安装的编程助手并配置连接。写入前会备份客户端配置，保留其他回调；客户端要求的信任或权限确认仍由你完成。只看界面、不改真实客户端配置时，用下面的命令。
 
 ```bash
 AGENTPET_ENABLE_DEV_HOOKS=0 ./scripts/dev.sh run
 ```
 
+### 从旧名称升级
+
+LuMate 保留原 Bundle ID、偏好和数据目录，**同类型构建的宠物、Token 历史与养成不用搬家**；开发版和正式版仍各自独立。
+
+由于 `.app` 路径改变，已有连接请先在**旧版设置中断开编程助手连接并退出旧版**，再启动 LuMate 重新连接；客户端如要求重新信任命令，请核对新路径并自行确认。不会静默覆盖旧 Hook 或修改客户端安全规则。登录启动项与详细兼容边界见 [本地开发说明](LOCAL_DEVELOPMENT.md#从-agentpet-local-升级到-lumate)。
+
+内部 `agentpet` 可执行文件、`AgentPetCore` 模块与 `AGENTPET_*` 环境变量保留兼容名称，不代表界面尚未改名。
+
 ### 基本使用
 
 1. 从菜单栏小爪子打开设置，管理宠物、项目和编程助手连接。
-2. 编程助手运行时，通过桌宠气泡查看会话进展；按需打开刘海火焰与实时速度显示。
-3. 右键宠物查看统计，把鼠标移到近七天图表的某一天，即可查看当日 Token 数量。
+2. 编程助手运行时，从桌宠气泡查看进展；按需打开刘海火焰与实时速度。
+3. 右键宠物查看统计，悬停近七天图表查看当日 Token 数量。
 4. 在历史与养成界面查看长期记录、热力图和宠物成长。
+5. 想和另一位伙伴传话，可在设置中配对，然后直接从桌宠旁发送或回复。
 
 ### 构建、测试与打包
 
 ```bash
-./scripts/dev.sh build           # 只构建默认开发包，不启动
-./scripts/test.sh                # 使用隔离数据和偏好运行回归测试
-./scripts/release.sh native      # 为当前 Mac 架构生成本地 DMG
-./scripts/release.sh universal   # 生成 arm64 + x86_64 通用 DMG
+./scripts/dev.sh build           # 构建开发包，不启动
+./scripts/test.sh                # 隔离数据和偏好的回归测试
+./scripts/release.sh native      # 当前 Mac 架构的本地 DMG
+./scripts/release.sh universal   # arm64 + x86_64 通用 DMG
 ```
 
-构建与测试统一经过 `scripts/swiftpm.sh` 处理项目级工具链兼容，不建议绕过脚本直接运行裸 `swift build`。DMG 默认使用本地 ad-hoc 签名，**不等于经过 Apple 公证**；签名、公证和分发说明见 [打包文档](docs/RELEASING.md)。
+正式包为 `build/LuMate.app`，安装包为 `build/LuMate-<版本>-<架构>.dmg`。构建与测试统一通过 `scripts/swiftpm.sh` 处理项目级工具链兼容，不建议直接运行裸 `swift build`。
 
-要验证打包而不替换正在使用的应用包，可以指定独立输出目录：
+DMG 默认使用本地 ad-hoc 签名，**不等于经过 Apple 公证**。GitHub Actions 仅支持手动生成构建产物，不自动发布 Release；签名、公证和分发说明见 [打包文档](docs/RELEASING.md)。
+
+要验证打包而不替换默认应用包，可以指定独立输出目录：
 
 ```bash
-./scripts/build-app.sh debug native /tmp/agentpet-package-check
+./scripts/build-app.sh debug native /tmp/lumate-package-check
 ```
+
+## 版本变化
+
+| 版本 | 日期 | 主要变化 |
+| --- | --- | --- |
+| **未发布** | — | LuMate 品牌升级；内置双宠与独立档案；双人传话 |
+| **v0.2.0** | 2026-11-04 | 刘海火焰与实时速度；移除费用估算；七天趋势悬停明细；聚焦 macOS |
+| **v0.1.0** | 2026-11-03 | 本地中文桌宠、编程助手连接、会话展示与本地使用体验 |
+
+完整记录见 [CHANGELOG.md](CHANGELOG.md)。开发版本记录不代表已经发布签名或公证后的安装包。
 
 ## 桌宠双人传话
 
@@ -106,7 +131,7 @@ AGENTPET_ENABLE_DEV_HOOKS=0 ./scripts/dev.sh run
 
 - **本地统计**：用量历史与养成保存在本机；实时速度与累计用量采用独立通路，不重复记账。功能不要求填写云端模型 API 密钥。
 - **开发与正式版隔离**：开发版使用 `local.agentpet.dev.preferences` 和 `~/.agentpet-local-dev/`；本地正式版使用 `local.agentpet.preferences` 和 `~/.agentpet-local/`，两者不会自动迁移。
-- **兼容已有设置**：首次运行仅只读导入原 EmberCat 的四类火焰/速度偏好，不覆盖已有 AgentPet 设置，也不改写原 EmberCat 配置。
+- **兼容已有设置**：首次运行仅只读导入原 EmberCat 的四类火焰/速度偏好，不覆盖已有 LuMate 设置，也不改写原 EmberCat 配置。
 - **不是完全离线应用**：在线宠物浏览和下载仍访问相应资源服务。本仓库不维护原网站服务端或云端用量报表上传；新增的可选双人传话中转独立位于 `server/agentpet-relay/`。
 - **不包含个人数据**：源码不附带用户宠物库、真实会话记录、客户端登录信息或模型密钥。备份时还应考虑 UserDefaults 中的偏好和统计，而不只是数据文件夹。
 
@@ -114,6 +139,7 @@ AGENTPET_ENABLE_DEV_HOOKS=0 ./scripts/dev.sh run
 
 | 目录 | 职责 |
 | --- | --- |
+| `Sources/App/Resources/BuiltinPets/` | 噜噜和噜妹的内置外观与素材来源 |
 | `Sources/AgentPetCore/` | 会话、事件、客户端连接、本地统计、存储与纯逻辑 |
 | `Sources/App/` | macOS 应用、桌宠、设置、菜单栏及历史界面 |
 | `Sources/App/EmberCat/` | 火焰渲染与编辑、实时速度桥接、原偏好导入 |
@@ -121,7 +147,9 @@ AGENTPET_ENABLE_DEV_HOOKS=0 ./scripts/dev.sh run
 | `Tests/` | 核心逻辑、应用逻辑回归测试与测试清单 |
 | `Localizations/` | 本地化资源 |
 | `scripts/` | 开发、测试、打包与工具链兼容脚本 |
-| `docs/` | 架构、打包及历史清理记录 |
+| `docs/` | 架构、打包、品牌展示素材及历史清理记录 |
+| `server/agentpet-relay/` | 可选双人传话中转，不参与本地用量统计 |
+| `model_prompt/` | 按接口名称维护的模型提示词 Markdown |
 
 - [本地开发与配置隔离](LOCAL_DEVELOPMENT.md)
 - [架构与数据流](docs/ARCHITECTURE.md)
@@ -134,3 +162,5 @@ AGENTPET_ENABLE_DEV_HOOKS=0 ./scripts/dev.sh run
 感谢 [AgentPet](https://github.com/ntd4996/agentpet) 的桌宠基础、[EmberCat](https://github.com/johann15910358798-lab/EmberCat.git) 的刘海火焰与外观编辑实现，以及 [Agent Speed](https://github.com/zoefix/agent-speed) 的实时速度引擎。
 
 原 AgentPet 的 MIT 声明保留在 [LICENSE](LICENSE)，Agent Speed 与 zstd 的许可证保留在 `Vendor/`。EmberCat 来源文件单独记录来源与授权信息，**不将根目录 MIT 声明扩展为全部第三方代码的许可**；详情见 [第三方说明](THIRD_PARTY_NOTICES.md)。
+
+噜噜与噜妹的素材来源见 [内置形象说明](Sources/App/Resources/BuiltinPets/README.md)，展示图来源见 [品牌素材说明](docs/assets/README.md)。**角色素材不因项目开源而自动适用 MIT 许可**，再次分发前需单独核实权利。

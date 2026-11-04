@@ -55,4 +55,14 @@ final class LocalConfigurationTests {
         LocalPreferences.defaults.set("中文", forKey: key)
         #expect((LocalPreferences.defaults.string(forKey: key)) == ("中文"))
     }
+
+    @Test func testLuMateBrandDoesNotChangeStorageIdentity() {
+        #expect(LocalConfiguration.productName == "LuMate · 噜伴")
+        #expect(LocalConfiguration.displayName == (LocalConfiguration.isDevelopment
+            ? "LuMate · 噜伴（开发版）" : "LuMate · 噜伴"))
+        #expect(LocalConfiguration.repositoryURL.absoluteString == "https://github.com/stivelcn/lumate")
+        #expect(LocalConfiguration.releaseIdentifier == "local.agentpet")
+        #expect(LocalConfiguration.developmentIdentifier == "local.agentpet.dev")
+    }
+
 }

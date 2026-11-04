@@ -34,7 +34,7 @@ body:
         - Claude Code
         - Codex
         - Gemini CLI
-        - Other / agentpet run wrapper
+        - Other / LuMate CLI wrapper (agentpet run)
         - None
     validations:
       required: true

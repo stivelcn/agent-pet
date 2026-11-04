@@ -121,7 +121,7 @@ final class StatusBarController: NSObject, ObservableObject {
         let rate = ember.snapshot.state == .running
             ? EmberCatRateFormat.text(speed: ember.speed, precision: ember.ratePrecision)
             : "— token/s"
-        button.toolTip = "智能桌宠 · " + ember.statusLine + "\n" + rate
+        button.toolTip = LocalConfiguration.productName + " · " + ember.statusLine + "\n" + rate
             + (ember.snapshot.state == .running ? " · " + ember.estimateDescription : "")
     }
 
@@ -136,7 +136,7 @@ final class StatusBarController: NSObject, ObservableObject {
         if count == cachedMenuBarCount, waiting == cachedMenuBarWaiting,
            let cached = cachedMenuBarImage { return cached }
 
-        guard let paw = NSImage(systemSymbolName: "pawprint.fill", accessibilityDescription: "AgentPet") else { return nil }
+        guard let paw = NSImage(systemSymbolName: "pawprint.fill", accessibilityDescription: LocalConfiguration.productName) else { return nil }
 
         guard let count else {
             paw.isTemplate = true

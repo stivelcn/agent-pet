@@ -89,7 +89,7 @@ struct LocalPetRegressionTests {
         let en = try #require(NSDictionary(contentsOf: root.appendingPathComponent("Localizations/en.lproj/Localizable.strings")) as? [String: String])
         let zh = try #require(NSDictionary(contentsOf: root.appendingPathComponent("Localizations/zh-Hans.lproj/Localizable.strings")) as? [String: String])
         #expect(Set(en.keys).subtracting(zh.keys).isEmpty)
-        for key in ["AgentPet", "Pet display", "Configured projects", "Get", "Name", "Save", "Agents",
+        for key in ["LuMate", "Pet display", "Configured projects", "Get", "Name", "Save", "Agents",
                     "All", "Characters", "Creatures", "Objects", "Search pets", "Search your pets",
                     "State dot", "Separator", "Sep", "State", "community", "Registered",
                     "Show pet", "Show count on menu bar", "Show chat on menu bar",

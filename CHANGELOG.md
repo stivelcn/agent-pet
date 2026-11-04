@@ -1,6 +1,14 @@
 # 更新日志
 
-本文件记录 `stivelcn/agent-pet` 的 macOS 版本变化。版本号独立于原 AgentPet、EmberCat 和 Agent Speed；记录开发版本不表示已上传签名或公证后的安装包。
+本文件记录 `stivelcn/lumate`（原 `stivelcn/agent-pet`） 的 macOS 版本变化。版本号独立于原 AgentPet、EmberCat 和 Agent Speed；记录开发版本不表示已上传签名或公证后的安装包。
+
+## 未发布 — LuMate · 噜伴品牌升级
+
+- 产品对外名称统一为 **LuMate · 噜伴**：Lu 来自噜噜/噜妹，Mate 表示伙伴，读音也呼应噜妹。
+- README 新增双宠展示、角色介绍、升级说明；GitHub 仓库与链接统一为 `stivelcn/lumate`。
+- 统一应用界面、本地化、开发/正式应用包、DMG 与 GitHub Actions 产物名称；旧来源署名保留。
+- 保留 Bundle ID、偏好域、数据目录、钥匙串与 Hook 内部标识。旧应用连接先断开，再在 LuMate 中重新连接；不静默覆盖客户端配置。
+- 开发脚本兼容本仓库新旧开发包的实例识别；版本号仍为 `0.2.0`，本次不自动创建 Release 或发布标签。
 
 ## 未发布 — 双人桌宠传话
 

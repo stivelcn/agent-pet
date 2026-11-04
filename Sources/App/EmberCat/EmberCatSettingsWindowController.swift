@@ -23,7 +23,7 @@ final class EmberCatSettingsWindowController: NSObject, NSWindowDelegate {
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 560, height: 690),
                               styleMask: [.titled, .closable, .miniaturizable, .resizable],
                               backing: .buffered, defer: false)
-        window.title = "智能桌宠 · EmberCat 设置"
+        window.title = "LuMate · 噜伴 · EmberCat 设置"
         window.identifier = NSUserInterfaceItemIdentifier("embercat-settings-window")
         window.contentMinSize = NSSize(width: 520, height: 600)
         window.appearance = NSAppearance(named: .darkAqua)

@@ -1,4 +1,4 @@
-/* AgentPet , 简体中文 */
+/* LuMate , 简体中文 */
 
 /* Tabs */
 "General" = "通用";
@@ -9,7 +9,7 @@
 /* General / common */
 "Launch" = "启动";
 "Launch at login" = "登录时启动";
-"AgentPet starts automatically when you sign in." = "登录时自动启动 智能桌宠。";
+"LuMate starts automatically when you sign in." = "登录时自动启动 LuMate · 噜伴。";
 "Notifications" = "通知";
 "Show chat bubble" = "显示聊天气泡";
 "Messages" = "消息";
@@ -24,7 +24,7 @@
 "Coming soon" = "即将推出";
 "Enable" = "启用";
 "Open Settings" = "打开设置";
-"Quit AgentPet" = "退出 智能桌宠";
+"Quit LuMate" = "退出 LuMate · 噜伴";
 "Upload…" = "上传…";
 "Default" = "默认";
 "Working" = "工作中";
@@ -78,7 +78,7 @@
 "Star on GitHub" = "在 GitHub 上点亮 Star";
 "Join the Discord" = "加入 Discord";
 "Buy me a coffee" = "请我喝杯咖啡";
-"If AgentPet helps your workflow, a star means a lot. Thank you!" = "如果 智能桌宠 帮到了你，点个星标 意义非凡。谢谢！";
+"If LuMate helps your workflow, a star means a lot. Thank you!" = "如果 LuMate · 噜伴 帮到了你，点个星标 意义非凡。谢谢！";
 "Author" = "作者";
 "Version" = "版本";
 "Choose pet" = "选择宠物";
@@ -155,7 +155,7 @@
 "Notifications denied" = "通知被拒绝";
 "Notifications unavailable" = "通知不可用";
 "Enable notifications" = "启用通知";
-"Available once installed as AgentPet.app" = "以 AgentPet.app 安装后可用";
+"Available once installed as LuMate.app" = "以 LuMate.app 安装后可用";
 "Turn on in System Settings to get alerts" = "在系统设置中开启以接收提醒";
 "Alerts when an agent finishes or needs input" = "编程助手完成或需要输入时提醒";
 "Muted, the toggle turns alerts back on" = "已静音，拨动开关重新开启提醒";
@@ -227,7 +227,7 @@
 "Create pet" = "创建宠物";
 "Get alerted when an agent finishes or needs input." = "编程助手完成或需要输入时收到提醒。";
 "Get started" = "开始";
-"Install a hook so AgentPet can see when an agent works, finishes, or needs you." = "安装回调，让 智能桌宠 知道编程助手何时工作、完成或需要你。";
+"Install a hook so LuMate can see when an agent works, finishes, or needs you." = "安装回调，让 LuMate · 噜伴 知道编程助手何时工作、完成或需要你。";
 "Loading pets…" = "正在加载宠物…";
 "Nothing running right now." = "当前没有运行中的编程助手。";
 "Pet info" = "宠物信息";
@@ -236,11 +236,11 @@
 "Sort by agent kind" = "按编程助手类型排序";
 "Spritesheet" = "精灵图";
 "Use the same 8×9 transparent spritesheet format as downloaded pets." = "使用与下载宠物相同的 8×9 透明精灵图格式。";
-"Welcome to AgentPet" = "欢迎使用 智能桌宠";
+"Welcome to LuMate" = "欢迎使用 LuMate · 噜伴";
 
 /* Codex connection help */
 "Connect Codex" = "连接 Codex";
-"The hook is installed. Codex blocks unknown command hooks until you trust them once , a Codex security feature, not an AgentPet bug. Do this one time:" = "回调已安装。Codex 会拦截未知的命令回调，直到你信任一次 , 这是 Codex 的安全机制，并非 智能桌宠 的问题。只需操作一次：";
+"The hook is installed. Codex blocks unknown command hooks until you trust them once , a Codex security feature, not an LuMate bug. Do this one time:" = "回调已安装。Codex 会拦截未知的命令回调，直到你信任一次 , 这是 Codex 的安全机制，并非 LuMate · 噜伴 的问题。只需操作一次：";
 "Open Terminal and run: codex (launches the Codex CLI)" = "打开终端并运行：codex（启动 Codex CLI）";
 "Type /hooks and press Enter to list the hooks." = "输入 /hooks 并回车以列出回调。";
 "Press t to Trust all hooks." = "按 t 键信任所有回调。";
@@ -363,7 +363,7 @@
 "resets in %dm" = "%d 分钟后重置";
 
 /* Coffee / donate */
-"Thanks for using AgentPet" = "感谢使用 智能桌宠";
+"Thanks for using LuMate" = "感谢使用 LuMate · 噜伴";
 "It's free and open source. If it makes your day a little nicer, a coffee is always appreciated, never expected." = "本应用免费开源。如果它让你的一天更愉快，一杯咖啡总是受欢迎的，但绝不强求。";
 "Quét mã bằng app ngân hàng bất kỳ" = "用任意银行 App 扫码";
 "Sao chép số tài khoản" = "复制账号";
@@ -559,7 +559,7 @@
 
 "Agent" = "编程助手";
 
-"AgentPet" = "智能桌宠";
+"LuMate" = "LuMate · 噜伴";
 
 "Break reminder" = "休息提醒";
 

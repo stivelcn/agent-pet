@@ -2,6 +2,10 @@ import Foundation
 
 /// Independent identities for this fork. No original preferences or files are imported.
 public enum LocalConfiguration {
+    /// Public brand only; storage and integration identities stay compatible.
+    public static let productName = "LuMate · 噜伴"
+    public static let repositoryURL = URL(string: "https://github.com/stivelcn/lumate")!
+
     public static let releaseIdentifier = "local.agentpet"
     public static let developmentIdentifier = "local.agentpet.dev"
 
@@ -21,7 +25,7 @@ public enum LocalConfiguration {
     }
 
     public static var displayName: String {
-        isDevelopment ? "智能桌宠（开发版）" : "智能桌宠"
+        isDevelopment ? productName + "（开发版）" : productName
     }
 
     /// Local builds connect detected clients; tests and diagnostics can explicitly opt out.

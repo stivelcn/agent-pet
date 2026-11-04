@@ -108,7 +108,7 @@ struct OnboardingView: View {
     private var agentStep: some View {
         VStack(alignment: .leading, spacing: 12) {
             stepLabel(2, "Connect an agent")
-            Text("Install a hook so AgentPet can see when an agent works, finishes, or needs you.")
+            Text("Install a hook so LuMate can see when an agent works, finishes, or needs you.")
                 .font(.caption).foregroundStyle(.white.opacity(0.6))
             if !LocalConfiguration.hookConfigurationEnabled {
                 Text("Development mode: agent hook configuration is disabled. Your existing clients are unchanged.")

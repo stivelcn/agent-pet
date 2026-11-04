@@ -11,8 +11,8 @@ case "$OUTPUT_DIR" in
     *) echo "Output directory must be an absolute path" >&2; exit 2 ;;
 esac
 case "$CONFIG" in
-    debug) NAME="AgentPet Local Dev"; IDENTIFIER="local.agentpet.dev"; DISPLAY_NAME="智能桌宠（开发版）"; DEVELOPMENT=true ;;
-    release) NAME="AgentPet Local"; IDENTIFIER="local.agentpet"; DISPLAY_NAME="智能桌宠"; DEVELOPMENT=false ;;
+    debug) NAME="LuMate Dev"; IDENTIFIER="local.agentpet.dev"; DISPLAY_NAME="LuMate · 噜伴（开发版）"; DEVELOPMENT=true ;;
+    release) NAME="LuMate"; IDENTIFIER="local.agentpet"; DISPLAY_NAME="LuMate · 噜伴"; DEVELOPMENT=false ;;
     *) echo "Usage: $0 [debug|release] [native|universal] [absolute-output-directory]" >&2; exit 2 ;;
 esac
 case "$ARCH" in

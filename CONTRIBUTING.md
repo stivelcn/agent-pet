@@ -1,6 +1,6 @@
-# 合并版开发约定
+# LuMate · 噜伴：开发约定
 
-本仓库只维护 AgentPet + EmberCat 火焰/速度的 macOS 应用，不维护旧网站和其他平台客户端。
+本仓库只维护 LuMate（基于 AgentPet，集成 EmberCat 火焰/速度）的 macOS 应用，不维护旧网站和其他平台客户端。
 
 ## 基本流程
 

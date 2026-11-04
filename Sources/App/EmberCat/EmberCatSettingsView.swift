@@ -9,7 +9,7 @@ struct EmberCatSettingsView: View {
             VStack(alignment: .leading, spacing: 20) {
                 Label("EmberCat 设置", systemImage: "flame.fill")
                     .font(.title2.bold())
-                Text("只接入刘海火焰与实时速度；菜单栏继续使用智能桌宠的小爪子。")
+                Text("只接入刘海火焰与实时速度；菜单栏继续使用LuMate · 噜伴的小爪子。")
                     .font(.callout).foregroundStyle(.secondary)
                 GroupBox {
                     VStack(alignment: .leading, spacing: 14) {
@@ -52,7 +52,7 @@ struct EmberCatSettingsView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading).padding(8)
                 } label: { Label("菜单栏速度", systemImage: "speedometer") }
-                Text("沿用 EmberCat 的本地会话测速方式，不上传使用记录；不会把测速结果再次计入桌宠的用量或成长。原 EmberCat 配置保留不动，合并版的调整仅保存在智能桌宠中。")
+                Text("沿用 EmberCat 的本地会话测速方式，不上传使用记录；不会把测速结果再次计入桌宠的用量或成长。原 EmberCat 配置保留不动，合并版的调整仅保存在LuMate · 噜伴中。")
                     .font(.caption).foregroundStyle(.secondary)
             }
             .padding(24)

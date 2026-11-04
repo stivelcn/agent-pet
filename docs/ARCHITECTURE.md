@@ -1,23 +1,25 @@
-# 合并版模块与数据流
+# LuMate · 噜伴：模块与数据流
+
+LuMate 是对外品牌；`AgentPetCore`、`agentpet` 可执行文件、Bundle ID、偏好键、环境变量与数据目录保留既有标识，以兼容存量数据和客户端集成。
 
 ## 应用入口
 
 `Sources/App/AppEntry.swift` 是唯一可执行入口：根据参数分派 `hook`、`run` CLI，或启动 macOS 应用。两条 CLI 分支仍用于现有客户端集成，不是另一个待删除的应用。
 
-`AgentPetApp.swift` 协调应用生命周期；`AppDaemon.swift` 负责会话事件。菜单栏由 `StatusBarController.swift` 和 `MenuBarContentView.swift` 管理。AgentPet 原有设置由 `SettingsWindowController.swift`、`SetupView.swift` 等维护。
+`AgentPetApp.swift` 协调应用生命周期；`AppDaemon.swift` 负责会话事件。菜单栏由 `StatusBarController.swift` 和 `MenuBarContentView.swift` 管理。LuMate 设置由 `SettingsWindowController.swift`、`SetupView.swift` 等维护。
 
 ## 两条互不重复记账的数据流
 
-1. **AgentPet 业务流**：客户端事件/日志 → `AgentPetCore` 会话模型 → `AppDaemon` / `ProjectUsageStore` / 养成与历史 → 桌宠、完成提醒、历史报表和日历热力图。
+1. **LuMate 业务流**：客户端事件/日志 → `AgentPetCore` 会话模型 → `AppDaemon` / `ProjectUsageStore` / 养成与历史 → 桌宠、完成提醒、历史报表和日历热力图。
 2. **EmberCat 实时流**：日志源适配器 → `AgentSpeedCore.LiveMonitor` → `SpeedStore` → `EmberCatIntegration` → 同一个菜单栏速度文本和 `NotchFlameController`。
 
-实时速度桥接不写 AgentPet 的使用历史或养成账本，不安装回调，不启动上传服务。不同统计口径不可未经设计就混合累计。
+实时速度桥接不写 LuMate 的使用历史或养成账本，不安装回调，不启动上传服务。不同统计口径不可未经设计就混合累计。
 
 ## EmberCat 适配边界
 
 `Sources/App/EmberCat/` 共 12 个文件，包含桥接、偏好导入、设置窗口、火焰渲染/着色器、显示器选择、编辑器和预览控制器。
 
-菜单栏新增的是 AgentPet 面板中的 EmberCat 设置入口，不新建第二个状态栏图标。不包含原上游的猫、玛奇玛、Dock 陪伴、爪印和自动更新器。
+菜单栏新增的是 LuMate 面板中的 EmberCat 设置入口，不新建第二个状态栏图标。不包含原上游的猫、玛奇玛、Dock 陪伴、爪印和自动更新器。
 
 `EmberCatPreferences.swift` 的导入白名单及标记键是兼容边界；不得为清理而随意改名。设置窗口与原生预览共用应用激活状态管理。
 

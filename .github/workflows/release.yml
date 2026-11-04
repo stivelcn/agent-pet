@@ -1,4 +1,4 @@
-name: Manual local DMG build
+name: LuMate manual DMG build
 
 # No tag-triggered releases and no publishing to GitHub Releases.
 on:
@@ -20,6 +20,6 @@ jobs:
       - name: Save build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AgentPet-Local-DMG
-          path: build/AgentPet-Local-*.dmg
+          name: LuMate-DMG
+          path: build/LuMate-*.dmg
           retention-days: 7

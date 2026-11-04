@@ -49,7 +49,7 @@ struct MenuContentView: View {
                 .frame(width: 28, height: 28)
                 .overlay(Image(systemName: "pawprint.fill").font(.system(size: 13)).foregroundStyle(.white))
             VStack(alignment: .leading, spacing: 1) {
-                Text("AgentPet").font(.system(size: 14, weight: .bold)).foregroundStyle(.white)
+                Text(verbatim: LocalConfiguration.productName).font(.system(size: 14, weight: .bold)).foregroundStyle(.white)
                 Text(subtitle).font(.system(size: 11)).foregroundStyle(.white.opacity(0.5))
             }
             Spacer()

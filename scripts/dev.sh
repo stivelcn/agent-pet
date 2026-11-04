@@ -3,15 +3,17 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 ROOT="$PWD"
-APP="$ROOT/build/AgentPet Local Dev.app"
+APP="$ROOT/build/LuMate Dev.app"
 EXECUTABLE="$APP/Contents/MacOS/agentpet"
+# Only match this checkout's legacy development app; never other installations.
+LEGACY_EXECUTABLE="$ROOT/build/AgentPet Local Dev.app/Contents/MacOS/agentpet"
 COMMAND="${1:-run}"
 case "$COMMAND" in run|build|stop) ;; *) echo "Usage: $0 [run|build|stop]" >&2; exit 2 ;; esac
 
 stop_development_app() {
-    # Match the complete executable path, never a shared process name such as agentpet.
+    # Match only the complete new/legacy development paths in this checkout.
     while read -r pid executable; do
-        if [ "$executable" = "$EXECUTABLE" ]; then
+        if [ "$executable" = "$EXECUTABLE" ] || [ "$executable" = "$LEGACY_EXECUTABLE" ]; then
             kill -TERM "$pid" 2>/dev/null || true
             for ((i=0; i<50; i++)); do
                 kill -0 "$pid" 2>/dev/null || break
@@ -37,5 +39,5 @@ for name in AGENTPET_DATA_DIR AGENTPET_PREFERENCES_SUITE AGENTPET_AUTOCONNECT AG
     [ -z "$value" ] || OPEN_ARGS+=(--env "$name=$value")
 done
 open "${OPEN_ARGS[@]}" "$APP"
-echo "智能桌宠（开发版）已启动。修改代码后再次运行此命令即可，无需安装 DMG。"
+echo "LuMate · 噜伴（开发版）已启动。修改代码后再次运行此命令即可，无需安装 DMG。"
 echo "默认自动检测并连接已安装的编程助手；客户端要求的信任确认需在客户端完成。"

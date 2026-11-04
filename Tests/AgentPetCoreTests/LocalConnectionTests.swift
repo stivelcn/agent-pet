@@ -150,7 +150,25 @@ struct LocalConnectionTests {
         #expect(LocalConfiguration.allowsHookConfiguration(development: true, optIn: nil))
         #expect(LocalConfiguration.allowsHookConfiguration(development: false, optIn: nil))
         #expect(!LocalConfiguration.allowsHookConfiguration(development: true, optIn: "0"))
-        #expect(LocalConfiguration.displayName.contains("桌宠"))
+        #expect(LocalConfiguration.displayName.contains("LuMate"))
         #expect(LocalConfiguration.preferencesSuite.hasPrefix("local.agentpet.tests."))
     }
+
+    @Test func luMateUpgradeRequiresExplicitDisconnectBeforeChangingHookPath() throws {
+        let f = try ConnectionFixture()
+        let old = AgentConnectionInstaller(
+            binaryPath: f.path("AgentPet Local Dev.app/Contents/MacOS/agentpet"),
+            backupRoot: f.path("backups"))
+        let renamed = AgentConnectionInstaller(
+            binaryPath: f.path("LuMate Dev.app/Contents/MacOS/agentpet"),
+            backupRoot: f.path("backups"))
+        try old.connect(f.spec)
+        let before = try Data(contentsOf: URL(fileURLWithPath: f.spec.settingsPath))
+        #expect(throws: AgentConnectionError.self) { try renamed.connect(f.spec) }
+        #expect(try Data(contentsOf: URL(fileURLWithPath: f.spec.settingsPath)) == before)
+        try old.disconnect(f.spec)
+        try renamed.connect(f.spec)
+        #expect(renamed.isConfigured(f.spec))
+    }
+
 }

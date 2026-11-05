@@ -35,9 +35,10 @@ enum EmberCatPreferenceMigration {
 }
 
 enum EmberCatRateFormat {
-    static func text(speed: Double, precision: Int = 1) -> String {
+    static func text(speed: Double, precision: Int = 1, compactUnit: Bool = false) -> String {
         let value = speed.isFinite ? max(0, speed) : 0
-        return String(format: "%.*f token/s", locale: Locale(identifier: "en_US_POSIX"),
-                      min(2, max(0, precision)), value)
+        let unit = compactUnit ? "t/s" : "token/s"
+        return String(format: "%.*f %@", locale: Locale(identifier: "en_US_POSIX"),
+                      min(2, max(0, precision)), value, unit)
     }
 }

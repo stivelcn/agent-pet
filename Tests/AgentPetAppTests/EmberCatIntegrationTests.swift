@@ -86,20 +86,28 @@ struct EmberCatIntegrationTests {
         #expect(EmberCatRateFormat.text(speed: -1) == "0.0 token/s")
         #expect(EmberCatRateFormat.text(speed: .nan) == "0.0 token/s")
         #expect(EmberCatRateFormat.text(speed: .infinity) == "0.0 token/s")
+        #expect(EmberCatRateFormat.text(speed: 13.8, compactUnit: true) == "13.8 t/s")
+        #expect(EmberCatRateFormat.text(speed: 128.25, precision: 2, compactUnit: true) == "128.25 t/s")
+        #expect(EmberCatRateFormat.text(speed: 128.25, precision: 0, compactUnit: true) == "128 t/s")
+        #expect(EmberCatRateFormat.text(speed: 128.25, precision: -1, compactUnit: true) == "128 t/s")
+        #expect(EmberCatRateFormat.text(speed: 128.25, precision: 3, compactUnit: true) == "128.25 t/s")
+        for speed in [0.0, -1, .nan, .infinity] {
+            #expect(EmberCatRateFormat.text(speed: speed, compactUnit: true) == "0.0 t/s")
+        }
     }
 
     @Test func scanningAndMissingSourcesAreNotPresentedAsMeasuredZero() {
         withDefaults { defaults in
             let module = EmberCatIntegration(defaults: defaults)
             defer { module.dispose() }
-            #expect(module.menuBarText == "— token/s")
+            #expect(module.menuBarText == "— t/s")
             var snapshot = SpeedSnapshot.empty
             snapshot.state = .noSources
             module.receive(snapshot)
-            #expect(module.menuBarText == "— token/s")
+            #expect(module.menuBarText == "— t/s")
             snapshot.state = .running
             module.receive(snapshot)
-            #expect(module.menuBarText == "0.0 token/s")
+            #expect(module.menuBarText == "0.0 t/s")
         }
     }
 
@@ -118,12 +126,18 @@ struct EmberCatIntegrationTests {
             snapshot.liveEstimatedShare = 0.25
             module.receive(snapshot)
             #expect(module.speed == 42.25)
-            #expect(module.menuBarText == "42.2 token/s")
+            #expect(module.menuBarText == "42.2 t/s")
             #expect(module.estimateDescription.contains("25%"))
             #expect(calls == 1)
             #expect(defaults.data(forKey: "agentpet.projectUsage") == sentinel)
             #expect(defaults.data(forKey: "agentpet.care.v2") == sentinel)
             #expect(!module.isRunning)
+            module.ratePrecision = 2
+            #expect(module.menuBarText == "42.25 t/s")
+            module.ratePrecision = 0
+            #expect(module.menuBarText == "42 t/s")
+            // Settings and hover details keep the full unit when not opting into compact text.
+            #expect(EmberCatRateFormat.text(speed: module.speed, precision: module.ratePrecision) == "42 token/s")
         }
     }
 

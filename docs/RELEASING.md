@@ -7,7 +7,7 @@
 ./scripts/release.sh universal    # arm64 + x86_64
 ```
 
-版本读取 `scripts/AppInfo.plist`（当前为 `0.2.1`）；变更记录见根目录 `CHANGELOG.md`。输出为 `build/LuMate.app` 和 `build/LuMate-<版本>-<架构>.dmg`。正式版本的数据与开发版隔离，不会因为从开发版切换为正式版就自动迁移。
+版本读取 `scripts/AppInfo.plist`（当前为 `0.2.2`）；变更记录见根目录 `CHANGELOG.md`。输出为 `build/LuMate.app` 和 `build/LuMate-<版本>-<架构>.dmg`。正式版本的数据与开发版隔离，不会因为从开发版切换为正式版就自动迁移。
 
 脚本只在本机生成产物，不上传、不更新 appcast、不使用上游凭据。GitHub 的 macOS workflow 仅支持手动产生构建 artifact，不随标签发布公开 Release。
 

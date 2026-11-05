@@ -64,8 +64,8 @@ final class EmberCatIntegration: ObservableObject {
     }
     var menuBarText: String {
         guard showsTokenRate else { return "" }
-        guard snapshot.state == .running else { return "— token/s" }
-        return EmberCatRateFormat.text(speed: speed, precision: ratePrecision)
+        guard snapshot.state == .running else { return "— t/s" }
+        return EmberCatRateFormat.text(speed: speed, precision: ratePrecision, compactUnit: true)
     }
     var statusLine: String {
         switch snapshot.state {

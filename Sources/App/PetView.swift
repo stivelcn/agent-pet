@@ -90,8 +90,8 @@ private struct BubbleWidthKey: PreferenceKey {
 }
 
 /// The full floating window content: a chat bubble above the pet. Per-window
-/// fields (mood/petID/sessions/chatLine) come from `model`; global toggles and
-/// the tap-interaction state still come from `PetController.shared`.
+/// fields (mood/petID/sessions/chatLine) come from `model`; global toggles
+/// still come from `PetController.shared`. Taps open the message composer.
 struct FloatingPetView: View {
     @ObservedObject var model: PetWindowModel
     @ObservedObject private var pet = PetController.shared
@@ -131,26 +131,6 @@ struct FloatingPetView: View {
                 }
             }
             PetView(model: model, size: pet.petPoint)
-                .overlay(alignment: .top) {
-                    if !model.petReactionLine.isEmpty {
-                        Text(model.petReactionLine)
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(.primary.opacity(0.85))
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
-                            .background(
-                                Capsule()
-                                    .fill(.regularMaterial)
-                            )
-                            .overlay(
-                                Capsule()
-                                    .strokeBorder(Color.primary.opacity(0.08), lineWidth: 1)
-                            )
-                            .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
-                            .offset(y: -16)
-                            .transition(.opacity)
-                    }
-                }
                 .gesture(petDragOrTap)
                 // Kept under its on-screen spot when the window is pushed back
                 // onto the screen (offset doesn't change the measured size).
@@ -161,7 +141,6 @@ struct FloatingPetView: View {
                 .animation(nil, value: model.petOffset)
         }
         .fixedSize(horizontal: true, vertical: true)
-        .animation(.easeInOut(duration: 0.2), value: model.petReactionLine)
         .background(
             GeometryReader { proxy in
                 Color.clear.preference(key: PetContentSizeKey.self, value: proxy.size)
@@ -208,7 +187,7 @@ struct FloatingPetView: View {
 
     /// One gesture drives both interactions so they never fight: a drag past a
     /// small threshold moves the pet's window; a press that never crosses it is
-    /// a tap (pet the pet). A plain `onTapGesture` here made the pet region
+    /// a tap (open pet messaging). A plain `onTapGesture` here made the pet region
     /// interactive, which stopped `isMovableByWindowBackground` from dragging it
     /// (issue #55: "unable to move my pets"). We move the window by the cursor's
     /// screen-space delta so it tracks 1:1 without feeding back on itself.
@@ -230,7 +209,11 @@ struct FloatingPetView: View {
             .onEnded { _ in
                 let wasDrag = petDragging
                 petDragging = false
-                if !wasDrag { model.petTap() }
+                switch model.tapDestination(wasDrag: wasDrag, paired: relay.pair != nil) {
+                case .none: break
+                case .pairing: SettingsWindowController.shared.show(tab: .relay)
+                case .composer(let key): PetWindowController.shared.showMessageComposer(forKey: key)
+                }
             }
     }
 }

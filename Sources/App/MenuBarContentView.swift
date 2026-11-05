@@ -287,6 +287,13 @@ struct MenuContentView: View {
                 }
             }
             Spacer()
+            FooterButton(icon: "arrow.down.circle", label: "Check for updates") {
+                StatusBarController.shared.closeAndThen {
+                    SettingsWindowController.shared.show(tab: .about)
+                    AppUpdateController.shared.check()
+                }
+            }
+            Spacer()
             FooterButton(icon: "power", label: "Quit") {
                 NSApplication.shared.terminate(nil)
             }

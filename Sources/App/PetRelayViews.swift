@@ -40,7 +40,7 @@ struct PetRelaySettingsView: View {
                         Button("Save nickname") { Task { await relay.rename(nickname) } }
                             .disabled(relay.isBusy || !PetRelayValidation.validText(nickname) || nickname == relay.mailbox.name)
                     }
-                    Text("Send from your desktop pet's right-click menu. Reply directly from its message bubble.")
+                    Text("Click your desktop pet to send a message. Reply directly from its message bubble.")
                         .font(.caption).foregroundStyle(.secondary)
                 } else {
                     pairing
@@ -112,43 +112,105 @@ struct PetRelaySettingsView: View {
 
 }
 
+/// Display-only state. Expanding never changes the durable mailbox or sends a receipt.
+struct PetMessageExpansion {
+    var isExpanded = false
+    mutating func toggle() { isExpanded.toggle() }
+    func ordered(_ messages: [PetRelayMessage]) -> [PetRelayMessage] {
+        messages.sorted { ($0.createdAt, $0.id) < ($1.createdAt, $1.id) }
+    }
+}
+
 struct PetMessageBubble: View {
-    @ObservedObject private var relay = PetRelayController.shared
+    @ObservedObject private var relay: PetRelayController
     @ObservedObject private var settings = BubbleSettings.shared
+    @State private var expansion: PetMessageExpansion
+
+    init(relay: PetRelayController = .shared, initiallyExpanded: Bool = false) {
+        self.relay = relay
+        _expansion = State(initialValue: PetMessageExpansion(isExpanded: initiallyExpanded))
+    }
+    private var messages: [PetRelayMessage] { expansion.ordered(relay.incoming) }
+
     var body: some View {
-        if let message = relay.incoming.first {
+        if let message = messages.first {
             VStack(alignment: .leading, spacing: 7) {
                 HStack {
-                    Label(message.senderName, systemImage: "envelope.fill")
-                        .font(.system(size: settings.fontSize.secondaryPt, weight: .semibold)).lineLimit(1)
-                    Spacer()
-                    if relay.incoming.count > 1 { Text("+\(relay.incoming.count - 1)").font(.caption.monospacedDigit()) }
-                    Button { relay.dismiss(message.id) } label: { Image(systemName: "xmark").font(.caption.bold()) }
-                        .buttonStyle(.plain).help("Close this pet message")
-                        .accessibilityIdentifier("relay-dismiss-message")
-                }
-                Text(verbatim: message.content)
-                    .font(.system(size: message.icon != nil ? 32 : settings.fontSize.primaryPt))
-                    .fixedSize(horizontal: false, vertical: true)
-                HStack {
-                    Text("Stays until closed or replied").font(.system(size: 10)).opacity(0.65)
-                    Spacer()
-                    Button("Reply") {
-                        PetWindowController.shared.showMessageComposer(replyTo: message)
+                    Button { expansion.toggle() } label: {
+                        HStack {
+                            Label(message.senderName, systemImage: "envelope.fill").lineLimit(1)
+                            Spacer()
+                            if messages.count > 1 { Text("+\(messages.count - 1)").monospacedDigit() }
+                            Image(systemName: expansion.isExpanded ? "chevron.up" : "chevron.down")
+                        }
+                        .contentShape(Rectangle())
                     }
-                    .buttonStyle(.bordered).controlSize(.small)
-                    .accessibilityIdentifier("relay-reply-message")
-                    .disabled(message.pairID != relay.pair?.id)
+                    .buttonStyle(.plain)
+                    .help(expansion.isExpanded ? "Collapse messages" : "Expand messages")
+                    .accessibilityLabel(expansion.isExpanded ? "Collapse messages" : "Expand messages")
+                    .accessibilityIdentifier("relay-expand-messages")
+                    if !expansion.isExpanded { closeButton(message) }
+                }
+                .font(.system(size: settings.fontSize.secondaryPt, weight: .semibold))
+                if expansion.isExpanded {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 10) {
+                            ForEach(messages) { item in
+                                VStack(alignment: .leading, spacing: 6) {
+                                    HStack {
+                                        Text(verbatim: item.senderName).lineLimit(1)
+                                        Text(Date(timeIntervalSince1970: item.createdAt), format: .dateTime.month().day().hour().minute().second())
+                                            .font(.caption2).opacity(0.7)
+                                        Spacer(minLength: 2)
+                                        closeButton(item)
+                                    }
+                                    .font(.caption)
+                                    content(item)
+                                    replyButton(item).frame(maxWidth: .infinity, alignment: .trailing)
+                                }
+                                if item.id != messages.last?.id { Divider() }
+                            }
+                        }
+                        .padding(.trailing, 5)
+                    }
+                    .frame(height: min(280, CGFloat(messages.count) * 126))
+                    .accessibilityIdentifier("relay-expanded-messages")
+                } else {
+                    Button { expansion.toggle() } label: {
+                        content(message).frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain).help("Expand messages")
+                    HStack {
+                        Text("Stays until closed or replied").font(.system(size: 10)).opacity(0.65)
+                        Spacer()
+                        replyButton(message)
+                    }
                 }
                 if let error = relay.persistenceError { Text(error).font(.caption2).foregroundStyle(.orange) }
             }
             .foregroundStyle(foreground)
-            .padding(12).frame(width: 270)
+            .padding(12).frame(width: expansion.isExpanded ? 320 : 270)
             .background(RoundedRectangle(cornerRadius: 15).fill(background))
             .overlay(RoundedRectangle(cornerRadius: 15).strokeBorder(Color.pink.opacity(0.4), lineWidth: 1))
             .shadow(color: .black.opacity(0.14), radius: 4, y: 2)
             .accessibilityIdentifier("relay-message-bubble")
         }
+    }
+    private func content(_ message: PetRelayMessage) -> some View {
+        Text(verbatim: message.content)
+            .font(.system(size: message.icon != nil ? 32 : settings.fontSize.primaryPt))
+            .fixedSize(horizontal: false, vertical: true)
+    }
+    private func closeButton(_ message: PetRelayMessage) -> some View {
+        Button { relay.dismiss(message.id) } label: { Image(systemName: "xmark").font(.caption.bold()) }
+            .buttonStyle(.plain).help("Close this pet message")
+            .accessibilityIdentifier("relay-dismiss-message")
+    }
+    private func replyButton(_ message: PetRelayMessage) -> some View {
+        Button("Reply") { PetWindowController.shared.showMessageComposer(replyTo: message) }
+            .buttonStyle(.bordered).controlSize(.small)
+            .accessibilityIdentifier("relay-reply-message")
+            .disabled(message.pairID != relay.pair?.id)
     }
     private var foreground: Color {
         switch settings.theme { case .light: .black; case .dark: .white; case .system: .primary }

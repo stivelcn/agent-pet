@@ -355,6 +355,7 @@ final class PetWindowController: ObservableObject {
     /// Native popover placement flips/clamps at screen edges; closing it does not ACK a message.
     func showMessageComposer(forKey key: String = PetWindowPlanner.defaultKey,
                              replyTo: PetRelayMessage? = nil) {
+        guard AppUpdateController.shared.phase != .installing else { return }
         closeStatsPopover()
         if let shown = messagePopover, shown.isShown, messageWindowKey == key,
            messageComposer?.replyTo?.id == replyTo?.id,
@@ -385,6 +386,13 @@ final class PetWindowController: ObservableObject {
         popover.show(relativeTo: anchor, of: content, preferredEdge: content.isFlipped ? .minY : .maxY)
         NSApp.activate(ignoringOtherApps: true)
         popover.contentViewController?.view.window?.makeKey()
+    }
+
+    func prepareForUpdate() throws {
+        if messagePopover?.isShown == true, let composer = messageComposer,
+           composer.submitting || !composer.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            throw AppUpdateError.message("Please send or close your unsent pet message before installing.")
+        }
     }
 
     // MARK: - Resize (per window)

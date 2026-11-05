@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Manual DMG distribution. No uploading, appcast, upstream credentials or updater.
+# Manual DMG production. Upload separately to this fork’s GitHub Releases for in-app updates.
 # Optional: SIGNING_IDENTITY="Developer ID Application: ..." NOTARY_PROFILE="..."
 set -euo pipefail
 cd "$(dirname "$0")/.."

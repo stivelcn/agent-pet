@@ -139,11 +139,12 @@ private struct AboutTab: View {
                     Text(verbatim: LocalConfiguration.displayName).font(.title2.bold())
                     Text("A local companion for your AI coding work.")
                         .font(.callout).foregroundStyle(.secondary)
-                    Text("Manual updates only. Pet messaging is optional; no subscription polling.")
+                    Text("Check and download GitHub releases here. Pet messaging is optional.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity).padding(.vertical, 8)
             }
+            AppUpdateView()
             Section("Local data") {
                 LabeledContent("Data folder", value: AgentPetPaths.baseDir)
                     .textSelection(.enabled)

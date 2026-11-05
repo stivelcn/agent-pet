@@ -46,60 +46,13 @@ final class PetWindowModel: ObservableObject {
         self.chatLine = chatLine
     }
 
-    // MARK: - Pet tap interaction (per window)
-    // Lives here, not on the shared controller, so tapping one pet in split
-    // mode only shows feedback for THAT pet. The visual stays in its idle loop;
-    // the short-lived isPetted flag no longer drives squash/stretch motion.
+    enum TapDestination: Equatable {
+        case none, pairing, composer(String)
+    }
 
-    @Published private(set) var isPetted = false
-    @Published private(set) var petReactionLine: String = ""
-    @Published private(set) var petTapCount: Int = 0
-
-    private var petBounceTimer: Timer?
-    private var petLineTimer: Timer?
-    private var petCooldown = false
-    private var consecutivePets = 0
-    private var lastPetTime: Date?
-
-    private static let petReactions: [[String]] = [
-        ["Hehe~", "That tickles!", "Hi there! 👋", "Oh! Hello~", "*purrs*", "Nyaa~"],
-        ["I love you! 💕", "More pets please!", "Best human ever!", "So happy~ ✨"],
-        ["MAXIMUM LOVE! 💖", "Can't stop smiling! 🥰", "I'm gonna melt~"],
-    ]
-
-    func petTap(localizationBundle: Bundle = .main) {
-        guard !petCooldown else { return }
-        petCooldown = true
-
-        let now = Date()
-        if let last = lastPetTime, now.timeIntervalSince(last) < 3.0 {
-            consecutivePets += 1
-        } else {
-            consecutivePets = 1
-        }
-        lastPetTime = now
-
-        let tier = consecutivePets >= 6 ? 2 : consecutivePets >= 3 ? 1 : 0
-        // Resolve on each tap so the reaction follows the current app language.
-        let reactionKey = Self.petReactions[tier].randomElement() ?? "Hehe~"
-        petReactionLine = NSLocalizedString(reactionKey, bundle: localizationBundle, comment: "Pet tap reaction")
-        petTapCount += 1
-
-        isPetted = true
-        petBounceTimer?.invalidate()
-        petBounceTimer = Timer.scheduledTimer(withTimeInterval: 0.15, repeats: false) { _ in
-            Task { @MainActor [weak self] in self?.isPetted = false }
-        }
-
-        petLineTimer?.invalidate()
-        petLineTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { _ in
-            Task { @MainActor [weak self] in self?.petReactionLine = "" }
-        }
-
-        NSSound(named: "Pop")?.play()
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
-            self?.petCooldown = false
-        }
+    /// No reaction state, timer or sound: a drag must never send the user into messaging.
+    func tapDestination(wasDrag: Bool, paired: Bool) -> TapDestination {
+        if wasDrag { return .none }
+        return paired ? .composer(key) : .pairing
     }
 }

@@ -30,7 +30,7 @@ let package = Package(
             name: "agentpet",
             dependencies: ["AgentPetCore", "AgentSpeedCore"],
             path: "Sources/App",
-            resources: [.copy("Resources/BuiltinPets")]
+            resources: [.copy("Resources/BuiltinPets"), .copy("Resources/UpdateInstaller.sh")]
         ),
         .testTarget(
             name: "AgentPetCoreTests",

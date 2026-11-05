@@ -6,6 +6,7 @@ struct PetRelayComposerView: View {
     @ObservedObject var model: PetRelayComposerModel
     @ObservedObject private var relay: PetRelayController
     @ObservedObject private var language = AppLanguage.shared
+    @ObservedObject private var update = AppUpdateController.shared
     @FocusState private var inputFocused: Bool
     let onClose: () -> Void
 
@@ -51,6 +52,7 @@ struct PetRelayComposerView: View {
         .padding(14).frame(width: 300)
         .environment(\.locale, language.locale)
         .accessibilityIdentifier("relay-desktop-composer")
+        .disabled(update.phase == .installing)
         .task { await Task.yield(); inputFocused = model.validContext }
         .onChange(of: model.didSend) { _, sent in if sent { onClose() } }
     }

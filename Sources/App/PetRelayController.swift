@@ -97,6 +97,11 @@ final class PetRelayController: ObservableObject {
         } catch { persistenceError = PetRelayError.storage.localizedDescription; return false }
     }
 
+    func saveForUpdate() throws {
+        guard !isBusy, !syncing else { throw AppUpdateError.message("Please wait for pet messaging to finish before installing.") }
+        guard save() else { throw AppUpdateError.message("User data could not be saved. Installation was stopped.") }
+    }
+
     private func apply(_ snapshot: PetRelaySnapshot) throws {
         guard snapshot.deviceID == credential?.deviceID else { throw PetRelayError.credentials }
         mailbox.merge(snapshot)

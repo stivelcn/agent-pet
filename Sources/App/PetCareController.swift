@@ -211,6 +211,11 @@ final class PetCareController: ObservableObject {
     /// All achievements unlocked by the currently selected pet.
     var achievements: Set<Achievement> { current.unlockedAchievements ?? [] }
 
+    func saveForUpdate() throws {
+        persist()
+        guard persistenceError == nil else { throw AppUpdateError.message("User data could not be saved. Installation was stopped.") }
+    }
+
     private func persist() {
         guard persistenceError == nil else { return }
         guard archive.isValid else {

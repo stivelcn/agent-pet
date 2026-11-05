@@ -320,18 +320,6 @@
     "method": "allBaseKeysHaveSimplifiedChineseTranslations"
   },
   {
-    "file": "Tests/AgentPetAppTests/PetTapLocalizationTests.swift",
-    "method": "allThirteenTapReactionsHaveChineseTranslations"
-  },
-  {
-    "file": "Tests/AgentPetAppTests/PetTapLocalizationTests.swift",
-    "method": "tapsUseChineseAtEveryTierAndPreserveCooldown"
-  },
-  {
-    "file": "Tests/AgentPetAppTests/PetTapLocalizationTests.swift",
-    "method": "nextTapResolvesItsCurrentLanguageRatherThanCachingEnglish"
-  },
-  {
     "file": "Tests/AgentPetAppTests/ProjectIdentityTests.swift",
     "method": "testUsageIdentityUsesTheSameIdAsProjectNames"
   },
@@ -2574,5 +2562,97 @@
   {
     "file": "Tests/AgentPetCoreTests/LocalConnectionTests.swift",
     "method": "luMateUpgradeRequiresExplicitDisconnectBeforeChangingHookPath"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetTapInteractionTests.swift",
+    "method": "pairedTapOpensTheClickedPetsComposer"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetTapInteractionTests.swift",
+    "method": "unpairedTapOpensPairingSettings"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetTapInteractionTests.swift",
+    "method": "draggingNeverOpensMessagingOrPairing"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetTapInteractionTests.swift",
+    "method": "repeatedTapsDoNotNeedReactionTimersOrCooldowns"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/AppUpdateTests.swift",
+    "method": "versionsCompareNumericallyAndRejectPrereleaseOrMalformedTags"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/AppUpdateTests.swift",
+    "method": "onlyNewerPublishedStableVersionsAreUpdates"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/AppUpdateTests.swift",
+    "method": "selectsOnlyVerifiedAssetsInThisRepositoryForTheRightMac"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/AppUpdateTests.swift",
+    "method": "checkHandlesAvailableCurrentMissingRateLimitedAndBadResponses"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/AppUpdateTests.swift",
+    "method": "downloadVerifiesBytesAndNeverOverwritesExistingFiles"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/AppUpdateTests.swift",
+    "method": "failedOrTamperedDownloadsStayRetryable"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/AppUpdateTests.swift",
+    "method": "cancellationDoesNotLeaveAnInstallablePartialDownload"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/AppUpdateTests.swift",
+    "method": "installerRejectsIncompleteOrChangedDiskImages"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/AppUpdateTests.swift",
+    "method": "installerRejectsDevelopmentAppsDiskImagesAndTranslocatedPaths"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/AppUpdateTests.swift",
+    "method": "shellArgumentsRemainLiteralEvenWithSpacesQuotesAndMetacharacters"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/AppUpdateTests.swift",
+    "method": "bundleSwapAndRollbackPreserveOldAppAndAllAdjacentUserData"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/AppUpdateTests.swift",
+    "method": "failedPreparationNeverMovesTheInstalledApplication"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetMessageExpansionTests.swift",
+    "method": "expandedMessagesAreChronologicalWithStableTieBreaking"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetMessageExpansionTests.swift",
+    "method": "expandingAndCollapsingNeverAcknowledgesOrDeletesMessages"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetMessageExpansionTests.swift",
+    "method": "newMessagesAppearWithoutCollapsingAndIndividualActionsKeepTheRest"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/AppUpdateTests.swift",
+    "method": "validatesRealSignedApplicationsAndRejectsTamperingOrWrongVersions"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/AppUpdateTests.swift",
+    "method": "realDMGPreparationDetachesVolumeAndTransactionPreservesData"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/IterationViewTests.swift",
+    "method": "collapsedAndExpandedMessageViewsRenderWithoutChangingMailbox"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/IterationViewTests.swift",
+    "method": "updateSectionRendersInTheSettingsForm"
   }
 ]

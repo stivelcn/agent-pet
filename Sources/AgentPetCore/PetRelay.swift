@@ -193,20 +193,30 @@ public struct PetRelayMailbox: Codable, Equatable, Sendable {
 
     public mutating func accept(_ clientID: String) {
         guard let draft = outbox.first(where: { $0.id == clientID }) else { return }
-        if let parent = draft.replyTo { dismiss(parent) }
+        if let parent = draft.replyTo,
+           incoming.first(where: { $0.id == parent })?.interaction == nil { dismiss(parent) }
         outbox.removeAll { $0.id == clientID }
     }
 
-    /// Consume before display, including expired/hidden events. A restart never replays a visit.
-    /// Unread messages stay available for an explicit reply or dismissal.
-    public mutating func consumeInteractions(at now: Double, canAnimate: Bool) -> PetRelayMessage? {
+    /// Automatic playback is consumed durably; replay bubbles remain until explicitly closed.
+    /// Every fresh event is queued, including bursts received in the same snapshot.
+    public mutating func consumeInteractionBatch(at now: Double, canAnimate: Bool) -> [PetRelayMessage] {
         let seen = playedInteractions ?? []
         let new = incoming.filter { $0.gesture != nil && !seen.contains($0.id) }
         playedInteractions = Set(incoming.filter { $0.gesture != nil }.map(\.id))
-        guard canAnimate else { return nil }
-        return new.last {
+        guard canAnimate else { return [] }
+        return new.filter {
             $0.interaction != nil && $0.pairID == pair?.id && $0.createdAt <= now + 5
                 && now - $0.createdAt <= 30 && ($0.expiresAt ?? 0) > now
         }
+    }
+
+    /// Manual replay uses the retained message, independently of automatic expiry or pairing.
+    public func replayInteraction(_ id: String) -> PetRelayMessage? {
+        incoming.first { $0.id == id && $0.interaction != nil && !handled.contains(id) }
+    }
+
+    public mutating func consumeInteractions(at now: Double, canAnimate: Bool) -> PetRelayMessage? {
+        consumeInteractionBatch(at: now, canAnimate: canAnimate).last
     }
 }

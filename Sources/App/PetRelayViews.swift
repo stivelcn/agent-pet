@@ -24,7 +24,7 @@ struct PetRelaySettingsView: View {
                             .help("Refresh pet messages")
                     }
                 }
-                Text("Pair two pets to send short messages and little gestures. Unread bubbles stay until you close or reply to them.")
+                Text("Pair two pets to send messages and interact. Click an interaction bubble to replay; it stays until you close it.")
                     .font(.caption).foregroundStyle(.secondary)
                 Button { showInteractionPreview = true } label: {
                     Label("Preview pet interactions", systemImage: "sparkles")
@@ -60,7 +60,7 @@ struct PetRelaySettingsView: View {
                     pairing
                 }
                 Divider()
-                Text("Pairing shares your nickname, pet name, appearance and messages. Imported pets share a small portrait. No pet levels, usage data or AI configuration is uploaded. This relay uses HTTPS, not end-to-end encryption. Offline visits stay as messages without replaying old animations.")
+                Text("Pairing shares your nickname, pet name, appearance and messages. Imported pets share a small portrait. No pet levels, usage data or AI configuration is uploaded. This relay uses HTTPS, not end-to-end encryption. Offline interactions keep a replay bubble. Older animations play only when you click it.")
                     .font(.caption2).foregroundStyle(.secondary)
             }
             .padding(20)
@@ -145,7 +145,7 @@ struct PetMessageBubble: View {
         self.relay = relay
         _expansion = State(initialValue: PetMessageExpansion(isExpanded: initiallyExpanded))
     }
-    private var messages: [PetRelayMessage] { expansion.ordered(relay.incoming) }
+    private var messages: [PetRelayMessage] { expansion.ordered(relay.incoming.filter { $0.interaction == nil }) }
 
     var body: some View {
         if let message = messages.first {

@@ -1140,3 +1140,14 @@
 "This interaction expired. Send a new one when connected." = "This interaction expired. Send a new one when connected.";
 
 "Pairing shares your nickname, pet name, appearance and messages. Imported pets share a small portrait. No pet levels, usage data or AI configuration is uploaded. This relay uses HTTPS, not end-to-end encryption. Offline visits stay as messages without replaying old animations." = "Pairing shares your nickname, pet name, appearance and messages. Imported pets share a small portrait. No pet levels, usage data or AI configuration is uploaded. This relay uses HTTPS, not end-to-end encryption. Offline visits stay as messages without replaying old animations.";
+
+/* 互动回放说明 */
+"Pair two pets to send messages and interact. Click an interaction bubble to replay; it stays until you close it." = "Pair two pets to send messages and interact. Click an interaction bubble to replay; it stays until you close it.";
+"Pairing shares your nickname, pet name, appearance and messages. Imported pets share a small portrait. No pet levels, usage data or AI configuration is uploaded. This relay uses HTTPS, not end-to-end encryption. Offline interactions keep a replay bubble. Older animations play only when you click it." = "Pairing shares your nickname, pet name, appearance and messages. Imported pets share a small portrait. No pet levels, usage data or AI configuration is uploaded. This relay uses HTTPS, not end-to-end encryption. Offline interactions keep a replay bubble. Older animations play only when you click it.";
+"%@ gave you a hug" = "%@ gave you a hug";
+"%@ gave you a poke" = "%@ gave you a poke";
+"%@ peeked at you" = "%@ peeked at you";
+"Replay this interaction" = "Replay this interaction";
+"Enable animations to replay" = "Enable animations to replay";
+"Close this interaction" = "Close this interaction";
+"Receive a local preview. Replay the bubble as often as you like; close it to dismiss." = "Receive a local preview. Replay the bubble as often as you like; close it to dismiss.";

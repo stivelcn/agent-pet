@@ -1140,3 +1140,16 @@
 "This interaction expired. Send a new one when connected." = "这次互动已过期，联网后可以再发一次。";
 
 "Pairing shares your nickname, pet name, appearance and messages. Imported pets share a small portrait. No pet levels, usage data or AI configuration is uploaded. This relay uses HTTPS, not end-to-end encryption. Offline visits stay as messages without replaying old animations." = "配对会分享你的昵称、宠物名字、形象和消息；导入的宠物仅分享小尺寸头像。不上传等级、用量或 AI 配置。中转使用 HTTPS，非端到端加密。离线来访会保留为消息，不补播过期动画。";
+
+/* 双宠互动与本地回放 */
+"%@ gave you a hug" = "%@抱了你一下";
+"%@ gave you a poke" = "%@戳了你一下";
+"%@ peeked at you" = "%@探头看了看你";
+"Replay this interaction" = "点击回放这次互动，可反复播放";
+"Enable animations to replay" = "开启动画并关闭减弱动态效果后可回放";
+"Close this interaction" = "关闭这条互动气泡";
+"Receive a local preview. Replay the bubble as often as you like; close it to dismiss." = "在本机模拟收到互动。点击气泡可反复回放，点叉才关闭。";
+
+/* 互动回放说明 */
+"Pair two pets to send messages and interact. Click an interaction bubble to replay; it stays until you close it." = "配对后可以传话，也可以让两只宠物互动。点击互动气泡可反复回放，点叉才关闭。";
+"Pairing shares your nickname, pet name, appearance and messages. Imported pets share a small portrait. No pet levels, usage data or AI configuration is uploaded. This relay uses HTTPS, not end-to-end encryption. Offline interactions keep a replay bubble. Older animations play only when you click it." = "配对会分享昵称、宠物名字、形象和消息。导入宠物只分享小尺寸头像，不上传宠物等级、用量数据或 AI 配置。中转采用 HTTPS，未提供端到端加密。离线收到的互动会保留气泡，过期动画仅在点击气泡时回放。";

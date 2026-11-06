@@ -85,33 +85,6 @@ struct PetRelayAvatar: View {
     }
 }
 
-/// A transient visitor never takes keyboard focus or opens a window.
-struct PetRelayVisitView: View {
-    let message: PetRelayMessage
-    @StateObject private var player = PetInteractionPlayer()
-    var body: some View {
-        HStack(spacing: 8) {
-            if let pack = PetRelayAppearance.pack(for: message.senderPet) {
-                PetInteractionSpriteView(pack: pack, player: player, size: 76)
-                    .onAppear {
-                        if let action = message.interaction.flatMap({ PetInteraction(rawValue: $0.rawValue) }) {
-                            player.play(action, in: pack)
-                        }
-                    }
-            } else {
-                PetRelayAvatar(profile: message.senderPet, size: 76)
-            }
-            VStack(alignment: .leading, spacing: 3) {
-                Text(verbatim: message.senderPet?.name ?? message.senderName).font(.caption.bold())
-                Text(InterfaceText.format(message.interaction?.labelKey ?? "Pet visit")).font(.caption)
-                Text(verbatim: message.interaction?.symbol ?? "✨").font(.title2)
-            }
-        }
-        .padding(6).allowsHitTesting(false)
-        .accessibilityIdentifier("relay-pet-visitor")
-    }
-}
-
 extension PetRelayMessage {
     var displayContent: String {
         guard let interaction else { return content }

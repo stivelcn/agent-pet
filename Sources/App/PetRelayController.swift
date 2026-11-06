@@ -258,7 +258,10 @@ final class PetRelayController: ObservableObject {
                 throw PetRelayError.server("not_paired")
             }
             guard mailbox.outbox.count < 20 else { throw PetRelayError.server("rate_limited") }
-            let draft = PetRelayDraft(pairID: pair.id, text: text.map(PetRelayValidation.trimmedText), icon: icon, replyTo: replyTo,
+            // The server handles a reply's parent. Interactive bubbles are closed explicitly instead.
+            let parentIsInteraction = mailbox.incoming.first(where: { $0.id == replyTo })?.interaction != nil
+            let draft = PetRelayDraft(pairID: pair.id, text: text.map(PetRelayValidation.trimmedText), icon: icon,
+                                     replyTo: parentIsInteraction ? nil : replyTo,
                                      gesture: gesture, expiresAt: gesture == nil ? nil : Date().timeIntervalSince1970 + 30)
             mailbox.outbox.append(draft)
             guard save() else { mailbox.outbox.removeAll { $0.id == draft.id }; throw PetRelayError.storage }
@@ -296,10 +299,14 @@ final class PetRelayController: ObservableObject {
     }
 
     func consumeInteractions(canAnimate: Bool, now: Double = Date().timeIntervalSince1970) -> PetRelayMessage? {
+        consumeInteractionBatch(canAnimate: canAnimate, now: now).last
+    }
+
+    func consumeInteractionBatch(canAnimate: Bool, now: Double = Date().timeIntervalSince1970) -> [PetRelayMessage] {
         let before = mailbox
-        let event = mailbox.consumeInteractions(at: now, canAnimate: canAnimate)
-        guard mailbox != before else { return nil }
-        guard save() else { mailbox = before; return nil }
-        return event
+        let events = mailbox.consumeInteractionBatch(at: now, canAnimate: canAnimate)
+        guard mailbox != before else { return [] }
+        guard save() else { mailbox = before; return [] }
+        return events
     }
 }

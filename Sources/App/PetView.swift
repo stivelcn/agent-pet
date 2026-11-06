@@ -105,9 +105,9 @@ struct FloatingPetView: View {
     @ObservedObject private var appLang = AppLanguage.shared
     @ObservedObject private var completions = CompletionNoticeStore.shared
     @ObservedObject private var relay = PetRelayController.shared
+    @ObservedObject private var imagePets = ImagePetStore.shared
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @StateObject private var interactionPlayer = PetInteractionPlayer()
-    @State private var visitor: PetRelayMessage?
+    @StateObject private var pairPlayer = PetPairInteractionPlayer()
 
     private var completionNotices: [CompletionNotice] {
         completions.notices(forWindow: model.key, split: pet.splitPet,
@@ -120,11 +120,12 @@ struct FloatingPetView: View {
 
     var body: some View {
         VStack(spacing: 2) {
-            if let visitor {
-                alignedToPet(PetRelayVisitView(message: visitor).id(visitor.id))
+            if model.key == PetWindowPlanner.defaultKey && relay.incoming.contains(where: { $0.interaction != nil }) {
+                alignedToPet(PetInteractionBubbles(messages: relay.incoming, canReplay: canPlayInteractions,
+                    replay: replayInteraction, close: { relay.dismiss($0) }))
             }
             // Messages are independent of task/chat visibility and appear on the home pet only.
-            if model.key == PetWindowPlanner.defaultKey && !relay.incoming.isEmpty {
+            if model.key == PetWindowPlanner.defaultKey && relay.incoming.contains(where: { $0.interaction == nil }) {
                 alignedToPet(PetMessageBubble())
             }
             if pet.showChat && model.petID != nil {
@@ -142,12 +143,11 @@ struct FloatingPetView: View {
                                             projectName: pet.splitPet ? model.projectName : nil))
                 }
             }
-            PetView(model: model, size: pet.petPoint,
-                    interactionPlayer: model.key == PetWindowPlanner.defaultKey ? interactionPlayer : nil)
+            desktopPet
                 .gesture(petDragOrTap)
                 // Kept under its on-screen spot when the window is pushed back
                 // onto the screen (offset doesn't change the measured size).
-                .offset(x: model.petOffset)
+                .offset(x: pairPlayer.active == nil || localPack == nil ? model.petOffset : 0)
                 // The window jumps instantly, so the counter-shift must too:
                 // animating it (outer spring on sessions.count) slid the pet
                 // out of the window for a few frames.
@@ -174,29 +174,44 @@ struct FloatingPetView: View {
         .environment(\.petOnScreen, model.isOnScreen)
         .onAppear { receiveInteractions() }
         .onChange(of: relay.incoming) { _, _ in receiveInteractions() }
-        .onChange(of: model.isOnScreen) { _, _ in receiveInteractions() }
-        .onChange(of: pet.animationsEnabled) { _, _ in receiveInteractions() }
-        .onChange(of: reduceMotion) { _, _ in receiveInteractions() }
-        .onChange(of: model.petID) { _, _ in visitor = nil; interactionPlayer.stop() }
-        .onChange(of: relay.pair?.id) { _, _ in visitor = nil; interactionPlayer.stop() }
-        .task(id: visitor?.id) {
-            guard visitor != nil else { return }
-            do { try await Task.sleep(for: .seconds(2.1)) } catch { return }
-            visitor = nil
+        .onChange(of: canPlayInteractions) { _, _ in receiveInteractions() }
+        .onChange(of: model.petID) { _, _ in pairPlayer.stop() }
+        .onChange(of: relay.pair?.id) { _, _ in pairPlayer.stop() }
+        .onDisappear { pairPlayer.stop() }
+    }
+
+    private var localPack: ImagePetPack? {
+        guard let id = model.petID, let pack = imagePets.pack(id: id), !pack.restingFrames.isEmpty else { return nil }
+        return pack
+    }
+
+    private var canPlayInteractions: Bool {
+        pet.animationsEnabled && model.isOnScreen && !reduceMotion && localPack != nil
+    }
+
+    @ViewBuilder private var desktopPet: some View {
+        if let active = pairPlayer.active, let pack = localPack,
+           let artwork = PetPairArtwork(local: pack, message: active.message) {
+            PetPairSceneView(artwork: artwork, playback: active, petSize: pet.petPoint,
+                             localOffset: model.petOffset, visitorOnRight: model.petOffset < 0,
+                             onCompletion: { pairPlayer.finish($0) })
+                .frame(width: pet.petPoint * 3.4, height: pet.petPoint)
+                .contentShape(Rectangle())
+        } else {
+            PetView(model: model, size: pet.petPoint)
         }
-        .onDisappear { visitor = nil; interactionPlayer.stop() }
+    }
+
+    private func replayInteraction(_ message: PetRelayMessage) {
+        guard canPlayInteractions, let retained = relay.mailbox.replayInteraction(message.id) else { return }
+        pairPlayer.replay(retained)
     }
 
     private func receiveInteractions() {
         guard model.key == PetWindowPlanner.defaultKey else { return }
-        let canAnimate = pet.animationsEnabled && model.isOnScreen && !reduceMotion
-        if !canAnimate { visitor = nil; interactionPlayer.stop() }
-        guard let event = relay.consumeInteractions(canAnimate: canAnimate) else { return }
-        visitor = event
-        if let id = model.petID, let pack = ImagePetStore.shared.pack(id: id) {
-            let reaction: PetInteraction = event.interaction == .hug ? .hug : event.interaction == .poke ? .poked : .peek
-            interactionPlayer.play(reaction, in: pack, animationsEnabled: canAnimate)
-        }
+        if !canPlayInteractions { pairPlayer.stop() }
+        pairPlayer.retain(Set(relay.incoming.map(\.id)))
+        pairPlayer.enqueue(relay.consumeInteractionBatch(canAnimate: canPlayInteractions))
     }
 
     // Layout width of the bubble incl. padding (unaffected by offset/scale, so

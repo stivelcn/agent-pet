@@ -1,50 +1,42 @@
-# 宠物互动动作
+# 宠物互动与回放
 
 ## 使用
 
-「设置 → 传话 → 预览宠物互动」提供噜噜、噜妹的戳戳、被戳、抱抱、探头。每次播放约两秒，完成后切回原待机；再次点击会从第一帧重播，关闭预览会停止计时器。关闭应用动画或启用系统「减弱动态效果」时按钮停用。
+在「设置 → 传话 → 预览宠物互动」选择自己的宠物，模拟收到「戳戳、抱抱、探头」。两只宠物在同一地面靠近、接触、分开，约 3.6 秒后回到原待机；预览不注册设备、不访问中转、不发送消息。
 
-配对后，单击桌宠可在发送框里看到对方的实际形象，并发送「戳戳、抱抱、探头」。设置的传话页也显示对方形象。噜噜、噜妹使用应用内自带的同款动作；导入的宠物分享 96×104 透明头像，来访时显示头像及互动符号。
+配对后单击桌宠可看到对方形象并发送互动。收到新互动时自动播放一次，留下「噜妹抱了你一下」这样的气泡。点击气泡可无限次回放，点叉才关闭。多条互动排队播放，各自保留回放气泡，最多显示约三条并可滚动查看其他条目。互动与普通传话分开显示。
 
-收到新互动时，对方宠物短暂来访约两秒，本地宠物同步播放被戳、抱抱或探头，然后恢复原待机。互动消息保留在未读气泡；点「戳回去 / 抱回去」发送成功后才处理该条消息，其他未读保留。失败可以重试，取消不会处理来信。
-
-关闭动画、启用 macOS「减弱动态效果」或桌宠不可见时不播放来访。互动 30 秒过期，离线后仍保留文字摘要，重连不连续补播旧动作。待发互动超过 30 秒不会重试，普通传话继续使用原持久队列。连续互动间隔至少三秒。
+播放与回放不处理消息、不发送新互动；仅点叉发送已处理回执。普通文字或图标来信仍可通过关闭或回复处理。30 秒有效期只限制自动播放和待发重试，旧气泡在过期、重启、解除配对后仍可本地回放。重连与重复同步不自动补播，离线收到的旧互动可手动播放。关闭动画、减弱动态效果或桌宠不可见时不播放，气泡仍保留。发送间隔至少三秒。
 
 ## 形象与协议
 
-新版中转在同步数据中声明 `pet-interactions-v1` 能力。客户端在主动配对后同步宠物名字、内置形象 ID 或小头像；选中形象/名字变化最迟在下一次 20 秒同步更新。只同步改动；旧中转或未更新的对方会显示提示，原文字和图标消息仍可使用。
+沿用 `pet-interactions-v1`、`POST v1/device/pet` 和消息中的 `gesture`、`expiresAt`、`senderPet`。只同步宠物名字、内置形象 ID 或 96×104 / 最大 32 KiB 的透明头像，不上传宠物档案或完整动作表。选中形象和名字变化最迟在下一次 20 秒同步更新。
 
-新增 `POST v1/device/pet`，消息支持 `gesture`、`expiresAt`，并保存发送当时的 `senderPet`。只允许 `poke/hug/peek`，每条消息必须在文字、图标、动作中三选一。客户端和服务端都校验配对 ID，回击不能转给后来配对的人。服务端校验 PNG 格式、尺寸和解压长度，最大 128×128 / 32 KiB；客户端只上传 96×104 单帧，不上传整张动作图或宠物档案。
+内置访客使用随应用发布的原版形象；本地导入宠物保留自身像素，通过倾斜、回缩等动作回应，导入访客使用收到的头像。历史气泡保留发送当时的昵称和形象，不套用后来配对者的形象。
 
-来访 ID 在显示前原子保存，重启、重复同步和丢失 HTTP 响应都不会重播。来访消费与未读处理相互独立；持久化失败时不播放、不确认。服务端为旧客户端提供动作文字摘要。数据库使用可重复的增列迁移，保留已有凭据、配对和消息。
+自动播放 ID 在显示前持久化；批量消息逐条排队，重复同步与重启不自动重播。回放直接读取本地未关闭消息，不修改邮箱、送达或处理状态。每次播放使用唯一 ID，旧完成回调不能打断新播放；关闭气泡会取消该条当前或排队动作。持久化失败不播放、不确认。
 
-线上中转已于 2026-11-06 更新并通过公网验证，双方需安装新版客户端。所有表情和互动沿用统一清理规则：已处理超过六小时后，在下一轮定时清理中删除；未处理消息保留，动作过期不会删除消息。部署步骤见 `server/agentpet-relay/README.md`；本地测试及打包不会自动部署线上服务。
+服务端无需修改。已处理超过六小时的消息，在下一轮定时清理中删除；未关闭互动不会因播放或动画过期触发清理。现有中转响应压缩继续生效。
 
 ## 资源与播放
 
-每个内置宠物增加可选的 `interactions.json` 和透明 `interactions.png`。后者为 1152×832，六列四行，每格 192×208。清单版本为 1，`clips` 用动作名称对应行号和 `frameDurationsMS`。旧包、缺失或损坏的附加清单不会影响原待机包加载。
+原单宠动作 `interactions.png/json` 保留，每个内置宠物额外增加 `pair-interactions.png`：1536×1024，六列四行，每格 256×256。四行依次是主动抱抱、收到抱抱、主动戳戳、被戳；主动者朝右，接收者朝左，右侧来访时共同镜像。探头沿用原有动作。
 
-`PetInteractionLibrary` 限制同目录图片、有效行号、每组 2～24 帧、单帧 20～2000 毫秒和总时长不超过四秒。`PetInteractionPlayer` 使用每次播放的唯一 ID，旧动画完成回调不能结束新动画。`ImageSpriteView` 保留原有循环默认值，额外支持播放一次；任务状态仍只改变原来的待机节奏，不自动播放互动。
+`PetPairPoseLibrary` 校验素材尺寸，按目录缓存。`PetPairArtwork` 只使用实际宠物包中的匹配姿态，缺失时使用真实待机图。`PetPairMotion` 统一定义靠近、接触、回缩和离开的时序。`PetPairStageNSView` 在短时播放内用 CALayer 更新，每秒 30 次；结束或取消即停止计时器，待机继续使用原有低频播放器。窗口扩展保留本地宠物锚点，根据屏边选择访客进入方向。
 
-## 提示词与重制
+## 素材重制
 
-- 模型：用户指定的 `gpt-image-2.6-flare`，服务为 `https://api.aimindsky.com/v1/images/edits`。
-- 模板、身份约束、动作顺序在 `model_prompt/images_edits.md`；每组完整请求文本在 `model_prompt/pet_interactions/{pet}/{action}/images_edits.md`。提示词不写在 Python/Swift 代码中。
-- 后续生图使用 `/Users/wangyuchen/.codex/skills/aimindsky-image/scripts/aimindsky_image.py edit`，凭据从 `AIMINDSKY_API_KEY` 或 macOS 钥匙串服务 `codex-aimindsky-image` 读取。不得把 Key 写入项目或日志。
-- 请求使用原待机首格参考、`size=1536x1024`、`quality=high`；编辑接口不加 `output_format`。保留服务返回的真实透明通道；如果返回蓝幕则移除背景。
+- 使用 Aimindsky `gpt-image-2.6-flare` 的 `images/edits` 接口，提示词从 `model_prompt/pet_pair/{pet}/images_edits.md` 读取。参考图取原待机首帧，1536×1024、高质量，不自动重试付费 POST。
+- Key 仅从环境 `AIMINDSKY_API_KEY` 或 macOS 钥匙串 `codex-aimindsky-image` 读取，不保存到项目、提示词或日志。
+- 原生成图保存在忽略目录 `outputs/pet-pair/`。本次模型返回有色背景，使用 macOS Vision 提取轮廓，保留生成的角色像素，不绘制替代角色。
+- 编译 `scripts/extract-pet-foreground.swift`，传入原图和 `output/pet-pair/cutouts/{pet}/`，导出 24 个透明姿态。
+- 用工作区 Pillow Python 运行 `scripts/prepare-pet-pair.py`，统一缩放、脚底和身体锚点，输出最终附加素材及忽略目录中的组装报告。
+- 最终素材随 SwiftPM 与 App 资源打包，运行不依赖项目外目录。
 
-制作辅助脚本是 `scripts/prepare-pet-interactions.py`，需使用 Codex 工作区自带的 Python/Pillow：
-
-1. `prepare` 从已有待机图提取参考，并从 Markdown 生成八组提示词和忽略目录 `output/pet-interactions/jobs.json`。这一步不调用模型。
-2. 用 Aimindsky 技能分别生成每组完整六帧，保存为 `output/pet-interactions/generated/{pet}-{action}.png`。每次生成后检查角色、动作、间隔和完整性，不自动重试收费 POST。
-3. `assemble` 只处理已有成图：清理背景与分离小杂点、使用每组统一比例和脚底锚点组装附加图。它不绘制或推算新的动作。
-4. 对两张最终图分别运行 hatch-pet 的 `despill_chroma_edges.py` 一次，蓝幕键为 `#0000FF`，确认报告 `ok: true` 与 `alpha_preserved: true`。不要重复去色。
-5. `review` 从最终打包的像素重新生成八个 GIF、总览图和双宠物动图 `output/pet-interactions/preview.gif`，做最终视觉检查。
-
-当前生成与 QA 中间文件在 Git 忽略的 `output/pet-interactions/`。最终运行素材在 `Sources/App/Resources/BuiltinPets/{pet}/`，已随 SwiftPM 和 macOS 应用包复制；运行不需要项目外的素材目录。
+原单宠提示词与组装脚本继续保留在 `model_prompt/pet_interactions/`、`scripts/prepare-pet-interactions.py`。
 
 ## 验证
 
-`./scripts/test.sh --filter 'PetInteractionTests|PetRelay|QuietPetAnimationTests|LocalizationParityTests'` 检查附加素材、循环兼容、一次播放、取消、重复点击、减少动态效果、协议兼容、过期、去重、回击和简体中文覆盖。完整回归使用 `./scripts/test.sh`，服务端使用 `build/relay-venv/bin/python -m unittest discover -s server/agentpet-relay -v`。测试使用独立偏好与临时数据，不调用模型、不访问真实配对。
+完整回归使用 `./scripts/test.sh`，隔离偏好与数据，不连接真实配对。定向测试可使用 `--filter 'PetPairInteractionTests|PetInteractionTests|PetRelayIntegrationTests'`。
 
-设置 `AGENTPET_RELAY_TEST_URL=http://127.0.0.1:端口/` 可运行 `isolatedLocalRelayRoundTripSynchronizesBothPetsAndReplies`，在本机隔离中转上创建两个临时身份，验证完整 Swift 客户端接口链路；只接受 localhost 地址。离屏渲染可通过 `AGENTPET_UI_SNAPSHOT_DIR` 输出截图，不显示窗口。
+设置 `AGENTPET_UI_SNAPSHOT_DIR` 可从实际播放层导出帧与中文气泡截图，不显示窗口。`scripts/review-pet-pair.py` 将这些真实帧合成为中文 GIF，供交付检查。测试覆盖批量自动播放、过期后无限回放、重启、重复同步、关闭回执、回复不关闭、双向来访、导入宠物和计时器取消。

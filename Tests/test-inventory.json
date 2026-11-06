@@ -2722,5 +2722,37 @@
   {
     "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
     "method": "isolatedLocalRelayRoundTripSynchronizesBothPetsAndReplies"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetPairInteractionTests.swift",
+    "method": "repeatedReplayRestartsAndOldCompletionsCannotInterruptQueuedVisits"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetPairInteractionTests.swift",
+    "method": "bothBuiltinPetsHaveContactPosesAndImportedPetsKeepTheirOwnPixels"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetPairInteractionTests.swift",
+    "method": "sceneFinishesExactlyOnceAndTeardownCancelsTimers"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetPairInteractionTests.swift",
+    "method": "chineseBubblesUsePetNicknamesAndStayBoundedWithManyMessages"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetPairInteractionTests.swift",
+    "method": "liveSceneRendersBothDirectionsAndExportsActualPlaybackFramesOffscreen"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetRelayTests.swift",
+    "method": "interactionBatchesKeepEveryBubbleAndManualReplaySurvivesExpiryAndRestart"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetRelayTests.swift",
+    "method": "replyingToAnInteractionDoesNotCloseItsReplayBubble"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "replayIsOfflineAndOnlyClosingSendsHandledReceipt"
   }
 ]

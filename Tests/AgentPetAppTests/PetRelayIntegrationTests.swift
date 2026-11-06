@@ -11,12 +11,14 @@ private actor RelayMockAPI: PetRelayTransport {
     var fail = false
     var failSend = false
     var payloads: [Data] = []
+    var acknowledgements: [Data] = []
     init(incoming: Bool = true) {
         state = PetRelaySnapshot(deviceID: "device1", name: "噜妹", pair: PetRelayPair(id: "pair1", peerName: "噜噜"),
             incoming: incoming ? [PetRelayMessage(id: "m1", clientID: "incoming-client1", pairID: "pair1", senderName: "噜噜", text: "喝水", createdAt: 1)] : [])
     }
     func setFail(_ value: Bool) { fail = value }
     func setFailSend(_ value: Bool) { failSend = value }
+    func receive(_ message: PetRelayMessage) { state.incoming.append(message) }
     func enableInteractions() {
         state.capabilities = ["pet-interactions-v1"]
         state.pair?.peerPet = PetRelayPetProfile(name: "噜噜", builtinID: "lulu")
@@ -35,6 +37,7 @@ private actor RelayMockAPI: PetRelayTransport {
             state.pet = try JSONDecoder().decode(PetRelayPetProfile.self, from: body)
         }
         if path == "v1/messages/ack", let ids = data["ids"] as? [String] {
+            if let body { acknowledgements.append(body) }
             if data["kind"] as? String == "handled" { state.incoming.removeAll { ids.contains($0.id) } }
             else {
                 for index in state.incoming.indices where ids.contains(state.incoming[index].id) { state.incoming[index].deliveredAt = 2 }
@@ -400,6 +403,43 @@ struct PetRelayIntegrationTests {
         let restart = controller(RelayMockAPI(), file: file)
         #expect(restart.consumeInteractions(canAnimate: true) == nil)
         #expect(restart.incoming.count == 1)
+        #expect(restart.mailbox.replayInteraction("v")?.interaction == .hug)
+        #expect(restart.mailbox.handled.isEmpty)
+    }
+
+    @Test func replayIsOfflineAndOnlyClosingSendsHandledReceipt() async throws {
+        let directory = try folder(); defer { try? FileManager.default.removeItem(at: directory) }
+        let file = directory.appendingPathComponent("messages.json")
+        let api = RelayMockAPI(incoming: false)
+        let visit = PetRelayMessage(id: "visit", clientID: "v", pairID: "pair1", senderName: "噜妹",
+            createdAt: 1, gesture: "hug", expiresAt: 31, senderPet: PetRelayPetProfile(name: "噜妹", builtinID: "lumei"))
+        await api.receive(visit)
+        let relay = controller(api, file: file)
+        await relay.refresh()
+        #expect(relay.consumeInteractionBatch(canAnimate: true).isEmpty)
+        let before = relay.mailbox
+        let paths = await api.paths
+        let player = PetPairInteractionPlayer()
+        for _ in 0..<100 {
+            player.replay(try #require(relay.mailbox.replayInteraction("visit")))
+            player.finish(try #require(player.active?.id))
+        }
+        #expect(relay.mailbox == before)
+        #expect(await api.paths == paths)
+        // Even an explicitly requested reply must not let the server handle the interaction.
+        #expect(await relay.send(text: "收到啦", replyTo: "visit", expectedPairID: "pair1"))
+        let payload = try #require(await api.payloads.last)
+        let object = try #require(JSONSerialization.jsonObject(with: payload) as? [String: Any])
+        #expect(object["replyTo"] == nil)
+        #expect(relay.mailbox.replayInteraction("visit") != nil)
+        relay.dismiss("visit")
+        await relay.refresh()
+        #expect(relay.mailbox.replayInteraction("visit") == nil)
+        let acks = try await api.acknowledgements.map { try JSONSerialization.jsonObject(with: $0) as! [String: Any] }
+        #expect(acks.contains { $0["kind"] as? String == "handled" && ($0["ids"] as? [String])?.contains("visit") == true })
+        let restart = controller(api, file: file)
+        await restart.refresh()
+        #expect(restart.mailbox.replayInteraction("visit") == nil)
     }
 
     @Test func pairedComposerRendersPeerAndActionsOffscreen() async throws {

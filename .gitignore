@@ -27,6 +27,8 @@ xcuserdata/
 
 # Local generated artwork, requests and scratch files
 /output/
+/outputs/
+scripts/__pycache__/
 
 # Local environment and signing credentials
 .env

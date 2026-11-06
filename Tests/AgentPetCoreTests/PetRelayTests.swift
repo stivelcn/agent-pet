@@ -140,4 +140,38 @@ struct PetRelayTests {
         #expect(PetRelayDraft(pairID: "p", gesture: .poke, expiresAt: 99).isExpired(at: 100))
         #expect(PetRelayDraft(pairID: "p", text: "hello").isExpired(at: 100) == false)
     }
+
+    @Test func interactionBatchesKeepEveryBubbleAndManualReplaySurvivesExpiryAndRestart() throws {
+        var box = PetRelayMailbox()
+        let visits = ["hug", "poke", "peek"].enumerated().map { index, gesture in
+            PetRelayMessage(id: "v\(index)", clientID: "v\(index)", pairID: "pair1", senderName: "噜妹",
+                            createdAt: 95 + Double(index), gesture: gesture, expiresAt: 125)
+        }
+        box.merge(snapshot(visits))
+        #expect(box.consumeInteractionBatch(at: 100, canAnimate: true).map(\.id) == visits.map(\.id))
+        #expect(box.consumeInteractionBatch(at: 101, canAnimate: true).isEmpty)
+        var restart = try JSONDecoder().decode(PetRelayMailbox.self, from: JSONEncoder().encode(box))
+        restart.merge(snapshot(pair: nil))
+        #expect(restart.consumeInteractionBatch(at: 99_999, canAnimate: true).isEmpty)
+        let before = restart
+        for _ in 0..<100 { #expect(restart.replayInteraction("v0") == visits.first) }
+        #expect(restart == before)
+        restart.dismiss("v0")
+        #expect(restart.replayInteraction("v0") == nil)
+        #expect(restart.handled == ["v0"])
+        restart.merge(snapshot(visits))
+        #expect(restart.incoming.map(\.id) == ["v1", "v2"])
+    }
+
+    @Test func replyingToAnInteractionDoesNotCloseItsReplayBubble() {
+        var box = PetRelayMailbox()
+        let visit = PetRelayMessage(id: "v", clientID: "v", pairID: "pair1", senderName: "噜妹",
+                                    createdAt: 95, gesture: "hug", expiresAt: 125)
+        box.merge(snapshot([visit]))
+        let reply = PetRelayDraft(pairID: "pair1", text: "收到", replyTo: "v")
+        box.outbox.append(reply)
+        box.accept(reply.id)
+        #expect(box.replayInteraction("v") == visit)
+        #expect(box.handled.isEmpty)
+    }
 }

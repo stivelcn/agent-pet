@@ -13,8 +13,8 @@ struct ReleaseVersion: Comparable, Equatable, Sendable {
     static func < (lhs: Self, rhs: Self) -> Bool { lhs.parts.lexicographicallyPrecedes(rhs.parts) }
 }
 
-struct GitHubRelease: Decodable, Sendable {
-    struct Asset: Decodable, Sendable {
+struct GitHubRelease: Codable, Sendable {
+    struct Asset: Codable, Equatable, Sendable {
         let name: String
         let size: Int64
         let browserDownloadURL: URL
@@ -33,6 +33,15 @@ struct GitHubRelease: Decodable, Sendable {
     let assets: [Asset]
     enum CodingKeys: String, CodingKey { case body, draft, prerelease, assets; case tagName = "tag_name" }
     static let apiURL = URL(string: "https://api.github.com/repos/stivelcn/lumate/releases/latest")!
+
+    static let mirrorRoot = URL(string: "https://imagepro.ycgod.online/lumate-updates/")!
+    static var mirrorAPIURL: URL { mirrorRoot.appendingPathComponent("latest.json") }
+
+    func mirrorURL(for asset: Asset) -> URL? {
+        guard assets.contains(where: { $0.name == asset.name }),
+              ["arm64", "x86_64"].contains(where: { dmg(architecture: $0)?.name == asset.name }) else { return nil }
+        return Self.mirrorRoot.appendingPathComponent(tagName).appendingPathComponent(asset.name)
+    }
 
     func isNewer(than current: String) -> Bool {
         guard !draft, !prerelease, let latest = ReleaseVersion(tagName), let current = ReleaseVersion(current) else { return false }

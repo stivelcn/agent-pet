@@ -6,8 +6,14 @@ import AgentPetCore
 struct PetTogetherControls: View {
     @ObservedObject var relay: PetRelayController = .shared
     var showInvites = true
+    var compact = false
 
-    var body: some View {
+    @ViewBuilder var body: some View {
+        if compact { content.buttonStyle(PetMenuButtonStyle()) }
+        else { content.buttonStyle(.bordered).controlSize(.small) }
+    }
+
+    private var content: some View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
             let now = context.date.timeIntervalSince1970 + relay.serverOffset
             VStack(alignment: .leading, spacing: 7) {
@@ -61,7 +67,6 @@ struct PetTogetherControls: View {
                     Text(verbatim: error).font(.caption2).foregroundStyle(.orange).fixedSize(horizontal: false, vertical: true)
                 }
             }
-            .buttonStyle(.bordered).controlSize(.small)
             .disabled(relay.isBusy)
         }
         .accessibilityIdentifier("pet-together-controls")

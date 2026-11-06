@@ -1,0 +1,17 @@
+[Unit]
+Description=Mirror verified LuMate releases from GitHub
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=lumate-updates
+Group=lumate-updates
+ExecStart=/usr/bin/python3 /srv/lumate-updates/sync_release.py
+TimeoutStartSec=600
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/srv/lumate-updates/public /srv/lumate-updates/state
+UMask=0022

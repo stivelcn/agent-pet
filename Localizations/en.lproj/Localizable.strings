@@ -1181,3 +1181,23 @@
 "Work together" = "Work together";
 "Gone to a friend's home" = "Gone to a friend's home";
 "High five! Well done today." = "High five! Well done today.";
+
+/* Pet menu and automatic updates */
+"Achievements and usage" = "Achievements and usage";
+"Expanded" = "Expanded";
+"Collapsed" = "Collapsed";
+"Both friends need to update for visits and work" = "Both friends need to update for visits and work";
+"Growth progress" = "Growth progress";
+"Eat %@ tokens to level up" = "Eat %@ tokens to level up";
+"Today consumed" = "Today consumed";
+"Companion streak" = "Companion streak";
+"Lifetime consumed" = "Lifetime consumed";
+"Completed sessions" = "Completed sessions";
+"Automatically check for updates" = "Automatically check for updates";
+"Automatically download and install updates" = "Automatically download and install updates";
+"When enabled, updates download in the background and LuMate restarts when no message is being edited. macOS authorization may still be required." = "When enabled, updates download in the background and LuMate restarts when no message is being edited. macOS authorization may still be required.";
+"Downloading from backup server…" = "Downloading from backup server…";
+"Updates use GitHub first and switch to the backup server on failure. Pet progress, usage history, settings and paired messages are kept." = "Updates use GitHub first and switch to the backup server on failure. Pet progress, usage history, settings and paired messages are kept.";
+"Automatic installation needs permission. Use Install and restart to authorize it." = "Automatic installation needs permission. Use Install and restart to authorize it.";
+"Wake up" = "Wake up";
+"Downloaded. Waiting for LuMate to be idle before installing." = "Downloaded. Waiting for LuMate to be idle before installing.";

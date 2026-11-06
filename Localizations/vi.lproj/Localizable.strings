@@ -570,3 +570,23 @@
 "User data could not be saved. Installation was stopped." = "Không thể lưu dữ liệu người dùng. Đã dừng cài đặt.";
 "Please wait for pet messaging to finish before installing." = "Vui lòng chờ xử lý xong tin nhắn thú cưng trước khi cài đặt.";
 "Please send or close your unsent pet message before installing." = "Vui lòng gửi hoặc đóng tin nhắn thú cưng chưa gửi trước khi cài đặt.";
+
+/* Pet menu and automatic updates */
+"Achievements and usage" = "Thành tích và mức dùng";
+"Expanded" = "Đã mở rộng";
+"Collapsed" = "Đã thu gọn";
+"Both friends need to update for visits and work" = "Cả hai cần cập nhật để ghé thăm và làm việc";
+"Growth progress" = "Tiến trình phát triển";
+"Eat %@ tokens to level up" = "Ăn thêm %@ tokens để lên cấp";
+"Today consumed" = "Hôm nay đã dùng";
+"Companion streak" = "Chuỗi đồng hành";
+"Lifetime consumed" = "Tổng đã dùng";
+"Completed sessions" = "Phiên hoàn thành";
+"Automatically check for updates" = "Tự động kiểm tra cập nhật";
+"Automatically download and install updates" = "Tự động tải và cài đặt cập nhật";
+"When enabled, updates download in the background and LuMate restarts when no message is being edited. macOS authorization may still be required." = "Khi bật, bản cập nhật tải nền và LuMate khởi động lại khi không soạn hoặc gửi tin nhắn. macOS vẫn có thể yêu cầu cấp quyền。";
+"Downloading from backup server…" = "Đang tải từ máy chủ dự phòng…";
+"Updates use GitHub first and switch to the backup server on failure. Pet progress, usage history, settings and paired messages are kept." = "Ưu tiên GitHub, chuyển sang máy chủ dự phòng nếu lỗi. Giữ nguyên tiến trình thú cưng, lịch sử, cài đặt và tin nhắn.";
+"Automatic installation needs permission. Use Install and restart to authorize it." = "Cài đặt tự động cần quyền. Chọn Cài đặt và khởi động lại để cấp quyền。";
+"Wake up" = "Thức dậy";
+"Downloaded. Waiting for LuMate to be idle before installing." = "Đã tải. Đợi LuMate rảnh để cài đặt.";

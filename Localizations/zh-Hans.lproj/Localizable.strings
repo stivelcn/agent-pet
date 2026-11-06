@@ -1183,3 +1183,23 @@
 "Work together" = "一起陪工";
 "Gone to a friend's home" = "去朋友家玩了";
 "High five! Well done today." = "击个掌，辛苦啦！";
+
+/* Pet menu and automatic updates */
+"Achievements and usage" = "成就与用量详情";
+"Expanded" = "已展开";
+"Collapsed" = "已收起";
+"Both friends need to update for visits and work" = "串门与陪工需双方更新";
+"Growth progress" = "成长进度";
+"Eat %@ tokens to level up" = "再吃 %@ tokens 即可升级";
+"Today consumed" = "今日消耗";
+"Companion streak" = "连续陪伴";
+"Lifetime consumed" = "累计消耗";
+"Completed sessions" = "完成会话";
+"Automatically check for updates" = "自动检查更新";
+"Automatically download and install updates" = "自动下载并安装更新";
+"When enabled, updates download in the background and LuMate restarts when no message is being edited. macOS authorization may still be required." = "开启后会在后台下载，并在没有编辑或发送消息时自动安装、重启。macOS 仍可能要求授权。";
+"Downloading from backup server…" = "正在从备用服务器下载…";
+"Updates use GitHub first and switch to the backup server on failure. Pet progress, usage history, settings and paired messages are kept." = "更新优先从 GitHub 下载，失败时自动切换备用服务器。宠物进度、用量历史、设置和配对消息都会保留。";
+"Automatic installation needs permission. Use Install and restart to authorize it." = "自动安装需要权限，请点击“安装并重启”完成授权。";
+"Wake up" = "出窝啦";
+"Downloaded. Waiting for LuMate to be idle before installing." = "已下载，待你结束操作后自动安装并重启。";

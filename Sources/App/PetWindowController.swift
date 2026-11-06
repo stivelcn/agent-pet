@@ -351,7 +351,8 @@ final class PetWindowController: ObservableObject {
         let popover = NSPopover()
         popover.behavior = .transient
         popover.animates = true
-        let host = NSHostingController(rootView: PetStatsView(windowKey: windowKey, petID: petID))
+        popover.appearance = NSAppearance(named: .darkAqua)
+        let host = NSHostingController(rootView: PetStatsView(windowKey: windowKey, petID: petID, maximumHeight: max(360, (view.window?.screen?.visibleFrame.height ?? 800) - 60)))
         // Size the popover to the card before showing it. Otherwise AppKit
         // places it for the hosting view's provisional size and, in binaries
         // linked against an older SDK, does not move it back on screen when the

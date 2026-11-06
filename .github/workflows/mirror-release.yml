@@ -1,0 +1,38 @@
+name: Mirror LuMate release
+on:
+  release:
+    types: [published, edited]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Stable tag to mirror, or latest
+        default: latest
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: lumate-release-mirror
+  cancel-in-progress: false
+jobs:
+  mirror:
+    if: github.event_name == 'workflow_dispatch' || (!github.event.release.draft && !github.event.release.prerelease)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Synchronize verified release to backup server
+        env:
+          MIRROR_KEY: ${{ secrets.LUMATE_MIRROR_SSH_KEY }}
+          MIRROR_HOST_KEYS: ${{ secrets.LUMATE_MIRROR_KNOWN_HOSTS }}
+          RELEASE_TAG: ${{ inputs.tag || github.event.release.tag_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_TAG" == latest || "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          test -n "$MIRROR_KEY" && test -n "$MIRROR_HOST_KEYS"
+          umask 077
+          work="$(mktemp -d)"
+          trap 'rm -rf "$work"' EXIT
+          printf '%s\n' "$MIRROR_KEY" > "$work/key"
+          printf '%s\n' "$MIRROR_HOST_KEYS" > "$work/known_hosts"
+          ssh -i "$work/key" -o IdentitiesOnly=yes -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$work/known_hosts" \
+            -o ConnectTimeout=15 lumate-updates@150.109.4.188 "sync $RELEASE_TAG"

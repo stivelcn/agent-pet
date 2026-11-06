@@ -569,3 +569,23 @@
 "User data could not be saved. Installation was stopped." = "使用者資料未能安全儲存，已停止安裝。";
 "Please wait for pet messaging to finish before installing." = "傳話正在處理中，請稍後再安裝更新。";
 "Please send or close your unsent pet message before installing." = "請先傳送或關閉尚未送出的傳話，再安裝更新。";
+
+/* Pet menu and automatic updates */
+"Achievements and usage" = "成就與用量詳情";
+"Expanded" = "已展開";
+"Collapsed" = "已收起";
+"Both friends need to update for visits and work" = "串門與陪工需雙方更新";
+"Growth progress" = "成長進度";
+"Eat %@ tokens to level up" = "再吃 %@ tokens 即可升級";
+"Today consumed" = "今日消耗";
+"Companion streak" = "連續陪伴";
+"Lifetime consumed" = "累計消耗";
+"Completed sessions" = "完成對話";
+"Automatically check for updates" = "自動檢查更新";
+"Automatically download and install updates" = "自動下載並安裝更新";
+"When enabled, updates download in the background and LuMate restarts when no message is being edited. macOS authorization may still be required." = "開啟後會在背景下載，並在沒有編輯或傳送訊息時自動安裝、重新啟動。macOS 仍可能要求授權。";
+"Downloading from backup server…" = "正在從備用伺服器下載…";
+"Updates use GitHub first and switch to the backup server on failure. Pet progress, usage history, settings and paired messages are kept." = "更新優先從 GitHub 下載，失敗時自動切換備用伺服器。寵物進度、用量歷史、設定和配對訊息都會保留。";
+"Automatic installation needs permission. Use Install and restart to authorize it." = "自動安裝需要權限，請點擊「安裝並重新啟動」完成授權。";
+"Wake up" = "出窩啦";
+"Downloaded. Waiting for LuMate to be idle before installing." = "已下載，待你結束操作後自動安裝並重新啟動。";

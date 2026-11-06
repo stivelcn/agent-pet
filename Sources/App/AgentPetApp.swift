@@ -52,10 +52,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         StatusBarController.shared.start()
         EmberCatIntegration.shared.start()
         PetRelayController.shared.start()
+        AppUpdateController.shared.startAutomaticUpdates()
         SettingsWindowController.shared.showOnFirstLaunch()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        AppUpdateController.shared.stopAutomaticUpdates()
         PetRelayController.shared.stop()
         EmberCatSettingsWindowController.shared.shutdown()
         EmberCatIntegration.shared.dispose()

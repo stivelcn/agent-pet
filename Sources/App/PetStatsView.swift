@@ -9,14 +9,15 @@ struct PetStatsView: View {
     /// (preserves today's right-click-on-the-single-pet behaviour).
     var windowKey: String = PetWindowPlanner.defaultKey
     var petID: String? = nil
+    var maximumHeight: CGFloat? = nil
     @ObservedObject var sleep: PetSleepController = .shared
-    @ObservedObject private var care = PetCareController.shared
+    @ObservedObject var care = PetCareController.shared
     @ObservedObject private var pet = PetController.shared
     @ObservedObject private var imagePets = ImagePetStore.shared
     @ObservedObject var relay = PetRelayController.shared
     @State private var hoveredAchievement: Achievement?
+    @State var detailsExpanded = false
 
-    private static let stageColors: [Color] = [.green, .teal, .blue, .purple, .orange]
 
     /// The pet id this card is showing — the passed id, else the selected pet.
     private var resolvedPetID: String? { petID ?? pet.selectedPetID }
@@ -33,136 +34,225 @@ struct PetStatsView: View {
     private var levelProgress: Double { PetCare.progress(forXP: careState.xp) }
     private var hunger: PetHunger { PetCare.hunger(state: careState, now: Date()) }
 
-    private var stageColor: Color { Self.stageColors[min(stageIndex, Self.stageColors.count - 1)] }
+    private var stageColor: Color { PetMenuPalette.accent }
 
     var body: some View {
-        let state = careState
-        VStack(alignment: .leading, spacing: 12) {
-            header(state)
-            xpBlock(state)
-            achievementBlock
-            statGrid(state)
-            trendBlock(state)
-            AgentUsageRows(limit: 3)
-            if let last = state.lastFedAt {
-                HStack {
-                    Text(InterfaceText.format("Last fed")).font(.system(size: 10)).foregroundStyle(.white.opacity(0.4))
-                    Spacer()
-                    Text(verbatim: last.formatted(.relative(presentation: .named)))
-                        .font(.system(size: 10)).foregroundStyle(.white.opacity(0.55))
-                }
-            }
-            Button {
-                PetWindowController.shared.closeStatsPopover()
-                PetWindowController.shared.showMessageComposer(forKey: windowKey)
-            } label: { Label(InterfaceText.format("Send a pet message"), systemImage: "envelope.fill").frame(maxWidth: .infinity) }
-            .buttonStyle(.bordered)
-            PetSleepButton(sleep: sleep)
-                .buttonStyle(.bordered)
-            if windowKey == PetWindowPlanner.defaultKey, relay.pair != nil {
-                PetTogetherControls(relay: relay)
-            }
-            footer
+        ViewThatFits(in: .vertical) {
+            menuContents.fixedSize(horizontal: false, vertical: true)
+            ScrollView { menuContents }
         }
-        .padding(14)
-        .frame(width: 300)
-        .background(.regularMaterial)
+        .frame(width: 340)
+        .frame(maxHeight: maximumHeight ?? max(360, (NSScreen.main?.visibleFrame.height ?? 800) - 60))
+        .background(PetMenuPalette.background)
         .environment(\.colorScheme, .dark)
-        .textSelection(.enabled)
         .noFocusRing()
     }
 
-    // MARK: - Footer (Settings / Quit)
+    @ViewBuilder private var menuContents: some View {
+        let state = careState
+        VStack(alignment: .leading, spacing: 14) {
+            header(state)
+            xpBlock(state)
+            statGrid(state)
+            details
+            if let last = state.lastFedAt {
+                Text(InterfaceText.format("Last fed") + " · " + last.formatted(.relative(presentation: .named)))
+                    .font(.system(size: 10)).foregroundStyle(PetMenuPalette.secondary)
+            }
+            actions
+            footer
+        }
+        .padding(16)
+        .frame(width: 340)
+    }
+
+    private var details: some View {
+        VStack(spacing: 8) {
+            Button {
+                detailsExpanded.toggle()
+            } label: {
+                HStack(spacing: 9) {
+                    Image(systemName: "star").font(.system(size: 16))
+                    Text(InterfaceText.format("Achievements and usage"))
+                        .font(.system(size: 12, weight: .medium))
+                    Spacer(minLength: 4)
+                    Text(verbatim: "\(care.achievements.count) / \(Achievement.allCases.count)")
+                        .font(.system(size: 11)).foregroundStyle(PetMenuPalette.secondary)
+                    Image(systemName: detailsExpanded ? "chevron.down" : "chevron.right")
+                        .font(.system(size: 10, weight: .semibold))
+                }
+                .padding(.vertical, 5)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(PetMenuPalette.primary)
+            .accessibilityIdentifier("pet-menu-details")
+            .accessibilityValue(InterfaceText.format(detailsExpanded ? "Expanded" : "Collapsed"))
+            if detailsExpanded {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 14) {
+                        achievementBlock
+                        trendBlock(careState)
+                        AgentUsageRows(limit: 3)
+                    }
+                    .padding(10)
+                }
+                .frame(height: 160)
+                .background(RoundedRectangle(cornerRadius: 10).fill(PetMenuPalette.surface))
+            }
+        }
+    }
+
+    private var actions: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Button {
+                PetWindowController.shared.closeStatsPopover()
+                PetWindowController.shared.showMessageComposer(forKey: windowKey)
+            } label: {
+                Label(InterfaceText.format("Send a pet message"), systemImage: "envelope.fill")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(PetMenuButtonStyle(prominent: true))
+            .accessibilityIdentifier("pet-menu-message")
+            TimelineView(.periodic(from: .now, by: 1)) { context in
+                let now = context.date.timeIntervalSince1970 + relay.serverOffset
+                let active = relay.mailbox.pendingTogether != nil
+                    || relay.togetherSession?.isPending(at: now) == true
+                    || relay.togetherSession?.isActive(at: now) == true
+                if windowKey == PetWindowPlanner.defaultKey, relay.pair != nil, active {
+                    sleepButton
+                    PetTogetherControls(relay: relay, compact: true)
+                } else {
+                    HStack(spacing: 7) {
+                        sleepButton
+                        if windowKey == PetWindowPlanner.defaultKey, relay.pair != nil {
+                            inviteButton("Go visiting", icon: "door.left.hand.open", mode: .visit)
+                            inviteButton("Work together", icon: "person.2", mode: .work)
+                        }
+                    }
+                    if windowKey == PetWindowPlanner.defaultKey, relay.pair != nil, !relay.supportsTogether {
+                        Label(InterfaceText.format("Both friends need to update for visits and work"), systemImage: "info.circle")
+                            .font(.system(size: 9)).foregroundStyle(PetMenuPalette.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            }
+        }
+    }
+
+    private var sleepButton: some View {
+        Button {
+            PetWindowController.shared.closeStatsPopover()
+            if sleep.isSleeping { sleep.wakeUp() } else { sleep.goToSleep() }
+        } label: {
+            Label(InterfaceText.format(sleep.isSleeping ? "Wake up" : "Back to the nest to sleep"),
+                  systemImage: sleep.isSleeping ? "sun.max" : "moon.fill")
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(PetMenuButtonStyle())
+        .accessibilityIdentifier(sleep.isSleeping ? "pet-wake-up" : "pet-go-to-sleep")
+    }
+
+    private func inviteButton(_ title: String, icon: String, mode: PetTogetherMode) -> some View {
+        Button { Task { await relay.inviteTogether(mode) } } label: {
+            Label(InterfaceText.format(title), systemImage: icon).frame(maxWidth: .infinity)
+        }
+        .buttonStyle(PetMenuButtonStyle())
+        .disabled(!relay.supportsTogether || relay.isBusy)
+    }
+
+    // MARK: - Footer
 
     private var footer: some View {
-        VStack(spacing: 8) {
-            Divider().overlay(Color.white.opacity(0.08))
+        VStack(spacing: 9) {
+            Rectangle().fill(Color.white.opacity(0.10)).frame(height: 1)
             HStack {
                 footButton(icon: "gearshape", label: "Settings") {
                     PetWindowController.shared.closeStatsPopover()
                     SettingsWindowController.shared.show()
                 }
                 Spacer()
-                footButton(icon: "power", label: "Quit") {
-                    NSApplication.shared.terminate(nil)
-                }
+                footButton(icon: "power", label: "Quit") { NSApplication.shared.terminate(nil) }
             }
         }
     }
 
-    private func footButton(icon: String, label: String, badge: Bool = false, action: @escaping () -> Void) -> some View {
+    private func footButton(icon: String, label: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            HStack(spacing: 5) {
-                ZStack(alignment: .topTrailing) {
-                    Image(systemName: icon)
-                    if badge {
-                        Circle().fill(Color.orange).frame(width: 5, height: 5).offset(x: 3, y: -3)
-                    }
-                }
-                Text(NSLocalizedString(label, comment: "Pet menu action"))
-            }
-            .font(.system(size: 11, weight: .medium))
-            .foregroundStyle(.white.opacity(0.8))
+            Label(InterfaceText.format(label), systemImage: icon)
+                .font(.system(size: 11, weight: .medium)).padding(.vertical, 2)
         }
         .buttonStyle(.plain)
+        .foregroundStyle(PetMenuPalette.secondary)
     }
 
     // MARK: - Header
 
     private func header(_ state: PetCareState) -> some View {
-        HStack(spacing: 10) {
+        HStack(alignment: .top, spacing: 11) {
             Group {
                 if let frame = pack?.clip(0).first {
-                    Image(nsImage: frame).resizable().interpolation(.none).scaledToFit().padding(4)
+                    Image(nsImage: frame).resizable().interpolation(.high).scaledToFit().padding(5)
                 } else {
-                    Image(systemName: "pawprint.fill").foregroundStyle(.secondary)
+                    Image(systemName: "pawprint.fill").foregroundStyle(PetMenuPalette.secondary)
                 }
             }
-            .frame(width: 46, height: 46)
-            .background(RoundedRectangle(cornerRadius: 10).fill(stageColor.opacity(0.14)))
-
-            VStack(alignment: .leading, spacing: 3) {
+            .frame(width: 60, height: 60)
+            .background(RoundedRectangle(cornerRadius: 14).fill(Color(red: 0.18, green: 0.20, blue: 0.26)))
+            VStack(alignment: .leading, spacing: 7) {
                 Text(imagePets.displayName(for: resolvedPetID))
-                    .font(.system(size: 14, weight: .bold)).foregroundStyle(.white)
-                HStack(spacing: 6) {
-                    Text(verbatim: "等级 \(level)")
-                        .font(.system(size: 12, weight: .bold)).foregroundStyle(stageColor)
-                    StageBadge(stageIndex: stageIndex, size: 16)
-                    Text(NSLocalizedString(stageKey, comment: "stage"))
-                        .font(.system(size: 10, weight: .semibold))
-                        .padding(.horizontal, 6).padding(.vertical, 2)
-                        .background(Capsule().fill(stageColor.opacity(0.2)))
-                        .foregroundStyle(stageColor)
+                    .font(.system(size: 16, weight: .semibold)).foregroundStyle(PetMenuPalette.primary)
+                    .lineLimit(1).truncationMode(.middle)
+                HStack(spacing: 5) {
+                    Text(verbatim: "Lv.\(level)")
+                        .padding(.horizontal, 6).padding(.vertical, 4)
+                        .background(Capsule().fill(PetMenuPalette.accent.opacity(0.12)))
+                    Text(InterfaceText.format(stageKey)).lineLimit(1).minimumScaleFactor(0.8)
+                        .padding(.horizontal, 6).padding(.vertical, 4)
+                        .background(Capsule().fill(PetMenuPalette.accent.opacity(0.12)))
                 }
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(PetMenuPalette.accent)
             }
-            Spacer()
-            VStack(alignment: .trailing, spacing: 3) {
-                Text(CareFormat.hunger(hunger))
-                    .font(.system(size: 11, weight: .medium)).foregroundStyle(.white.opacity(0.7))
-                ProgressView(value: fullness)
-                    .tint(fullness > 0.5 ? .green : (fullness > 0.25 ? .orange : .red))
-                    .controlSize(.small)
-                    .frame(width: 64)
+            .padding(.top, 4)
+            Spacer(minLength: 0)
+            HStack(spacing: 4) {
+                Circle().fill(hunger == .full ? Color.green : Color.orange).frame(width: 5, height: 5)
+                Text(CareFormat.hunger(hunger)).font(.system(size: 10, weight: .medium))
             }
+            .foregroundStyle(PetMenuPalette.primary)
+            .padding(.horizontal, 7).padding(.vertical, 5)
+            .background(Capsule().fill(PetMenuPalette.surface))
+            .overlay(Capsule().strokeBorder(Color.white.opacity(0.08)))
+            .fixedSize()
         }
     }
 
-    // MARK: - XP
-
     private func xpBlock(_ state: PetCareState) -> some View {
         let (inLevel, span) = PetCare.xpWithinLevel(forXP: state.xp)
-        return VStack(alignment: .leading, spacing: 4) {
-            ProgressView(value: levelProgress).tint(stageColor).controlSize(.small)
+        return VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text(verbatim: "\(CareFormat.plain(inLevel)) / \(CareFormat.plain(span)) 经验")
-                    .font(.system(size: 10)).foregroundStyle(.white.opacity(0.45))
+                Text(InterfaceText.format("Growth progress")).foregroundStyle(PetMenuPalette.primary)
                 Spacer()
                 Text(verbatim: "\(Int((levelProgress * 100).rounded()))%")
-                    .font(.system(size: 10, weight: .semibold)).foregroundStyle(stageColor)
+                    .fontWeight(.semibold).foregroundStyle(PetMenuPalette.accent)
             }
-            Text(String(format: NSLocalizedString("≈ %@ tokens to Lv %d", comment: ""),
-                        CareFormat.tokens(PetCare.tokensToNextLevel(state: state)), level + 1))
-                .font(.system(size: 10, weight: .medium)).foregroundStyle(stageColor.opacity(0.9))
+            .font(.system(size: 11))
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.white.opacity(0.12))
+                    Capsule().fill(PetMenuPalette.accent).frame(width: geometry.size.width * levelProgress)
+                }
+            }
+            .frame(height: 5)
+            HStack {
+                Text(InterfaceText.format("%@ / %@ XP", CareFormat.plain(inLevel), CareFormat.plain(span)))
+                Spacer()
+                Text(verbatim: "Lv.\(level + 1)")
+            }
+            .font(.system(size: 10)).foregroundStyle(PetMenuPalette.secondary)
+            Text(InterfaceText.format("Eat %@ tokens to level up", CareFormat.tokens(PetCare.tokensToNextLevel(state: state))))
+                .font(.system(size: 10)).foregroundStyle(PetMenuPalette.secondary)
         }
     }
 
@@ -175,7 +265,7 @@ struct PetStatsView: View {
             HStack {
             Text(InterfaceText.format("Achievements"))
                     .font(.system(size: 9, weight: .semibold)).tracking(0.8)
-                    .foregroundStyle(.white.opacity(0.35))
+                    .foregroundStyle(PetMenuPalette.secondary)
                 Spacer()
                 Text(verbatim: "\(unlocked.count) / \(total)")
                     .font(.system(size: 9, weight: .semibold)).foregroundStyle(.white.opacity(0.55))
@@ -235,29 +325,30 @@ struct PetStatsView: View {
 
     private func statGrid(_ state: PetCareState) -> some View {
         let cells: [(String, String, String)] = [
-            (NSLocalizedString("Today", comment: ""), CareFormat.tokens(state.tokensToday),
+            (InterfaceText.format("Today consumed"), CareFormat.tokens(state.tokensToday),
              mealText(state.mealsToday)),
-            (NSLocalizedString("Streak", comment: ""), streakValue(state),
+            (InterfaceText.format("Companion streak"), streakValue(state),
              NSLocalizedString("days fed", comment: "")),
-            (NSLocalizedString("Lifetime", comment: ""), CareFormat.tokens(state.totalTokens),
+            (InterfaceText.format("Lifetime consumed"), CareFormat.tokens(state.totalTokens),
              NSLocalizedString("tokens eaten", comment: "")),
-            (NSLocalizedString("Sessions", comment: ""), "\(state.totalMeals)",
+            (InterfaceText.format("Completed sessions"), "\(state.totalMeals)",
              NSLocalizedString("completed", comment: "")),
         ]
         return LazyVGrid(columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)], spacing: 8) {
             ForEach(cells, id: \.0) { cell in
                 VStack(alignment: .leading, spacing: 1) {
                     Text(cell.0.uppercased())
-                        .font(.system(size: 8, weight: .semibold)).tracking(0.8)
-                        .foregroundStyle(.white.opacity(0.35))
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(PetMenuPalette.secondary)
                     Text(verbatim: cell.1)
-                        .font(.system(size: 15, weight: .bold)).foregroundStyle(.white)
+                        .monospacedDigit().lineLimit(1).minimumScaleFactor(0.8)
+                        .font(.system(size: 21, weight: .semibold)).foregroundStyle(.white)
                     Text(verbatim: cell.2)
-                        .font(.system(size: 9)).foregroundStyle(.white.opacity(0.45))
+                        .font(.system(size: 9)).foregroundStyle(PetMenuPalette.secondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 9).padding(.vertical, 7)
-                .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(0.06)))
+                .padding(.horizontal, 12).padding(.vertical, 9)
+                .background(RoundedRectangle(cornerRadius: 11).fill(PetMenuPalette.surface))
             }
         }
     }
@@ -265,17 +356,8 @@ struct PetStatsView: View {
     // MARK: - 7-day trend
 
     private func trendBlock(_ state: PetCareState) -> some View {
-        PetUsageTrendView(days: PetCare.recentDays(state: state, now: Date()), accent: stageColor)
+        PetUsageTrendView(days: PetCare.recentDays(state: state, now: Date()), accent: PetMenuPalette.accent)
             .zIndex(1)
-    }
-
-    // MARK: - Derived
-
-    /// Continuous fullness 0…1 (48h since the last feeding → empty).
-    private var fullness: Double {
-        guard let last = careState.lastFedAt else { return 0.5 }
-        let hours = Date().timeIntervalSince(last) / 3600
-        return max(0, min(1, 1 - hours / 48))
     }
 
     private func mealText(_ meals: Int) -> String {
@@ -285,6 +367,47 @@ struct PetStatsView: View {
     }
 
     private func streakValue(_ s: PetCareState) -> String {
-        "\(s.streakDays)"
+        InterfaceText.format("%d days", s.streakDays)
+    }
+}
+
+/// Scoped to the pet menu; settings and message bubbles retain their own themes.
+enum PetMenuPalette {
+    static let background = Color(red: 0.11, green: 0.12, blue: 0.15)
+    static let surface = Color(red: 0.15, green: 0.16, blue: 0.20)
+    static let primary = Color(red: 0.95, green: 0.95, blue: 0.97)
+    static let secondary = Color(red: 0.66, green: 0.67, blue: 0.73)
+    static let accent = Color(red: 0.67, green: 0.59, blue: 0.96)
+}
+
+struct PetMenuButtonStyle: ButtonStyle {
+    var prominent = false
+    func makeBody(configuration: Configuration) -> some View {
+        PetMenuButtonBody(configuration: configuration, prominent: prominent)
+    }
+}
+
+private struct PetMenuButtonBody: View {
+    let configuration: ButtonStyleConfiguration
+    let prominent: Bool
+    @Environment(\.isEnabled) private var isEnabled
+    @State private var hovered = false
+
+    var body: some View {
+        configuration.label
+            .font(.system(size: prominent ? 13 : 10, weight: .medium))
+            .lineLimit(1).minimumScaleFactor(0.8)
+            .foregroundStyle(prominent ? PetMenuPalette.background : PetMenuPalette.primary)
+            .padding(.horizontal, prominent ? 12 : 7)
+            .frame(minHeight: prominent ? 36 : 29)
+            .background(RoundedRectangle(cornerRadius: prominent ? 10 : 8)
+                .fill(prominent ? PetMenuPalette.accent : PetMenuPalette.surface))
+            .overlay(RoundedRectangle(cornerRadius: prominent ? 10 : 8)
+                .fill(Color.white.opacity(hovered && isEnabled ? 0.07 : 0)))
+            .overlay(RoundedRectangle(cornerRadius: prominent ? 10 : 8)
+                .strokeBorder(Color.white.opacity(prominent ? 0.12 : 0.09)))
+            .opacity(isEnabled ? (configuration.isPressed ? 0.75 : 1) : 0.42)
+            .contentShape(RoundedRectangle(cornerRadius: 8))
+            .onHover { hovered = $0 }
     }
 }

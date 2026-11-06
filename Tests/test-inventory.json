@@ -2822,5 +2822,45 @@
   {
     "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
     "method": "cancelledLostInvitationPersistsWithdrawalInsteadOfLeavingThePetAway"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/AppUpdateTests.swift",
+    "method": "metadataFallsBackToIndependentServerWhenGitHubIsUnavailable"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/AppUpdateTests.swift",
+    "method": "downloadUsesGitHubFirstThenImmediatelyUsesVerifiedMirror"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/AppUpdateTests.swift",
+    "method": "corruptPrimaryFallsBackButBothSourcesMustPassSameChecksum"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/AppUpdateTests.swift",
+    "method": "successfulPrimaryAndUserCancellationNeverStartMirrorDownload"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/AppUpdateTests.swift",
+    "method": "automaticPreferencesAreOptInPersistAndDisableTogether"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/AppUpdateTests.swift",
+    "method": "automaticPipelineDownloadsThenWaitsForUnsentMessagesAndResumes"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/AppUpdateTests.swift",
+    "method": "checkOnlyAutomationDoesNotDownloadAndRespectsSixHourInterval"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/AppUpdateTests.swift",
+    "method": "liveBackupDownloadWhenExplicitlyEnabled"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/IterationViewTests.swift",
+    "method": "petMenuStaysCompactAndKeepsStatisticsAndMailboxWhenExpanded"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/AppUpdateTests.swift",
+    "method": "automaticCheckRecoversWhenReleaseWasPublishedWithoutVerifiedAssets"
   }
 ]

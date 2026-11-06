@@ -130,6 +130,8 @@ final class PetRelayController: ObservableObject {
         } catch { persistenceError = PetRelayError.storage.localizedDescription; return false }
     }
 
+    var canUpdateApplication: Bool { !isBusy && !syncing && mailbox.outbox.isEmpty }
+
     func saveForUpdate() throws {
         guard !isBusy, !syncing else { throw AppUpdateError.message("Please wait for pet messaging to finish before installing.") }
         guard save() else { throw AppUpdateError.message("User data could not be saved. Installation was stopped.") }

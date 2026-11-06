@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import AgentPetCore
 
 struct AppUpdateView: View {
     @ObservedObject private var update: AppUpdateController
@@ -9,6 +10,14 @@ struct AppUpdateView: View {
     var body: some View {
         Section("Software update") {
             LabeledContent("Current version", value: update.currentVersion)
+            Toggle("Automatically check for updates", isOn: Binding(
+                get: { update.automaticCheckEnabled }, set: { update.setAutomaticCheck($0) }))
+                .accessibilityIdentifier("automatic-update-check").disabled(update.phase == .installing)
+            Toggle("Automatically download and install updates", isOn: Binding(
+                get: { update.automaticInstallEnabled }, set: { update.setAutomaticInstall($0) }))
+                .accessibilityIdentifier("automatic-update-install").disabled(update.phase == .installing)
+            Text("When enabled, updates download in the background and LuMate restarts when no message is being edited. macOS authorization may still be required.")
+                .font(.caption).foregroundStyle(.secondary)
             if let release = update.release, release.isNewer(than: update.currentVersion) {
                 LabeledContent("New version", value: release.tagName)
                 if let notes = release.body, !notes.isEmpty {
@@ -19,9 +28,13 @@ struct AppUpdateView: View {
                     Text("This release has no verified DMG for this Mac.").font(.caption).foregroundStyle(.orange)
                 }
             }
+            if update.phase == .ready && update.automaticInstallEnabled {
+                Label("Downloaded. Waiting for LuMate to be idle before installing.", systemImage: "clock")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
             if update.phase == .current { Label("You're up to date.", systemImage: "checkmark.circle").foregroundStyle(.green) }
             if update.phase == .downloading {
-                ProgressView(value: update.progress) { Text("Downloading update…") } currentValueLabel: {
+                ProgressView(value: update.progress) { Text(InterfaceText.format(update.usingMirror ? "Downloading from backup server…" : "Downloading update…")) } currentValueLabel: {
                     Text(update.progress, format: .percent.precision(.fractionLength(0)))
                 }
             }
@@ -57,7 +70,7 @@ struct AppUpdateView: View {
                     Button("Open disk image") { NSWorkspace.shared.open(url) }.disabled(update.busy)
                 }
             }
-            Text("Updates replace only the application. Pet progress, usage history, settings and paired messages are kept. No update is installed without your confirmation.")
+            Text("Updates use GitHub first and switch to the backup server on failure. Pet progress, usage history, settings and paired messages are kept.")
                 .font(.caption).foregroundStyle(.secondary)
         }
         .confirmationDialog("Install this update and restart LuMate?", isPresented: $confirmInstall) {

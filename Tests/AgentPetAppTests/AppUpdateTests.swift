@@ -7,18 +7,44 @@ import AgentPetCore
 private final class UpdateMockProtocol: URLProtocol, @unchecked Sendable {
     private static let lock = NSLock()
     nonisolated(unsafe) private static var wire = (status: 200, data: Data(), delay: 0.0)
+    nonisolated(unsafe) private static var routes: [URL: (status: Int, data: Data)] = [:]
+    nonisolated(unsafe) private static var seen: [URL] = []
+    static var requests: [URL] { lock.withLock { seen } }
+    static func route(_ url: URL, status: Int = 200, data: Data) {
+        lock.withLock { routes[url] = (status, data) }
+    }
     static func respond(status: Int = 200, data: Data, delay: Double = 0) {
-        lock.withLock { wire = (status, data, delay) }
+        lock.withLock { wire = (status, data, delay); routes = [:]; seen = [] }
     }
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
     override func startLoading() {
-        let reply = Self.lock.withLock { Self.wire }
+        let reply = Self.lock.withLock {
+            if let url = request.url {
+                Self.seen.append(url)
+                if let route = Self.routes[url] { return (status: route.status, data: route.data, delay: 0.0) }
+            }
+            return Self.wire
+        }
         if reply.delay > 0 { Thread.sleep(forTimeInterval: reply.delay) }
         let response = HTTPURLResponse(url: request.url!, statusCode: reply.status, httpVersion: "HTTP/1.1",
                                        headerFields: ["Content-Length": String(reply.data.count)])!
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
         client?.urlProtocol(self, didLoad: reply.data)
+        client?.urlProtocolDidFinishLoading(self)
+    }
+    override func stopLoading() {}
+}
+
+/// Live smoke tests intercept only the primary endpoints; backup HTTPS uses native URLSession.
+private final class UnavailableGitHubProtocol: URLProtocol, @unchecked Sendable {
+    override class func canInit(with request: URLRequest) -> Bool {
+        ["github.com", "api.github.com"].contains(request.url?.host ?? "")
+    }
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+    override func startLoading() {
+        let response = HTTPURLResponse(url: request.url!, statusCode: 503, httpVersion: "HTTP/1.1", headerFields: [:])!
+        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
         client?.urlProtocolDidFinishLoading(self)
     }
     override func stopLoading() {}
@@ -43,10 +69,12 @@ struct AppUpdateTests {
         try FileManager.default.createDirectory(at: result, withIntermediateDirectories: true)
         return result
     }
-    private func controller(_ directory: URL? = nil) -> AppUpdateController {
+    private func controller(_ directory: URL? = nil, defaults: UserDefaults = LocalPreferences.defaults,
+                            canInstall: @escaping @MainActor () -> Bool = { false },
+                            installer: (@MainActor () -> Void)? = nil) -> AppUpdateController {
         let config = URLSessionConfiguration.ephemeral
         config.protocolClasses = [UpdateMockProtocol.self]
-        return AppUpdateController(session: URLSession(configuration: config), downloadDirectory: directory, currentVersion: "0.2.1")
+        return AppUpdateController(session: URLSession(configuration: config), downloadDirectory: directory, defaults: defaults, automaticInstallAllowed: canInstall, automaticInstaller: installer, currentVersion: "0.2.1")
     }
     private func awaitIdle(_ model: AppUpdateController) async throws {
         for _ in 0..<300 {
@@ -157,6 +185,179 @@ struct AppUpdateTests {
         #expect(model.error == nil)
         #expect(try FileManager.default.contentsOfDirectory(atPath: directory.path).isEmpty)
     }
+    @Test func metadataFallsBackToIndependentServerWhenGitHubIsUnavailable() async throws {
+        let model = controller()
+        UpdateMockProtocol.respond(status: 503, data: Data())
+        UpdateMockProtocol.route(GitHubRelease.mirrorAPIURL, data: try json())
+        model.check(); try await awaitIdle(model)
+        #expect(model.phase == .available)
+        #expect(model.error == nil)
+        #expect(UpdateMockProtocol.requests == [GitHubRelease.apiURL, GitHubRelease.mirrorAPIURL])
+    }
+
+    @Test func downloadUsesGitHubFirstThenImmediatelyUsesVerifiedMirror() async throws {
+        let directory = try folder()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let model = controller(directory)
+        let metadata = try release(json())
+        let asset = try #require(metadata.dmg(architecture: "arm64"))
+        let mirror = try #require(metadata.mirrorURL(for: asset))
+        #expect(mirror.absoluteString == "https://imagepro.ycgod.online/lumate-updates/v0.2.2/LuMate-0.2.2-universal.dmg")
+        UpdateMockProtocol.respond(data: try json())
+        model.check(); try await awaitIdle(model)
+        UpdateMockProtocol.respond(status: 503, data: Data())
+        UpdateMockProtocol.route(mirror, data: contents)
+        model.download(); try await awaitIdle(model)
+        #expect(model.phase == .ready)
+        #expect(model.usingMirror)
+        #expect(model.error == nil)
+        #expect(UpdateMockProtocol.requests == [asset.browserDownloadURL, mirror])
+        #expect(try Data(contentsOf: #require(model.downloadedURL)) == contents)
+    }
+
+    @Test func corruptPrimaryFallsBackButBothSourcesMustPassSameChecksum() async throws {
+        let directory = try folder()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let model = controller(directory)
+        let metadata = try release(json())
+        let asset = try #require(metadata.dmg(architecture: "arm64"))
+        let mirror = try #require(metadata.mirrorURL(for: asset))
+        UpdateMockProtocol.respond(data: try json())
+        model.check(); try await awaitIdle(model)
+        UpdateMockProtocol.respond(data: Data(repeating: 0, count: contents.count))
+        UpdateMockProtocol.route(mirror, data: contents)
+        model.download(); try await awaitIdle(model)
+        #expect(model.phase == .ready)
+        try FileManager.default.removeItem(at: #require(model.downloadedURL))
+        UpdateMockProtocol.respond(data: Data(repeating: 0, count: contents.count))
+        model.download(); try await awaitIdle(model)
+        #expect(model.downloadedURL == nil)
+        #expect(model.error != nil)
+        #expect(try FileManager.default.contentsOfDirectory(atPath: directory.path).isEmpty)
+    }
+
+    @Test func successfulPrimaryAndUserCancellationNeverStartMirrorDownload() async throws {
+        let directory = try folder()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let model = controller(directory)
+        UpdateMockProtocol.respond(data: try json())
+        model.check(); try await awaitIdle(model)
+        UpdateMockProtocol.respond(data: contents)
+        model.download(); try await awaitIdle(model)
+        #expect(model.phase == .ready)
+        #expect(UpdateMockProtocol.requests.count == 1)
+        UpdateMockProtocol.respond(data: contents, delay: 0.3)
+        model.download(); model.cancelDownload(); try await awaitIdle(model)
+        #expect(!UpdateMockProtocol.requests.contains { $0.host == "imagepro.ycgod.online" })
+        #expect(model.downloadedURL == nil)
+    }
+
+    @Test func automaticPreferencesAreOptInPersistAndDisableTogether() throws {
+        let suite = "lumate-update-preferences-" + UUID().uuidString
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let model = controller(defaults: defaults)
+        #expect(!model.automaticCheckEnabled && !model.automaticInstallEnabled)
+        model.setAutomaticInstall(true)
+        #expect(model.automaticCheckEnabled && model.automaticInstallEnabled)
+        let restored = controller(defaults: defaults)
+        #expect(restored.automaticCheckEnabled && restored.automaticInstallEnabled)
+        restored.setAutomaticCheck(false)
+        #expect(!restored.automaticCheckEnabled && !restored.automaticInstallEnabled)
+        #expect(!controller(defaults: defaults).automaticInstallEnabled)
+    }
+
+    @Test func automaticPipelineDownloadsThenWaitsForUnsentMessagesAndResumes() async throws {
+        let suite = "lumate-update-automatic-" + UUID().uuidString
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let directory = try folder()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        final class InstallationState { var allowed = false; var count = 0 }
+        let installation = InstallationState()
+        let model = controller(directory, defaults: defaults, canInstall: { installation.allowed }, installer: { installation.count += 1 })
+        UpdateMockProtocol.respond(data: contents)
+        UpdateMockProtocol.route(GitHubRelease.apiURL, data: try json())
+        model.checkAutomaticallyIfNeeded()
+        #expect(UpdateMockProtocol.requests.isEmpty)
+        model.setAutomaticInstall(true)
+        model.checkAutomaticallyIfNeeded()
+        try await awaitIdle(model)
+        #expect(model.phase == .ready)
+        #expect(installation.count == 0)
+        installation.allowed = true
+        model.checkAutomaticallyIfNeeded()
+        #expect(installation.count == 1)
+        let restarted = controller(directory, defaults: defaults)
+        #expect(restarted.phase == .ready)
+        #expect(restarted.downloadedURL == model.downloadedURL)
+        #expect(restarted.release?.tagName == "v0.2.2")
+    }
+
+    @Test func checkOnlyAutomationDoesNotDownloadAndRespectsSixHourInterval() async throws {
+        let suite = "lumate-update-interval-" + UUID().uuidString
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let model = controller(defaults: defaults)
+        model.setAutomaticCheck(true)
+        UpdateMockProtocol.respond(data: try json())
+        let now = Date()
+        model.checkAutomaticallyIfNeeded(now: now); try await awaitIdle(model)
+        #expect(model.phase == .available)
+        #expect(model.downloadedURL == nil)
+        #expect(UpdateMockProtocol.requests.count == 1)
+        model.checkAutomaticallyIfNeeded(now: now.addingTimeInterval(300)); try await awaitIdle(model)
+        #expect(UpdateMockProtocol.requests.count == 1)
+        model.checkAutomaticallyIfNeeded(now: now.addingTimeInterval(6 * 3600)); try await awaitIdle(model)
+        #expect(UpdateMockProtocol.requests.count == 2)
+    }
+
+    @Test func automaticCheckRecoversWhenReleaseWasPublishedWithoutVerifiedAssets() async throws {
+        let suite = "lumate-update-incomplete-" + UUID().uuidString
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let model = controller(defaults: defaults)
+        model.setAutomaticInstall(true)
+        UpdateMockProtocol.respond(data: try json(digest: "sha256:not-ready"))
+        let now = Date()
+        model.checkAutomaticallyIfNeeded(now: now); try await awaitIdle(model)
+        #expect(model.phase == .available)
+        #expect(model.asset == nil)
+        UpdateMockProtocol.respond(data: try json(version: "v0.2.1"))
+        model.checkAutomaticallyIfNeeded(now: now.addingTimeInterval(6 * 3600)); try await awaitIdle(model)
+        #expect(model.phase == .current)
+        #expect(UpdateMockProtocol.requests == [GitHubRelease.apiURL])
+    }
+
+    @Test func liveBackupDownloadWhenExplicitlyEnabled() async throws {
+        guard ProcessInfo.processInfo.environment["AGENTPET_MIRROR_LIVE_TESTS"] == "1" else { return }
+        let directory = try folder()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let suite = "lumate-update-live-" + UUID().uuidString
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [UnavailableGitHubProtocol.self]
+        let model = AppUpdateController(session: URLSession(configuration: config), downloadDirectory: directory,
+                                        defaults: defaults, currentVersion: "0.0.0")
+        model.check()
+        for _ in 0..<600 {
+            if !model.busy { break }
+            try await Task.sleep(for: .milliseconds(100))
+        }
+        #expect(model.error == nil)
+        #expect(model.phase == .available)
+        model.download()
+        for _ in 0..<600 {
+            if !model.busy { break }
+            try await Task.sleep(for: .milliseconds(100))
+        }
+        #expect(model.error == nil)
+        #expect(model.phase == .ready)
+        #expect(model.usingMirror)
+        try UpdateInstaller.verifyDownload(#require(model.downloadedURL), asset: #require(model.asset))
+    }
+
     @Test func installerRejectsIncompleteOrChangedDiskImages() throws {
         let directory = try folder()
         defer { try? FileManager.default.removeItem(at: directory) }

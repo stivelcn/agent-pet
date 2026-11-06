@@ -281,6 +281,40 @@ class RelayTests(AioHTTPTestCase):
         self.assertEqual((await ws.receive_json())['type'], 'changed')
         await ws.close()
 
+    async def test_large_snapshots_compress_without_changing_contents_or_legacy_clients(self):
+        a, b, pair = await self.pair()
+        await self.profiles(a, b)
+        # A real bounded PNG repeated in message-time profiles reproduces the
+        # growing response that slowed sending while leaving the protocol intact.
+        from smoke_test import test_portrait
+        await self.post('device/pet', a, {'name': '测试宠物', 'thumbnailPNG': test_portrait(), 'interactionVersion': 1})
+        for _ in range(6):
+            await self.send(a, pair)
+        plain = await self.client.get('/v1/sync', headers=dict(a, **{'Accept-Encoding': 'identity'}), auto_decompress=False)
+        original = await plain.read()
+        self.assertIsNone(plain.headers.get('Content-Encoding'))
+        self.assertGreater(len(original), 100000)
+        for coding in ['gzip', 'deflate']:
+            compressed = await self.client.get('/v1/sync', headers=dict(a, **{'Accept-Encoding': coding}), auto_decompress=False)
+            wire = await compressed.read()
+            self.assertEqual(compressed.headers.get('Content-Encoding'), coding)
+            self.assertEqual(compressed.headers.get('Vary'), 'Accept-Encoding')
+            self.assertEqual(compressed.headers.get('Cache-Control'), 'no-store')
+            self.assertEqual(int(compressed.headers['Content-Length']), len(wire))
+            decoded = zlib.decompress(wire, 31 if coding == 'gzip' else 15)
+            self.assertEqual(json.loads(decoded), json.loads(original))
+            self.assertLess(len(wire), len(original) / 3)
+        # Native URLSession transparently decompresses, like this normal client.
+        automatic = await self.client.get('/v1/sync', headers=a)
+        self.assertEqual(await automatic.json(), json.loads(original))
+        sent = await self.client.post('/v1/messages', headers=dict(a, **{'Accept-Encoding': 'gzip'}),
+            json={'pairID': pair, 'clientID': str(uuid.uuid4()), 'text': '压缩发送'}, auto_decompress=False)
+        self.assertEqual(sent.status, 201)
+        self.assertEqual(sent.headers.get('Content-Encoding'), 'gzip')
+        self.assertEqual(json.loads(zlib.decompress(await sent.read(), 31))['sent'][0]['text'], '压缩发送')
+        small = await self.client.get('/healthz', headers={'Accept-Encoding': 'gzip'}, auto_decompress=False)
+        self.assertIsNone(small.headers.get('Content-Encoding'))
+
 
 if __name__ == '__main__':
     unittest.main()

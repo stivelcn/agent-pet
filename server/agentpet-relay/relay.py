@@ -219,6 +219,13 @@ async def errors(request, handler):
         response = web.json_response({"error": "invalid_request"}, status=400)
     response.headers["Cache-Control"] = "no-store"
     response.headers["X-Content-Type-Options"] = "nosniff"
+    # Snapshots repeat message-time portraits. Compress the JSON on the wire so
+    # sending a short message does not wait for every portrait to download again.
+    # aiohttp negotiates with Accept-Encoding; identity clients and WSS still work.
+    if (isinstance(response, web.Response) and response.content_type == "application/json"
+            and response.body is not None and len(response.body) >= 1024):
+        response.headers["Vary"] = "Accept-Encoding"
+        response.enable_compression()
     return response
 
 

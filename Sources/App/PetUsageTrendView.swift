@@ -15,7 +15,7 @@ struct PetUsageTrendView: View {
         let peak = max(days.map(\.tokens).max() ?? 0, 1)
         VStack(alignment: .leading, spacing: 5) {
             HStack {
-                Text("Burn, last 7 days")
+                Text(InterfaceText.format("Burn, last 7 days"))
                     .font(.system(size: 9, weight: .semibold)).tracking(0.8)
                     .foregroundStyle(.white.opacity(0.35))
                 Spacer()

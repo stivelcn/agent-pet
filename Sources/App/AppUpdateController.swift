@@ -29,7 +29,7 @@ final class AppUpdateController: ObservableObject {
 
     init(session: URLSession = URLSession(configuration: .ephemeral),
          downloadDirectory: URL? = nil,
-         currentVersion: String = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.2.5") {
+         currentVersion: String = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.2.6") {
         self.session = session
         self.downloadDirectory = downloadDirectory
         self.currentVersion = currentVersion

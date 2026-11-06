@@ -81,6 +81,8 @@ struct PetRelayComposerView: View {
                         .font(.caption2).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 }
                 Divider()
+                PetTogetherControls(relay: relay)
+                Divider()
             }
             HStack(spacing: 8) {
                 TextField(InterfaceText.format("Say something…"), text: $model.text)

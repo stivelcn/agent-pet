@@ -109,6 +109,19 @@ struct FloatingPetView: View {
     @ObservedObject private var imagePets = ImagePetStore.shared
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @StateObject private var pairPlayer = PetPairInteractionPlayer()
+    @State private var togetherTick = Date()
+    @State private var finishingTogether: PetTogetherSession?
+
+    private var togetherNow: Double { togetherTick.timeIntervalSince1970 + relay.serverOffset }
+    private var homeSession: PetTogetherSession? { model.key == PetWindowPlanner.defaultKey ? relay.togetherSession : nil }
+    private var isAway: Bool { homeSession?.isAway(deviceID: relay.mailbox.deviceID, at: togetherNow) == true }
+    private var showsCompanion: Bool { homeSession?.showsCompanion(deviceID: relay.mailbox.deviceID, at: togetherNow) == true }
+    private var usesWideStage: Bool {
+        localPack != nil && (pairPlayer.active != nil || showsCompanion || finishingTogether != nil)
+    }
+    private var togetherClockID: String {
+        "\(homeSession?.id ?? "")-\(model.isOnScreen)-\(sleep.isSleeping)"
+    }
 
     private var completionNotices: [CompletionNotice] {
         completions.notices(forWindow: model.key, split: pet.splitPet,
@@ -121,6 +134,10 @@ struct FloatingPetView: View {
 
     var body: some View {
         VStack(spacing: 2) {
+            if model.key == PetWindowPlanner.defaultKey,
+               relay.mailbox.pendingTogether != nil || homeSession?.isPending(at: togetherNow) == true || homeSession?.isActive(at: togetherNow) == true {
+                alignedToPet(PetTogetherBubble())
+            }
             if model.key == PetWindowPlanner.defaultKey && relay.incoming.contains(where: { $0.interaction != nil }) {
                 alignedToPet(PetInteractionBubbles(messages: relay.incoming, canReplay: canPlayInteractions,
                     replay: replayInteraction, close: { relay.dismiss($0) }))
@@ -148,7 +165,7 @@ struct FloatingPetView: View {
                 .gesture(petDragOrTap)
                 // Kept under its on-screen spot when the window is pushed back
                 // onto the screen (offset doesn't change the measured size).
-                .offset(x: pairPlayer.active == nil || localPack == nil ? model.petOffset : 0)
+                .offset(x: usesWideStage ? 0 : model.petOffset)
                 // The window jumps instantly, so the counter-shift must too:
                 // animating it (outer spring on sessions.count) slid the pet
                 // out of the window for a few frames.
@@ -179,6 +196,24 @@ struct FloatingPetView: View {
         .onChange(of: model.petID) { _, _ in pairPlayer.stop() }
         .onChange(of: relay.pair?.id) { _, _ in pairPlayer.stop() }
         .onDisappear { pairPlayer.stop() }
+        .task(id: togetherClockID) {
+            finishingTogether = nil
+            togetherTick = Date()
+            guard model.key == PetWindowPlanner.defaultKey,
+                  model.isOnScreen, !sleep.isSleeping else { return }
+            while !Task.isCancelled, let session = homeSession {
+                togetherTick = Date()
+                if session.status == "ended" || togetherNow >= session.expiresAt {
+                    if relay.consumeTogetherFinish(session, now: togetherNow), pet.animationsEnabled, !reduceMotion {
+                        finishingTogether = session
+                        do { try await Task.sleep(for: .milliseconds(2400)) } catch { }
+                        finishingTogether = nil
+                    }
+                    break
+                }
+                do { try await Task.sleep(for: .seconds(1)) } catch { break }
+            }
+        }
     }
 
     private var localPack: ImagePetPack? {
@@ -187,17 +222,24 @@ struct FloatingPetView: View {
     }
 
     private var canPlayInteractions: Bool {
-        !sleep.isSleeping && pet.animationsEnabled && model.isOnScreen && !reduceMotion && localPack != nil
+        !sleep.isSleeping && !isAway && pet.animationsEnabled && model.isOnScreen && !reduceMotion && localPack != nil
     }
 
     @ViewBuilder private var desktopPet: some View {
-        if let active = pairPlayer.active, let pack = localPack,
+        if isAway {
+            PetAwayNestView(size: pet.petPoint)
+        } else if let active = pairPlayer.active, let pack = localPack,
            let artwork = PetPairArtwork(local: pack, message: active.message) {
             PetPairSceneView(artwork: artwork, playback: active, petSize: pet.petPoint,
                              localOffset: model.petOffset, visitorOnRight: model.petOffset < 0,
                              onCompletion: { pairPlayer.finish($0) })
                 .frame(width: pet.petPoint * 3.4, height: pet.petPoint)
                 .contentShape(Rectangle())
+        } else if let pack = localPack, showsCompanion || finishingTogether != nil {
+            PetTogetherSceneView(local: pack, peer: relay.pair?.peerPet, petSize: pet.petPoint,
+                localOffset: model.petOffset, visitorOnRight: model.petOffset < 0,
+                resting: homeSession?.isResting(at: togetherNow) == true, finishing: finishingTogether != nil)
+                .id("\(homeSession?.id ?? "")-\(finishingTogether != nil)")
         } else {
             PetView(model: model, size: pet.petPoint)
         }

@@ -1157,3 +1157,29 @@
 /* 宠物回窝与恢复 */
 "Back to the nest to sleep" = "回窝睡觉";
 "Leave the nest and get to work" = "出窝搬砖";
+
+/* 串门与一起陪工 */
+"Visits and working together need both friends to update LuMate." = "串门和一起陪工需要双方更新 LuMate。";
+"Finish the current invitation or activity first." = "请先结束当前邀请或活动。";
+"This invitation or activity has ended." = "这个邀请或活动已经结束啦。";
+"Wait for your friend to accept this invitation." = "等对方接受这个邀请吧。";
+"Already home here. Reconnecting to tell your friend…" = "本地已回家，联网后会通知对方…";
+"Invitation saved. Waiting for the connection…" = "邀请已保存，等待网络恢复…";
+"Waiting for your friend to accept…" = "等对方接受邀请…";
+"%@ wants to visit for 5 minutes" = "%@ 想来串门 5 分钟";
+"%@ invites you to work together" = "%@ 邀你一起陪工";
+"Come on over" = "来吧来吧";
+"Let's work together" = "一起开工";
+"Maybe later" = "下次吧";
+"Visiting your friend's home" = "正在朋友家串门";
+"Your friend is visiting" = "朋友来串门啦";
+"Tea break together" = "一起喝茶休息";
+"Working together" = "正在一起陪工";
+"Take a tea break together" = "一起喝杯茶";
+"Finish working together" = "结束陪工";
+"Call them home" = "叫他回家";
+"Send them home" = "送他回家";
+"Go visiting" = "去串门";
+"Work together" = "一起陪工";
+"Gone to a friend's home" = "去朋友家玩了";
+"High five! Well done today." = "击个掌，辛苦啦！";

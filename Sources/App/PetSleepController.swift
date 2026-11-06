@@ -8,6 +8,8 @@ import AgentPetCore
 final class PetSleepController: ObservableObject {
     static let preferenceKey = "agentpet.petSleeping"
     static let shared = PetSleepController(defaults: LocalPreferences.defaults) { sleeping in
+        // On waking, consume any activity that ended while hidden before restoring windows.
+        PetRelayController.shared.suppressTogetherFinish()
         PetWindowController.shared.applySleepState(sleeping)
         StatusBarController.shared.applySleepState(sleeping)
         EmberCatIntegration.shared.setPresentationSuppressed(sleeping)

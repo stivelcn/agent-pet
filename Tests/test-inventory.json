@@ -2782,5 +2782,45 @@
   {
     "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
     "method": "sleepingReceivesAndPersistsAllMessagesWithoutHandlingOrReplayingThemOnWake"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetTogetherTests.swift",
+    "method": "visitorsLeaveTheirOwnNestAndOnlyTheHostShowsTwoPets"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetTogetherTests.swift",
+    "method": "workingTogetherShowsBothPetsAndSharesTheSameTeaBreakDeadline"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetTogetherTests.swift",
+    "method": "sharedActivityRoundTripsAndAnOmittedOrDifferentPairClearsOnlyTheActivity"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetTogetherTests.swift",
+    "method": "stopCommandsRemainDurableWhileOldInvitationsCannotRetryForever"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetTogetherTests.swift",
+    "method": "oldSnapshotsAndPetProfilesDecodeWithoutEnablingTogether"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "togetherInvitationLostResponseRetriesWithSameIdentityAfterRestart"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "offlineRecallRestoresHomeImmediatelyAndPersistsUntilServerConfirmation"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "togetherFinishPlaysOnceAndSleepingSuppressesItWithoutHandlingMessages"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "togetherStagesNestAndChineseControlsRenderOffscreen"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "cancelledLostInvitationPersistsWithdrawalInsteadOfLeavingThePetAway"
   }
 ]

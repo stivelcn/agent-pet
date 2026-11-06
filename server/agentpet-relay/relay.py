@@ -21,7 +21,11 @@ from aiohttp import web
 ICONS = {"heart": "❤️", "water": "💧", "meal": "🍚", "rest": "☕", "hug": "🤗", "look": "👀"}
 INVITE_TTL = 600
 GESTURES = {"poke": "👉 戳了戳你", "hug": "🤗 抱了抱你", "peek": "👀 探头来看你"}
-CAPABILITIES = ["pet-interactions-v1"]
+CAPABILITIES = ["pet-interactions-v1", "pet-together-v1"]
+TOGETHER_INVITE_TTL = 120
+VISIT_LENGTH = 300
+WORK_LENGTH = 1500
+REST_LENGTH = 300
 
 
 def pet_profile(data):
@@ -73,7 +77,13 @@ def pet_profile(data):
                 raise ValueError()
         except (ValueError, TypeError, struct.error, zlib.error):
             raise Problem("invalid_pet", 400)
-    return {"name": name, "builtinID": builtin, "thumbnailPNG": thumbnail, "interactionVersion": 1}
+    together = data.get("togetherVersion")
+    if together is not None and (type(together) is not int or together != 1):
+        raise Problem("invalid_pet", 400)
+    result = {"name": name, "builtinID": builtin, "thumbnailPNG": thumbnail, "interactionVersion": 1}
+    if together is not None:
+        result["togetherVersion"] = together
+    return result
 
 
 def characters(value: str) -> int:
@@ -126,6 +136,12 @@ class Relay:
             text TEXT, icon TEXT, reply_to TEXT, created REAL NOT NULL, delivered REAL, handled REAL,
             UNIQUE(sender,client_id));
         CREATE INDEX IF NOT EXISTS message_inbox ON messages(recipient,handled,created);
+        CREATE TABLE IF NOT EXISTS together_sessions(
+            id TEXT PRIMARY KEY, client_id TEXT NOT NULL, pair_id TEXT NOT NULL REFERENCES pairs(id),
+            initiator TEXT NOT NULL REFERENCES devices(id), mode TEXT NOT NULL, status TEXT NOT NULL,
+            created REAL NOT NULL, started REAL, expires REAL NOT NULL, rest_at REAL,
+            ended REAL, ended_by TEXT, reason TEXT, UNIQUE(initiator,client_id));
+        CREATE INDEX IF NOT EXISTS together_pair ON together_sessions(pair_id,created);
         """)
         # Additive and repeatable migration keeps credentials, pairs and unread messages.
         with self.db:
@@ -178,9 +194,25 @@ class Relay:
                           "awaitingConfirmation": invite["candidate"] is not None}
         inbox = self.db.execute("SELECT * FROM messages WHERE recipient=? AND handled IS NULL ORDER BY created,id", (device,))
         sent = self.db.execute("SELECT * FROM messages WHERE sender=? ORDER BY created DESC,id LIMIT 50", (device,))
+        together = self.together(pair["id"]) if pair else None
         return {"deviceID": device, "name": self.name(device), "pair": pairing,
                 "invitation": invitation, "incoming": [self.message(row) for row in inbox],
-                "sent": [self.message(row) for row in sent], "pet": self.pet(device), "capabilities": CAPABILITIES}
+                "sent": [self.message(row) for row in sent], "pet": self.pet(device), "capabilities": CAPABILITIES,
+                "together": self.together_json(together) if together else None, "serverTime": time.time()}
+
+    def together(self, pair_id):
+        # Persist timeout transitions. A service restart cannot revive a visit or invitation.
+        with self.db:
+            self.db.execute("UPDATE together_sessions SET status='ended',ended=expires,reason=CASE WHEN status='pending' THEN 'expired' ELSE 'completed' END WHERE pair_id=? AND status!='ended' AND expires<=?",
+                            (pair_id, time.time()))
+        return self.db.execute("SELECT * FROM together_sessions WHERE pair_id=? ORDER BY created DESC,rowid DESC LIMIT 1", (pair_id,)).fetchone()
+
+    @staticmethod
+    def together_json(row):
+        return {"id": row["id"], "clientID": row["client_id"], "pairID": row["pair_id"],
+                "initiatorID": row["initiator"], "mode": row["mode"], "status": row["status"],
+                "createdAt": row["created"], "startedAt": row["started"], "expiresAt": row["expires"],
+                "restAt": row["rest_at"], "endedAt": row["ended"], "endedBy": row["ended_by"], "reason": row["reason"]}
 
     @staticmethod
     def message(row):
@@ -257,7 +289,7 @@ async def body(request):
 
 
 async def health(request):
-    return web.json_response({"ok": True, "service": "agentpet-relay", "protocol": 2, "capabilities": CAPABILITIES})
+    return web.json_response({"ok": True, "service": "agentpet-relay", "protocol": 3, "capabilities": CAPABILITIES})
 
 
 async def register(request):
@@ -358,9 +390,100 @@ async def disconnect(request):
     r, device = request.app["relay"], request["device"]
     related = r.related(device)
     with r.db:
+        r.db.execute("UPDATE together_sessions SET status='ended',ended=?,ended_by=?,reason='unpaired' WHERE pair_id IN (SELECT id FROM pairs WHERE a=? OR b=?) AND status!='ended'",
+                     (time.time(), device, device, device))
         r.db.execute("UPDATE pairs SET active=0 WHERE a=? OR b=?", (device, device))
         r.db.execute("DELETE FROM invites WHERE creator=? OR candidate=?", (device, device))
     await r.notify(*related)
+    return web.json_response(r.snapshot(device))
+
+
+async def together_request(request):
+    r, device = request.app["relay"], request["device"]
+    data = await body(request)
+    pair_id, client, mode = data.get("pairID"), data.get("clientID"), data.get("mode")
+    if (not isinstance(pair_id, str) or not isinstance(client, str)
+            or not regex.fullmatch(r"[a-zA-Z0-9-]{16,64}", client)
+            or not isinstance(mode, str) or mode not in ("visit", "work")):
+        raise Problem("invalid_request", 400)
+    pair = r.active_pair(device)
+    if not pair or pair["id"] != pair_id:
+        raise Problem("not_paired")
+    existing = r.db.execute("SELECT * FROM together_sessions WHERE initiator=? AND client_id=?", (device, client)).fetchone()
+    if existing:
+        if (existing["pair_id"], existing["mode"]) != (pair_id, mode):
+            raise Problem("idempotency_conflict")
+        return web.json_response(r.snapshot(device))
+    peer = pair["b"] if pair["a"] == device else pair["a"]
+    if any(not p or p.get("togetherVersion") != 1 for p in (r.pet(device), r.pet(peer))):
+        raise Problem("together_unavailable")
+    current = r.together(pair_id)
+    if current and current["status"] != "ended":
+        raise Problem("together_busy")
+    r.limit(("together_invite", device), 10, 600)
+    now = time.time()
+    with r.db:
+        r.db.execute("INSERT INTO together_sessions(id,client_id,pair_id,initiator,mode,status,created,expires) VALUES(?,?,?,?,?,'pending',?,?)",
+                     (str(uuid.uuid4()), client, pair_id, device, mode, now, now + TOGETHER_INVITE_TTL))
+    await r.notify(device, peer)
+    return web.json_response(r.snapshot(device), status=201)
+
+
+async def together_action(request):
+    r, device = request.app["relay"], request["device"]
+    data = await body(request)
+    pair_id, session_id, action = data.get("pairID"), data.get("sessionID"), data.get("action")
+    withdraw = session_id is None and action == "cancel"
+    client = data.get("clientID")
+    if (not isinstance(pair_id, str) or (not isinstance(session_id, str) and not withdraw)
+            or (withdraw and (not isinstance(client, str) or not regex.fullmatch(r"[a-zA-Z0-9-]{16,64}", client)))
+            or not isinstance(action, str) or action not in ("accept", "decline", "cancel", "end", "rest")):
+        raise Problem("invalid_request", 400)
+    pair = r.active_pair(device)
+    if not pair or pair["id"] != pair_id:
+        raise Problem("not_paired")
+    r.together(pair_id)
+    if withdraw:
+        row = r.db.execute("SELECT id FROM together_sessions WHERE pair_id=? AND initiator=? AND client_id=?",
+                           (pair_id, device, client)).fetchone()
+        if not row:
+            return web.json_response(r.snapshot(device))
+        session_id = row["id"]
+    row = r.db.execute("SELECT * FROM together_sessions WHERE id=? AND pair_id=?", (session_id, pair_id)).fetchone()
+    if not row:
+        raise Problem("together_expired")
+    # Accepting your own invitation is forbidden even when retrying a completed session.
+    if action in ("accept", "decline") and row["initiator"] == device:
+        raise Problem("together_role")
+    if action == "cancel" and row["initiator"] != device:
+        raise Problem("together_role")
+    if row["status"] == "ended":
+        if action in ("accept", "rest"):
+            raise Problem("together_expired")
+        return web.json_response(r.snapshot(device))
+    # A withdrawal after a lost request response also recalls a visit accepted meanwhile.
+    if withdraw and row["status"] == "active":
+        action = "end"
+    now = time.time()
+    with r.db:
+        if action == "accept":
+            if row["status"] == "pending":
+                length = VISIT_LENGTH if row["mode"] == "visit" else WORK_LENGTH + REST_LENGTH
+                rest = now + WORK_LENGTH if row["mode"] == "work" else None
+                r.db.execute("UPDATE together_sessions SET status='active',started=?,expires=?,rest_at=? WHERE id=?",
+                             (now, now + length, rest, session_id))
+        elif action == "rest":
+            if row["status"] != "active" or row["mode"] != "work":
+                raise Problem("together_expired")
+            # An already-started break is idempotent and cannot be extended by retries.
+            if row["rest_at"] > now:
+                r.db.execute("UPDATE together_sessions SET rest_at=?,expires=? WHERE id=?", (now, now + REST_LENGTH, session_id))
+        else:
+            if action in ("cancel", "decline") and row["status"] != "pending":
+                raise Problem("together_expired")
+            r.db.execute("UPDATE together_sessions SET status='ended',ended=?,ended_by=?,reason=? WHERE id=?",
+                         (now, device, action, session_id))
+    await r.notify(pair["a"], pair["b"])
     return web.json_response(r.snapshot(device))
 
 
@@ -468,6 +591,7 @@ def make_app(database):
                     web.get("/v1/sync", sync), web.get("/v1/events", events),
                     web.post("/v1/device/name", change_name), web.post("/v1/pairing/create", create),
                     web.post("/v1/device/pet", change_pet),
+                    web.post("/v1/together/request", together_request), web.post("/v1/together/action", together_action),
                     web.post("/v1/pairing/join", join), web.post("/v1/pairing/confirm", confirm),
                     web.post("/v1/pairing/disconnect", disconnect), web.post("/v1/messages", send),
                     web.post("/v1/messages/ack", acknowledge)])

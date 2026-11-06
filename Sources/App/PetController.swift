@@ -111,7 +111,9 @@ final class PetController: ObservableObject {
             .sink { [weak self] _ in self?.syncWindows() }
         relayObserver = PetRelayController.shared.$mailbox
             .dropFirst()
-            .map { !$0.incoming.isEmpty }
+            .map { !$0.incoming.isEmpty || $0.pendingTogether != nil
+                || $0.together.map { $0.status != "ended" || ($0.mode == .work && $0.startedAt != nil
+                    && Date().timeIntervalSince1970 < ($0.endedAt ?? $0.expiresAt) + 30) } == true }
             .removeDuplicates()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.syncWindows() }
@@ -449,7 +451,8 @@ final class PetController: ObservableObject {
             split: splitPet,
             mappings: ProjectPetSettings.shared.mappings,
             defaultPetID: selectedPetID,
-            forceDefault: breakState != nil || !PetRelayController.shared.incoming.isEmpty,
+            forceDefault: breakState != nil || !PetRelayController.shared.incoming.isEmpty
+                || PetRelayController.shared.needsTogetherHome,
             hideIdleProjects: hideIdleProjectPets
         )
 

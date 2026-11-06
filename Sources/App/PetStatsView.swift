@@ -13,6 +13,7 @@ struct PetStatsView: View {
     @ObservedObject private var care = PetCareController.shared
     @ObservedObject private var pet = PetController.shared
     @ObservedObject private var imagePets = ImagePetStore.shared
+    @ObservedObject var relay = PetRelayController.shared
     @State private var hoveredAchievement: Achievement?
 
     private static let stageColors: [Color] = [.green, .teal, .blue, .purple, .orange]
@@ -45,7 +46,7 @@ struct PetStatsView: View {
             AgentUsageRows(limit: 3)
             if let last = state.lastFedAt {
                 HStack {
-                    Text("Last fed").font(.system(size: 10)).foregroundStyle(.white.opacity(0.4))
+                    Text(InterfaceText.format("Last fed")).font(.system(size: 10)).foregroundStyle(.white.opacity(0.4))
                     Spacer()
                     Text(verbatim: last.formatted(.relative(presentation: .named)))
                         .font(.system(size: 10)).foregroundStyle(.white.opacity(0.55))
@@ -54,10 +55,13 @@ struct PetStatsView: View {
             Button {
                 PetWindowController.shared.closeStatsPopover()
                 PetWindowController.shared.showMessageComposer(forKey: windowKey)
-            } label: { Label("Send a pet message", systemImage: "envelope.fill").frame(maxWidth: .infinity) }
+            } label: { Label(InterfaceText.format("Send a pet message"), systemImage: "envelope.fill").frame(maxWidth: .infinity) }
             .buttonStyle(.bordered)
             PetSleepButton(sleep: sleep)
                 .buttonStyle(.bordered)
+            if windowKey == PetWindowPlanner.defaultKey, relay.pair != nil {
+                PetTogetherControls(relay: relay)
+            }
             footer
         }
         .padding(14)
@@ -169,7 +173,7 @@ struct PetStatsView: View {
         let total = Achievement.allCases.count
         return VStack(alignment: .leading, spacing: 5) {
             HStack {
-                Text("Achievements")
+            Text(InterfaceText.format("Achievements"))
                     .font(.system(size: 9, weight: .semibold)).tracking(0.8)
                     .foregroundStyle(.white.opacity(0.35))
                 Spacer()
@@ -219,7 +223,7 @@ struct PetStatsView: View {
                     .font(.system(size: 9)).foregroundStyle(.white.opacity(0.5))
                     .lineLimit(1)
             } else {
-                Text("Hover a badge to see how to unlock it")
+                Text(InterfaceText.format("Hover a badge to see how to unlock it"))
                     .font(.system(size: 9)).foregroundStyle(.white.opacity(0.3))
             }
             Spacer(minLength: 0)

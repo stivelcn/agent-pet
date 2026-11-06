@@ -29,6 +29,7 @@ final class PetRelayController: ObservableObject {
     private let profileProvider: @MainActor () -> PetRelayPetProfile?
     private let isSleeping: @MainActor () -> Bool
     private var lastGestureAt = Date.distantPast
+    @Published private(set) var serverOffset: TimeInterval = 0
 
     init(fileURL: URL?, credentials: any PetRelayCredentialStore, api: any PetRelayTransport,
          enabled: Bool = true, events: Bool = true,
@@ -56,6 +57,20 @@ final class PetRelayController: ObservableObject {
 
     var incoming: [PetRelayMessage] { mailbox.incoming }
     var pair: PetRelayPair? { mailbox.pair }
+    var togetherNow: Double { Date().timeIntervalSince1970 + serverOffset }
+    var supportsTogether: Bool {
+        mailbox.capabilities?.contains("pet-together-v1") == true && pair?.peerPet?.togetherVersion == 1
+    }
+    var togetherSession: PetTogetherSession? {
+        guard let session = mailbox.together, session.pairID == pair?.id else { return nil }
+        if let pending = mailbox.pendingTogether, pending.stopsPresentation,
+           pending.sessionID == session.id || (pending.sessionID == nil && pending.clientID == session.clientID) { return nil }
+        return session
+    }
+    var needsTogetherHome: Bool {
+        mailbox.pendingTogether != nil || togetherSession.map { $0.isPending(at: togetherNow) || $0.isActive(at: togetherNow)
+            || ($0.mode == .work && $0.startedAt != nil && togetherNow < ($0.endedAt ?? $0.expiresAt) + 30) } == true
+    }
     var supportsInteractions: Bool {
         mailbox.capabilities?.contains("pet-interactions-v1") == true && pair?.peerPet?.interactionVersion == 1
     }
@@ -122,9 +137,13 @@ final class PetRelayController: ObservableObject {
 
     private func apply(_ snapshot: PetRelaySnapshot) throws {
         guard snapshot.deviceID == credential?.deviceID else { throw PetRelayError.credentials }
+        if let time = snapshot.serverTime, time.isFinite { serverOffset = time - Date().timeIntervalSince1970 }
         mailbox.merge(snapshot)
         // Receiving continues in the nest. Suppress automatic playback durably, keeping replay bubbles unread.
-        if isSleeping() { _ = mailbox.consumeInteractionBatch(at: Date().timeIntervalSince1970, canAnimate: false) }
+        if isSleeping() {
+            _ = mailbox.consumeInteractionBatch(at: Date().timeIntervalSince1970, canAnimate: false)
+            suppressTogetherFinish()
+        }
         guard save() else { throw PetRelayError.storage }
     }
 
@@ -204,6 +223,7 @@ final class PetRelayController: ObservableObject {
         do {
             try await fetch("v1/sync")
             try await syncPetProfile()
+            try await flushTogetherCommand()
             try await flushAcknowledgements()
             let expired = mailbox.outbox.contains { $0.isExpired(at: Date().timeIntervalSince1970) }
             mailbox.outbox.removeAll { $0.isExpired(at: Date().timeIntervalSince1970) }
@@ -313,5 +333,92 @@ final class PetRelayController: ObservableObject {
         guard mailbox != before else { return [] }
         guard save() else { mailbox = before; return [] }
         return events
+    }
+
+    func inviteTogether(_ mode: PetTogetherMode) async {
+        await run {
+            guard supportsTogether, let pair else { throw PetRelayError.server("together_unavailable") }
+            guard mailbox.pendingTogether == nil else { throw PetRelayError.server("together_busy") }
+            if let session = togetherSession, session.isPending(at: togetherNow) || session.isActive(at: togetherNow) {
+                throw PetRelayError.server("together_busy")
+            }
+            try await syncPetProfile()
+            try queueTogether(PetTogetherCommand(pairID: pair.id, mode: mode, createdAt: togetherNow))
+            try await flushTogetherCommand()
+        }
+    }
+
+    func actTogether(_ action: String) async {
+        await run {
+            guard let session = togetherSession, ["accept", "decline", "cancel", "end", "rest"].contains(action) else { return }
+            try queueTogether(PetTogetherCommand(pairID: session.pairID, sessionID: session.id,
+                                                action: action, createdAt: togetherNow))
+            try await flushTogetherCommand()
+        }
+    }
+
+    private func queueTogether(_ command: PetTogetherCommand) throws {
+        let before = mailbox
+        mailbox.pendingTogether = command
+        guard save() else { mailbox = before; throw PetRelayError.storage }
+    }
+
+    private func flushTogetherCommand() async throws {
+        guard let command = mailbox.pendingTogether else { return }
+        guard command.pairID == pair?.id, !command.isExpired(at: togetherNow) else {
+            mailbox.pendingTogether = nil
+            guard save() else { throw PetRelayError.storage }
+            return
+        }
+        struct Payload: Encodable {
+            var pairID: String; var clientID: String; var mode: PetTogetherMode?
+            var sessionID: String?; var action: String?
+        }
+        let payload = Payload(pairID: command.pairID, clientID: command.clientID, mode: command.mode,
+                              sessionID: command.sessionID, action: command.action)
+        do {
+            try await fetch(command.mode == nil ? "v1/together/action" : "v1/together/request",
+                            body: JSONEncoder().encode(payload))
+        } catch PetRelayError.server(let code) where
+            ["together_expired", "together_busy", "together_role", "together_unavailable", "not_paired"].contains(code) {
+            mailbox.pendingTogether = nil
+            guard save() else { throw PetRelayError.storage }
+            throw PetRelayError.server(code)
+        }
+        mailbox.pendingTogether = nil
+        guard save() else { throw PetRelayError.storage }
+    }
+
+    func cancelTogetherRetry() async {
+        await run {
+            guard var command = mailbox.pendingTogether, !command.stopsPresentation else { return }
+            if command.mode != nil {
+                // Withdraw by the original request identity even if its response was lost.
+                command.mode = nil
+                command.action = "cancel"
+            } else {
+                command.action = "end"
+            }
+            try queueTogether(command)
+            try await flushTogetherCommand()
+        }
+    }
+
+    func suppressTogetherFinish() {
+        if let session = mailbox.together {
+            _ = consumeTogetherFinish(session, now: togetherNow, canAnimate: false)
+        }
+    }
+
+    /// One local finishing animation, never a new message or handled receipt.
+    func consumeTogetherFinish(_ session: PetTogetherSession, now: Double, canAnimate: Bool = true) -> Bool {
+        guard session.mode == .work, session.startedAt != nil, session.pairID == pair?.id,
+              !(mailbox.finishedTogether ?? []).contains(session.id) else { return false }
+        let ended = session.endedAt ?? session.expiresAt
+        guard session.status == "ended" || now >= session.expiresAt else { return false }
+        let before = mailbox
+        mailbox.finishedTogether = Set((mailbox.finishedTogether ?? []).suffix(99)).union([session.id])
+        guard save() else { mailbox = before; return false }
+        return canAnimate && !isSleeping() && session.reason != "unpaired" && now - ended >= 0 && now - ended < 30
     }
 }

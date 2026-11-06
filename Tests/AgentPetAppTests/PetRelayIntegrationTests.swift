@@ -12,6 +12,8 @@ private actor RelayMockAPI: PetRelayTransport {
     var failSend = false
     var payloads: [Data] = []
     var acknowledgements: [Data] = []
+    var togetherPayloads: [Data] = []
+    var failTogetherAfterAccepting = false
     init(incoming: Bool = true) {
         state = PetRelaySnapshot(deviceID: "device1", name: "噜妹", pair: PetRelayPair(id: "pair1", peerName: "噜噜"),
             incoming: incoming ? [PetRelayMessage(id: "m1", clientID: "incoming-client1", pairID: "pair1", senderName: "噜噜", text: "喝水", createdAt: 1)] : [])
@@ -23,6 +25,12 @@ private actor RelayMockAPI: PetRelayTransport {
         state.capabilities = ["pet-interactions-v1"]
         state.pair?.peerPet = PetRelayPetProfile(name: "噜噜", builtinID: "lulu")
     }
+    func enableTogether() {
+        state.capabilities = ["pet-interactions-v1", "pet-together-v1"]
+        state.pair?.peerPet = PetRelayPetProfile(name: "噜噜", builtinID: "lulu")
+    }
+    func setTogether(_ session: PetTogetherSession?) { state.together = session }
+    func failTogetherAfterAcceptingOnce() { failTogetherAfterAccepting = true }
     func unpair() { state.pair = nil }
     func newPair() { state.pair = PetRelayPair(id: "pair2", peerName: "New friend") }
     func register(name: String) async throws -> PetRelayCredentials {
@@ -33,6 +41,27 @@ private actor RelayMockAPI: PetRelayTransport {
         paths.append(path)
         if fail || (path == "v1/messages" && failSend) { throw URLError(.notConnectedToInternet) }
         let data = body.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] } ?? [:]
+        if path == "v1/together/request", let body {
+            togetherPayloads.append(body)
+            let now = Date().timeIntervalSince1970
+            if state.together?.clientID != data["clientID"] as? String {
+                state.together = PetTogetherSession(id: UUID().uuidString, clientID: data["clientID"] as! String,
+                    pairID: state.pair!.id, initiatorID: "device1", mode: PetTogetherMode(rawValue: data["mode"] as! String)!,
+                    status: "pending", createdAt: now, expiresAt: now + 120)
+            }
+            if failTogetherAfterAccepting { failTogetherAfterAccepting = false; throw URLError(.timedOut) }
+        }
+        if path == "v1/together/action", let body {
+            togetherPayloads.append(body)
+            let action = data["action"] as? String ?? ""
+            let targetSession = data["sessionID"] as? String
+            let targetClient = data["clientID"] as? String
+            if ["end", "decline", "cancel"].contains(action),
+               state.together?.id == targetSession || state.together?.clientID == targetClient {
+                state.together?.status = "ended"
+                state.together?.endedAt = Date().timeIntervalSince1970
+            }
+        }
         if path == "v1/device/pet", let body {
             state.pet = try JSONDecoder().decode(PetRelayPetProfile.self, from: body)
         }
@@ -442,6 +471,152 @@ struct PetRelayIntegrationTests {
         #expect(restart.mailbox.replayInteraction("visit") == nil)
     }
 
+    @Test func togetherInvitationLostResponseRetriesWithSameIdentityAfterRestart() async throws {
+        let directory = try folder(); defer { try? FileManager.default.removeItem(at: directory) }
+        let api = RelayMockAPI(incoming: false)
+        await api.enableTogether()
+        let file = directory.appendingPathComponent("messages.json")
+        let relay = controller(api, file: file)
+        await relay.refresh()
+        #expect(relay.supportsTogether)
+        await api.failTogetherAfterAcceptingOnce()
+        await relay.inviteTogether(.visit)
+        let clientID = try #require(relay.mailbox.pendingTogether?.clientID)
+        let restarted = controller(api, file: file)
+        await restarted.refresh()
+        #expect(restarted.mailbox.pendingTogether == nil)
+        #expect(restarted.togetherSession?.clientID == clientID)
+        #expect(restarted.togetherSession?.status == "pending")
+        let payloads = try await api.togetherPayloads.map { try JSONSerialization.jsonObject(with: $0) as! [String: Any] }
+        #expect(payloads.count == 2 && payloads.allSatisfy { $0["clientID"] as? String == clientID })
+        #expect(restarted.incoming.isEmpty && restarted.mailbox.handled.isEmpty)
+    }
+
+    @Test func cancelledLostInvitationPersistsWithdrawalInsteadOfLeavingThePetAway() async throws {
+        let directory = try folder(); defer { try? FileManager.default.removeItem(at: directory) }
+        let api = RelayMockAPI()
+        await api.enableTogether()
+        await api.failTogetherAfterAcceptingOnce()
+        let file = directory.appendingPathComponent("messages.json")
+        let relay = controller(api, file: file)
+        await relay.refresh()
+        await relay.inviteTogether(.visit)
+        let request = try #require(relay.mailbox.pendingTogether)
+        await api.setFail(true)
+        await relay.cancelTogetherRetry()
+        #expect(relay.mailbox.pendingTogether?.action == "cancel")
+        #expect(relay.mailbox.pendingTogether?.clientID == request.clientID)
+        let restarted = controller(api, file: file)
+        await api.setFail(false)
+        await restarted.refresh()
+        #expect(restarted.mailbox.pendingTogether == nil)
+        #expect(restarted.mailbox.together?.status == "ended")
+        #expect(restarted.incoming.count == 1 && restarted.mailbox.handled.isEmpty)
+    }
+
+    @Test func offlineRecallRestoresHomeImmediatelyAndPersistsUntilServerConfirmation() async throws {
+        let directory = try folder(); defer { try? FileManager.default.removeItem(at: directory) }
+        let api = RelayMockAPI()
+        await api.enableTogether()
+        let now = Date().timeIntervalSince1970
+        await api.setTogether(PetTogetherSession(id: "trip1", clientID: "trip1", pairID: "pair1", initiatorID: "device1",
+            mode: .visit, status: "active", createdAt: now, startedAt: now, expiresAt: now + 300))
+        let file = directory.appendingPathComponent("messages.json")
+        let relay = controller(api, file: file)
+        await relay.refresh()
+        #expect(relay.togetherSession?.isAway(deviceID: "device1", at: now) == true)
+        await api.setFail(true)
+        await relay.actTogether("end")
+        #expect(relay.togetherSession == nil && relay.mailbox.pendingTogether?.action == "end")
+        let restarted = controller(api, file: file)
+        #expect(restarted.togetherSession == nil)
+        #expect(restarted.incoming.count == 1 && restarted.mailbox.handled.isEmpty)
+        await api.setFail(false)
+        await restarted.refresh()
+        #expect(restarted.mailbox.pendingTogether == nil && restarted.togetherSession?.status == "ended")
+        #expect(restarted.incoming.count == 1 && restarted.mailbox.handled.isEmpty)
+    }
+
+    @Test func togetherFinishPlaysOnceAndSleepingSuppressesItWithoutHandlingMessages() async throws {
+        let api = RelayMockAPI()
+        await api.enableTogether()
+        let relay = controller(api)
+        await relay.refresh()
+        let now = Date().timeIntervalSince1970
+        var session = PetTogetherSession(id: "work1", clientID: "work1", pairID: "pair1", initiatorID: "device1",
+            mode: .work, status: "ended", createdAt: now - 1800, startedAt: now - 1800,
+            expiresAt: now - 1, endedAt: now - 1)
+        #expect(relay.consumeTogetherFinish(session, now: now))
+        #expect(!relay.consumeTogetherFinish(session, now: now))
+        let asleep = PetRelayController(fileURL: nil, credentials: RelayMockCredential(), api: api, events: false, isSleeping: { true })
+        await asleep.refresh()
+        session.id = "sleep-work"
+        #expect(!asleep.consumeTogetherFinish(session, now: now))
+        #expect(asleep.mailbox.finishedTogether?.contains(session.id) == true)
+        session.id = "received-during-sleep"
+        await api.setTogether(session)
+        await asleep.refresh()
+        #expect(asleep.mailbox.finishedTogether?.contains(session.id) == true)
+        #expect(!asleep.consumeTogetherFinish(session, now: now))
+        session.id = "ended-just-before-wake"
+        await api.setTogether(session)
+        await relay.refresh()
+        relay.suppressTogetherFinish()
+        #expect(!relay.consumeTogetherFinish(session, now: now))
+        #expect(relay.incoming.count == 1 && asleep.incoming.count == 1)
+        #expect(relay.mailbox.handled.isEmpty && asleep.mailbox.handled.isEmpty)
+    }
+
+    @Test func togetherStagesNestAndChineseControlsRenderOffscreen() async throws {
+        _ = NSApplication.shared
+        let api = RelayMockAPI(incoming: false)
+        await api.enableTogether()
+        let relay = controller(api)
+        await relay.refresh()
+        let now = Date().timeIntervalSince1970
+        let pack = try #require(SpriteSlicer.loadPack(directory: ImagePetStore.builtinDirectory.appendingPathComponent("lumei")))
+        for state in ["invite", "away", "host", "work", "tea", "finish", "stats"] {
+            let mode: PetTogetherMode = ["work", "tea", "finish"].contains(state) ? .work : .visit
+            await api.setTogether(PetTogetherSession(id: state, clientID: state, pairID: "pair1",
+                initiatorID: state == "host" || state == "invite" ? "peer" : "device1", mode: mode,
+                status: state == "invite" ? "pending" : "active", createdAt: now, startedAt: now,
+                expiresAt: now + 300, restAt: state == "tea" ? now - 1 : now + 250))
+            await relay.refresh()
+            try withChineseSnapshot {
+                #expect(InterfaceText.format("Call them home") == "叫他回家")
+                let host = NSHostingView(rootView: Group {
+                    if state == "stats" { PetStatsView(petID: "lumei", relay: relay) }
+                    else {
+                        VStack(spacing: 12) {
+                            PetTogetherControls(relay: relay)
+                            if state == "away" { PetAwayNestView(size: 120) }
+                            else if state != "invite" {
+                                PetTogetherSceneView(local: pack, peer: relay.pair?.peerPet, petSize: 120,
+                                    visitorOnRight: true, resting: state == "tea", finishing: state == "finish")
+                            }
+                        }
+                    }
+                }.padding(12).background(Color(nsColor: .windowBackgroundColor))
+                    .preferredColorScheme(.dark).environment(\.animationsEnabled, false))
+                host.frame = NSRect(origin: .zero, size: host.fittingSize)
+                #expect(host.frame.height < 800)
+                let window = NSWindow(contentRect: host.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+                window.contentView = host
+                host.layoutSubtreeIfNeeded()
+                #expect(!window.isVisible && !window.isKeyWindow)
+                let bitmap = try #require(host.bitmapImageRepForCachingDisplay(in: host.bounds))
+                host.cacheDisplay(in: host.bounds, to: bitmap)
+                if let path = ProcessInfo.processInfo.environment["AGENTPET_UI_SNAPSHOT_DIR"] {
+                    let folder = URL(fileURLWithPath: path)
+                    try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+                    try #require(bitmap.representation(using: .png, properties: [:]))
+                        .write(to: folder.appendingPathComponent("together-\(state).png"))
+                }
+                window.contentView = nil
+            }
+        }
+    }
+
     @Test func sleepingReceivesAndPersistsAllMessagesWithoutHandlingOrReplayingThemOnWake() async throws {
         let directory = try folder(); defer { try? FileManager.default.removeItem(at: directory) }
         let suite = "local.agentpet.tests.sleep-relay.\(UUID().uuidString)"
@@ -589,6 +764,31 @@ struct PetRelayIntegrationTests {
         #expect(a.pair?.peerPet?.builtinID == "lumei")
         #expect(b.pair?.peerPet?.builtinID == "lulu")
         #expect(a.supportsInteractions && b.supportsInteractions)
+        #expect(a.supportsTogether && b.supportsTogether)
+        await a.inviteTogether(.visit)
+        await b.refresh()
+        let invitation = try #require(b.togetherSession)
+        #expect(invitation.isPending(at: b.togetherNow))
+        await b.actTogether("accept")
+        await a.refresh()
+        #expect(a.togetherSession?.isAway(deviceID: a.mailbox.deviceID, at: a.togetherNow) == true)
+        #expect(b.togetherSession?.showsCompanion(deviceID: b.mailbox.deviceID, at: b.togetherNow) == true)
+        await a.actTogether("end")
+        await b.refresh()
+        #expect(a.togetherSession?.status == "ended" && b.togetherSession?.status == "ended")
+        await b.inviteTogether(.work)
+        await a.refresh()
+        await a.actTogether("accept")
+        await b.refresh()
+        #expect(a.togetherSession?.showsCompanion(deviceID: a.mailbox.deviceID, at: a.togetherNow) == true)
+        #expect(b.togetherSession?.expiresAt == a.togetherSession?.expiresAt)
+        await a.actTogether("rest")
+        await b.refresh()
+        #expect(b.togetherSession?.isResting(at: b.togetherNow) == true)
+        await b.actTogether("end")
+        await a.refresh()
+        #expect(a.togetherSession?.status == "ended")
+        #expect(a.incoming.isEmpty && b.incoming.isEmpty && a.mailbox.handled.isEmpty && b.mailbox.handled.isEmpty)
         #expect(await a.send(gesture: .poke))
         await b.refresh()
         let message = try #require(b.incoming.first)
@@ -608,8 +808,12 @@ struct PetRelayIntegrationTests {
         #expect(b.incoming.first?.senderPet?.builtinID == "lulu")
         #expect(await b.send(replyTo: message.id, expectedPairID: message.pairID, gesture: .hug))
         await a.refresh()
-        #expect(b.incoming.isEmpty)
+        #expect(b.incoming.count == 1)
         #expect(a.incoming.first?.interaction == .hug)
+        #expect(a.mailbox.sent.first?.handledAt == nil)
+        b.dismiss(message.id)
+        await b.refresh()
+        await a.refresh()
         #expect(a.mailbox.sent.first?.handledAt != nil)
         await a.disconnect()
         await b.refresh()

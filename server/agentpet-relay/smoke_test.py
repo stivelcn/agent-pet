@@ -38,7 +38,7 @@ async def main(report=None):
                 assert response.status == status, (path, response.status, result.get('error'))
                 return result
         health = await call('healthz')
-        assert health['ok'] and health['protocol'] == 2 and 'pet-interactions-v1' in health['capabilities']
+        assert health['ok'] and health['protocol'] == 3 and 'pet-together-v1' in health['capabilities']
         result['checks'].append('新版协议')
         a = await call('v1/devices', data={'name': '联调甲'}, status=201)
         result['qaDeviceIDs'].append(a['deviceID'])
@@ -51,7 +51,7 @@ async def main(report=None):
             Path(report).write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n')
         for device, pet in [(a, 'lulu'), (b, 'lumei')]:
             await call('v1/device/pet', device['token'], {'name': '噜噜' if pet == 'lulu' else '噜妹',
-                       'builtinID': pet, 'interactionVersion': 1})
+                       'builtinID': pet, 'interactionVersion': 1, 'togetherVersion': 1})
         invitation = await call('v1/pairing/create', a['token'], {})
         code = invitation['invitation']['code']
         assert len(code) == 6 and any(c.isdigit() for c in code) and any(c.isalpha() for c in code)
@@ -60,12 +60,32 @@ async def main(report=None):
         assert (await call('v1/sync', a['token']))['pair']['peerPet']['builtinID'] == 'lumei'
         assert (await call('v1/sync', b['token']))['pair']['peerPet']['builtinID'] == 'lulu'
         result['checks'].append('双方形象同步与配对')
+        async def together_action(device, activity, action):
+            return await call('v1/together/action', device['token'],
+                              {'pairID': pair, 'sessionID': activity['id'], 'action': action})
+        visit_request = {'pairID': pair, 'clientID': str(uuid.uuid4()), 'mode': 'visit'}
+        visit = (await call('v1/together/request', a['token'], visit_request, status=201))['together']
+        assert (await call('v1/together/request', a['token'], visit_request))['together']['id'] == visit['id']
+        accepted = (await together_action(b, visit, 'accept'))['together']
+        assert accepted['status'] == 'active' and accepted['expiresAt'] - accepted['startedAt'] == 300
+        assert (await call('v1/sync', a['token']))['together']['expiresAt'] == accepted['expiresAt']
+        assert (await together_action(a, visit, 'end'))['together']['status'] == 'ended'
+        result['checks'].append('串门接受、双边同步、召回与幂等重试')
+        work = (await call('v1/together/request', b['token'],
+                           {'pairID': pair, 'clientID': str(uuid.uuid4()), 'mode': 'work'}, status=201))['together']
+        active = (await together_action(a, work, 'accept'))['together']
+        assert active['restAt'] - active['startedAt'] == 1500
+        tea = (await together_action(b, work, 'rest'))['together']
+        assert tea['expiresAt'] - tea['restAt'] == 300
+        assert (await together_action(a, work, 'rest'))['together']['expiresAt'] == tea['expiresAt']
+        assert (await together_action(a, work, 'end'))['together']['status'] == 'ended'
+        result['checks'].append('一起陪工、共同茶歇与结束')
         headers = {'Authorization': 'Bearer ' + b['token']}
         async with session.ws_connect(BASE.replace('https:', 'wss:') + 'v1/events', headers=headers, heartbeat=20) as ws:
             assert (await ws.receive_json(timeout=10))['type'] == 'changed'
             payload = {'pairID': pair, 'clientID': str(uuid.uuid4()), 'gesture': 'poke', 'expiresAt': time.time() + 30}
-            began = time.monotonic()
             sent = await call('v1/messages', a['token'], payload, status=201)
+            began = time.monotonic()  # Confirmation is after the server's cooldown timestamp.
             assert (await ws.receive_json(timeout=10))['type'] == 'changed'
         # Offline recipient: no socket needed. Sync does not auto-dismiss it.
         incoming = (await call('v1/sync', b['token']))['incoming']

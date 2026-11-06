@@ -56,6 +56,7 @@ struct PetRelaySettingsView: View {
                     }
                     Text("Click your desktop pet to send a message. Reply directly from its message bubble.")
                         .font(.caption).foregroundStyle(.secondary)
+                    PetTogetherControls(relay: relay)
                 } else {
                     pairing
                 }

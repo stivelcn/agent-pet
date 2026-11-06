@@ -30,6 +30,10 @@ enum PetRelayError: Error, LocalizedError {
             case "interactions_unavailable": "Pet interactions need an updated relay and both pets online at least once."
             case "gesture_cooldown": "Give your friend a moment. Try another interaction in a few seconds."
             case "gesture_expired": "This interaction expired. Send a new one when connected."
+            case "together_unavailable": "Visits and working together need both friends to update LuMate."
+            case "together_busy": "Finish the current invitation or activity first."
+            case "together_expired": "This invitation or activity has ended."
+            case "together_role": "Wait for your friend to accept this invitation."
             default: "The message relay is temporarily unavailable. Your unread messages are safe."
             }
         }

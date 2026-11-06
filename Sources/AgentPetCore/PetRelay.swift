@@ -41,9 +41,12 @@ public struct PetRelayPetProfile: Codable, Equatable, Sendable {
     public var builtinID: String?
     public var thumbnailPNG: String?
     public var interactionVersion: Int?
-    public init(name: String, builtinID: String? = nil, thumbnailPNG: String? = nil, interactionVersion: Int? = 1) {
+    public var togetherVersion: Int?
+    public init(name: String, builtinID: String? = nil, thumbnailPNG: String? = nil, interactionVersion: Int? = 1,
+                togetherVersion: Int? = 1) {
         self.name = name; self.builtinID = builtinID; self.thumbnailPNG = thumbnailPNG
         self.interactionVersion = interactionVersion
+        self.togetherVersion = togetherVersion
     }
 }
 
@@ -101,12 +104,16 @@ public struct PetRelaySnapshot: Codable, Sendable {
     public var sent: [PetRelayMessage]
     public var capabilities: [String]?
     public var pet: PetRelayPetProfile?
+    public var together: PetTogetherSession?
+    public var serverTime: Double?
     public init(deviceID: String, name: String, pair: PetRelayPair? = nil,
                 invitation: PetRelayInvitation? = nil, incoming: [PetRelayMessage] = [], sent: [PetRelayMessage] = [],
-                capabilities: [String]? = nil, pet: PetRelayPetProfile? = nil) {
+                capabilities: [String]? = nil, pet: PetRelayPetProfile? = nil,
+                together: PetTogetherSession? = nil, serverTime: Double? = nil) {
         self.deviceID = deviceID; self.name = name; self.pair = pair; self.invitation = invitation
         self.incoming = incoming; self.sent = sent
         self.capabilities = capabilities; self.pet = pet
+        self.together = together; self.serverTime = serverTime
     }
 }
 
@@ -165,6 +172,9 @@ public struct PetRelayMailbox: Codable, Equatable, Sendable {
     public var capabilities: [String]?
     public var pet: PetRelayPetProfile?
     public var playedInteractions: Set<String>?
+    public var together: PetTogetherSession?
+    public var pendingTogether: PetTogetherCommand?
+    public var finishedTogether: Set<String>?
     public init() {}
 
     public mutating func merge(_ snapshot: PetRelaySnapshot) {
@@ -173,6 +183,8 @@ public struct PetRelayMailbox: Codable, Equatable, Sendable {
         deviceID = snapshot.deviceID; name = snapshot.name
         pair = snapshot.pair; invitation = snapshot.invitation; sent = snapshot.sent
         capabilities = snapshot.capabilities; pet = snapshot.pet
+        together = snapshot.together?.pairID == snapshot.pair?.id ? snapshot.together : nil
+        if pendingTogether?.pairID != snapshot.pair?.id { pendingTogether = nil }
         for message in snapshot.incoming where !handled.contains(message.id) {
             if let index = incoming.firstIndex(where: { $0.id == message.id }) { incoming[index] = message }
             else { incoming.append(message) }

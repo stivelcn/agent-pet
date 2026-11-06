@@ -14,6 +14,130 @@ from relay import make_app, random_code, characters
 
 
 class RelayTests(AioHTTPTestCase):
+    async def together_profiles(self, a, b):
+        for headers, pet in [(a, 'lulu'), (b, 'lumei')]:
+            await self.post('device/pet', headers, {'name': pet, 'builtinID': pet,
+                'interactionVersion': 1, 'togetherVersion': 1})
+
+    async def invite_together(self, a, pair, mode='visit'):
+        data = {'pairID': pair, 'clientID': str(uuid.uuid4()), 'mode': mode}
+        state = await self.post('together/request', a, data, status=201)
+        return state['together'], data
+
+    async def together_action(self, headers, pair, session, action, status=200):
+        return await self.post('together/action', headers,
+            {'pairID': pair, 'sessionID': session['id'], 'action': action}, status=status)
+
+    async def test_visit_requires_acceptance_then_either_side_can_recall_without_handling_mail(self):
+        a, b, pair = await self.pair()
+        await self.together_profiles(a, b)
+        await self.send(a, pair)
+        session, original = await self.invite_together(a, pair)
+        self.assertEqual(session['status'], 'pending')
+        self.assertIsNone(session['startedAt'])
+        await self.post('together/request', a, original) # Lost-response retry has same invitation.
+        await self.together_action(a, pair, session, 'accept', status=409)
+        stranger = await self.device('stranger')
+        await self.together_action(stranger, pair, session, 'accept', status=409)
+        accepted = (await self.together_action(b, pair, session, 'accept'))['together']
+        self.assertEqual(accepted['status'], 'active')
+        self.assertAlmostEqual(accepted['expiresAt'] - accepted['startedAt'], 300)
+        retried = (await self.together_action(b, pair, session, 'accept'))['together']
+        self.assertEqual(retried, accepted)
+        home = await self.together_action(a, pair, session, 'end')
+        self.assertEqual(home['together']['status'], 'ended')
+        inbox = await (await self.client.get('/v1/sync', headers=b)).json()
+        self.assertEqual(len(inbox['incoming']), 1)
+        self.assertIsNone(inbox['incoming'][0]['handledAt'])
+        # A delayed stop for the old visit must never end a newer one.
+        second, _ = await self.invite_together(b, pair)
+        await self.together_action(a, pair, second, 'accept')
+        await self.together_action(a, pair, session, 'end')
+        self.assertEqual((await (await self.client.get('/v1/sync', headers=b)).json())['together']['id'], second['id'])
+        self.assertEqual((await self.together_action(a, pair, second, 'end'))['together']['status'], 'ended')
+
+    async def test_work_timer_tea_break_and_server_restart_keep_the_same_deadline(self):
+        from relay import Relay
+        from unittest.mock import patch
+        a, b, pair = await self.pair()
+        await self.together_profiles(a, b)
+        session, _ = await self.invite_together(a, pair, 'work')
+        active = (await self.together_action(b, pair, session, 'accept'))['together']
+        self.assertAlmostEqual(active['restAt'] - active['startedAt'], 1500)
+        self.assertAlmostEqual(active['expiresAt'] - active['restAt'], 300)
+        r = self.app['relay']
+        path = r.db.execute('PRAGMA database_list').fetchone()[2]
+        reopened = Relay(path)
+        self.assertEqual(reopened.together(pair)['expires'], active['expiresAt'])
+        reopened.db.close()
+        rest = (await self.together_action(a, pair, session, 'rest'))['together']
+        self.assertAlmostEqual(rest['expiresAt'] - rest['restAt'], 300)
+        self.assertEqual((await self.together_action(b, pair, session, 'rest'))['together'], rest)
+        with patch('relay.time.time', return_value=rest['expiresAt'] + 1):
+            ended = await (await self.client.get('/v1/sync', headers=a)).json()
+            self.assertEqual(ended['together']['status'], 'ended')
+            self.assertEqual(ended['together']['reason'], 'completed')
+            await self.together_action(b, pair, session, 'accept', status=409)
+
+    async def test_together_decline_cancel_expiry_unpair_and_legacy_compatibility(self):
+        from unittest.mock import patch
+        a, b, pair = await self.pair()
+        await self.profiles(a, b) # Old clients do not advertise support.
+        payload = {'pairID': pair, 'clientID': str(uuid.uuid4()), 'mode': 'visit'}
+        self.assertEqual((await self.post('together/request', a, payload, status=409))['error'], 'together_unavailable')
+        await self.together_profiles(a, b)
+        for mode in [[], 'invalid', True]:
+            await self.post('together/request', a, dict(payload, mode=mode), status=400)
+        session, original = await self.invite_together(a, pair)
+        await self.post('together/request', a, dict(original, mode='work'), status=409)
+        await self.post('together/request', b, dict(payload, clientID=str(uuid.uuid4())), status=409)
+        await self.together_action(b, pair, session, 'cancel', status=409)
+        self.assertEqual((await self.together_action(b, pair, session, 'decline'))['together']['reason'], 'decline')
+        session, _ = await self.invite_together(a, pair)
+        self.assertEqual((await self.together_action(a, pair, session, 'cancel'))['together']['reason'], 'cancel')
+        session, original = await self.invite_together(a, pair)
+        with patch('relay.time.time', return_value=session['expiresAt'] + 1):
+            await self.together_action(b, pair, session, 'accept', status=409)
+            self.assertEqual((await self.post('together/request', a, original))['together']['status'], 'ended')
+        session, _ = await self.invite_together(a, pair)
+        await self.together_action(b, pair, session, 'accept')
+        await self.post('pairing/disconnect', b, {})
+        self.assertIsNone((await (await self.client.get('/v1/sync', headers=a)).json())['together'])
+        self.assertEqual(self.app['relay'].db.execute('SELECT reason FROM together_sessions WHERE id=?', (session['id'],)).fetchone()[0], 'unpaired')
+
+    async def test_finished_together_records_clear_after_six_hours_without_deleting_unread_messages(self):
+        from cleanup_messages import purge_messages
+        a, b, pair = await self.pair()
+        await self.together_profiles(a, b)
+        await self.send(a, pair)
+        session, _ = await self.invite_together(a, pair)
+        ended = (await self.together_action(a, pair, session, 'cancel'))['together']
+        result = purge_messages(Path(self.folder.name) / 'test.sqlite3', now=ended['endedAt'] + 21601)
+        self.assertEqual(result['deleted_together'], 1)
+        state = await (await self.client.get('/v1/sync', headers=b)).json()
+        self.assertIsNone(state['together'])
+        self.assertEqual(len(state['incoming']), 1)
+
+    async def test_withdrawing_a_lost_response_cancels_only_the_original_request(self):
+        a, b, pair = await self.pair()
+        await self.together_profiles(a, b)
+        for accepted in (False, True):
+            session, original = await self.invite_together(a, pair)
+            if accepted:
+                await self.together_action(b, pair, session, 'accept')
+            withdraw = {'pairID': pair, 'clientID': original['clientID'], 'action': 'cancel'}
+            result = await self.post('together/action', a, withdraw)
+            self.assertEqual(result['together']['status'], 'ended')
+            new, _ = await self.invite_together(b, pair)
+            result = await self.post('together/action', a, withdraw)
+            self.assertEqual(result['together']['id'], new['id'])
+            self.assertEqual(result['together']['status'], 'pending')
+            # The other member cannot withdraw an invitation using its client identity.
+            result = await self.post('together/action', b, withdraw)
+            self.assertEqual(result['together']['status'], 'pending')
+            await self.together_action(b, pair, new, 'cancel')
+        await self.post('together/action', a, {'pairID': pair, 'clientID': [], 'action': 'cancel'}, status=400)
+
     async def profiles(self, a, b):
         for headers, pet in [(a, 'lulu'), (b, 'lumei')]:
             await self.post('device/pet', headers, {'name': pet, 'builtinID': pet, 'interactionVersion': 1})
@@ -302,11 +426,16 @@ class RelayTests(AioHTTPTestCase):
             self.assertEqual(compressed.headers.get('Cache-Control'), 'no-store')
             self.assertEqual(int(compressed.headers['Content-Length']), len(wire))
             decoded = zlib.decompress(wire, 31 if coding == 'gzip' else 15)
-            self.assertEqual(json.loads(decoded), json.loads(original))
+            decoded_state, original_state = json.loads(decoded), json.loads(original)
+            self.assertIsInstance(decoded_state.pop('serverTime'), (int, float))
+            original_state.pop('serverTime')
+            self.assertEqual(decoded_state, original_state)
             self.assertLess(len(wire), len(original) / 3)
         # Native URLSession transparently decompresses, like this normal client.
         automatic = await self.client.get('/v1/sync', headers=a)
-        self.assertEqual(await automatic.json(), json.loads(original))
+        automatic_state, original_state = await automatic.json(), json.loads(original)
+        automatic_state.pop('serverTime'); original_state.pop('serverTime')
+        self.assertEqual(automatic_state, original_state)
         sent = await self.client.post('/v1/messages', headers=dict(a, **{'Accept-Encoding': 'gzip'}),
             json={'pairID': pair, 'clientID': str(uuid.uuid4()), 'text': '压缩发送'}, auto_decompress=False)
         self.assertEqual(sent.status, 201)

@@ -1155,3 +1155,29 @@
 /* 宠物回窝与恢复 */
 "Back to the nest to sleep" = "Back to the nest to sleep";
 "Leave the nest and get to work" = "Leave the nest and get to work";
+
+/* 串门与一起陪工 */
+"Visits and working together need both friends to update LuMate." = "Visits and working together need both friends to update LuMate.";
+"Finish the current invitation or activity first." = "Finish the current invitation or activity first.";
+"This invitation or activity has ended." = "This invitation or activity has ended.";
+"Wait for your friend to accept this invitation." = "Wait for your friend to accept this invitation.";
+"Already home here. Reconnecting to tell your friend…" = "Already home here. Reconnecting to tell your friend…";
+"Invitation saved. Waiting for the connection…" = "Invitation saved. Waiting for the connection…";
+"Waiting for your friend to accept…" = "Waiting for your friend to accept…";
+"%@ wants to visit for 5 minutes" = "%@ wants to visit for 5 minutes";
+"%@ invites you to work together" = "%@ invites you to work together";
+"Come on over" = "Come on over";
+"Let's work together" = "Let's work together";
+"Maybe later" = "Maybe later";
+"Visiting your friend's home" = "Visiting your friend's home";
+"Your friend is visiting" = "Your friend is visiting";
+"Tea break together" = "Tea break together";
+"Working together" = "Working together";
+"Take a tea break together" = "Take a tea break together";
+"Finish working together" = "Finish working together";
+"Call them home" = "Call them home";
+"Send them home" = "Send them home";
+"Go visiting" = "Go visiting";
+"Work together" = "Work together";
+"Gone to a friend's home" = "Gone to a friend's home";
+"High five! Well done today." = "High five! Well done today.";

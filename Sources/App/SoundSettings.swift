@@ -10,6 +10,9 @@ final class SoundSettings: ObservableObject {
 
     enum Event: String { case waiting, done }
 
+    private var playingSounds: [Event: NSSound] = [:]
+    private let isSleeping: @MainActor () -> Bool
+
     @Published var waitingEnabled: Bool { didSet { save() } }
     @Published var doneEnabled: Bool { didSet { save() } }
     /// "" means use the built-in default; otherwise a custom file path.
@@ -24,7 +27,8 @@ final class SoundSettings: ObservableObject {
         URL(fileURLWithPath: AgentPetPaths.baseDir).appendingPathComponent("sounds")
     }
 
-    init() {
+    init(isSleeping: @escaping @MainActor () -> Bool = { PetSleepController.shared.isSleeping }) {
+        self.isSleeping = isSleeping
         let d = LocalPreferences.defaults
         waitingEnabled = (d.object(forKey: "agentpet.sound.waiting.on") as? Bool) ?? true
         doneEnabled = (d.object(forKey: "agentpet.sound.done.on") as? Bool) ?? true
@@ -42,7 +46,7 @@ final class SoundSettings: ObservableObject {
 
     /// Plays the configured sound for an event, if enabled.
     func play(_ event: Event) {
-        guard isEnabled(event) else { return }
+        guard canPlay(event) else { return }
         let sound: NSSound?
         let path = customPath(event)
         if !path.isEmpty, FileManager.default.fileExists(atPath: path) {
@@ -50,8 +54,16 @@ final class SoundSettings: ObservableObject {
         } else {
             sound = NSSound(named: event == .waiting ? Self.defaultWaiting : Self.defaultDone)
         }
-        sound?.stop()
+        playingSounds[event]?.stop()
+        playingSounds[event] = sound
         sound?.play()
+    }
+
+    func canPlay(_ event: Event) -> Bool { isEnabled(event) && !isSleeping() }
+
+    func silence() {
+        playingSounds.values.forEach { $0.stop() }
+        playingSounds.removeAll()
     }
 
     /// Prompts for an audio file and sets it as the custom sound for an event.

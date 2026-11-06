@@ -1151,3 +1151,7 @@
 "Enable animations to replay" = "Enable animations to replay";
 "Close this interaction" = "Close this interaction";
 "Receive a local preview. Replay the bubble as often as you like; close it to dismiss." = "Receive a local preview. Replay the bubble as often as you like; close it to dismiss.";
+
+/* 宠物回窝与恢复 */
+"Back to the nest to sleep" = "Back to the nest to sleep";
+"Leave the nest and get to work" = "Leave the nest and get to work";

@@ -1153,3 +1153,7 @@
 /* 互动回放说明 */
 "Pair two pets to send messages and interact. Click an interaction bubble to replay; it stays until you close it." = "配对后可以传话，也可以让两只宠物互动。点击互动气泡可反复回放，点叉才关闭。";
 "Pairing shares your nickname, pet name, appearance and messages. Imported pets share a small portrait. No pet levels, usage data or AI configuration is uploaded. This relay uses HTTPS, not end-to-end encryption. Offline interactions keep a replay bubble. Older animations play only when you click it." = "配对会分享昵称、宠物名字、形象和消息。导入宠物只分享小尺寸头像，不上传宠物等级、用量数据或 AI 配置。中转采用 HTTPS，未提供端到端加密。离线收到的互动会保留气泡，过期动画仅在点击气泡时回放。";
+
+/* 宠物回窝与恢复 */
+"Back to the nest to sleep" = "回窝睡觉";
+"Leave the nest and get to work" = "出窝搬砖";

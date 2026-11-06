@@ -87,10 +87,15 @@ final class EmberCatIntegration: ObservableObject {
 
     func setFlameEnabled(_ enabled: Bool) { flameSettings.isEnabled = enabled }
 
+    func setPresentationSuppressed(_ suppressed: Bool) {
+        flame?.setPresentationSuppressed(suppressed)
+    }
+
     func start(environment: [String: String] = ProcessInfo.processInfo.environment) {
         guard !isRunning, environment["AGENTPET_EMBERCAT_ENABLED"] != "0" else { return }
         isRunning = true
-        flame = NotchFlameController(settings: flameSettings)
+        flame = NotchFlameController(settings: flameSettings,
+                                   presentationSuppressed: PetSleepController.shared.isSleeping)
         liveToken = store.addLiveListener { [weak self] snapshot in self?.receive(snapshot) }
         // Same source set and live-output window as EmberCat v0.6.15. No demo driver or network client.
         let monitor = LiveMonitor(store: store,

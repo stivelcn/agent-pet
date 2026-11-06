@@ -22,10 +22,13 @@ final class NotchFlameController {
     private var lastSpeed: Double = 0
     private var sleeping = false
     private var failed = false
+    private(set) var presentationSuppressed: Bool
 
     init(settings: NotchFlameSettings = .shared,
+         presentationSuppressed: Bool = false,
          currentDisplay: @escaping @MainActor () -> NotchDisplayProfile? = { NotchDisplayProfile.current() }) {
         self.settings = settings
+        self.presentationSuppressed = presentationSuppressed
         self.currentDisplay = currentDisplay
         observers.append(NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main
@@ -65,8 +68,13 @@ final class NotchFlameController {
         refreshVisibility()
     }
 
+    func setPresentationSuppressed(_ suppressed: Bool) {
+        presentationSuppressed = suppressed
+        refreshVisibility()
+    }
+
     private func refreshVisibility() {
-        guard settings.isEnabled, !sleeping, !failed else { hide(); return }
+        guard settings.isEnabled, !sleeping, !presentationSuppressed, !failed else { hide(); return }
         if lastSpeed > 0 {
             if panel == nil || panel?.isVisible != true { refreshDisplay() }
             guard let panel, let flameView else { return }
@@ -80,7 +88,7 @@ final class NotchFlameController {
     }
 
     private func refreshDisplay() {
-        guard settings.isEnabled, !sleeping, !failed else { hide(); return }
+        guard settings.isEnabled, !sleeping, !presentationSuppressed, !failed else { hide(); return }
         guard let profile = currentDisplay() else { hide(); return }
         if panel == nil {
             guard lastSpeed > 0 else { return }

@@ -10,15 +10,32 @@ import UserNotifications
 @MainActor
 final class NotificationManager {
     static let shared = NotificationManager()
+    private let isSleeping: @MainActor () -> Bool
+
+    init(isAvailable: Bool = Bundle.main.bundleIdentifier != nil,
+         isSleeping: @escaping @MainActor () -> Bool = { PetSleepController.shared.isSleeping }) {
+        self.isAvailable = isAvailable
+        self.isSleeping = isSleeping
+    }
 
     /// UserDefaults key for the in-app "show notifications" toggle (independent
     /// of the macOS permission): users who granted permission can still mute.
     static let enabledKey = "agentpet.notificationsEnabled"
 
     /// `UNUserNotificationCenter` needs a real bundle id; false under `swift run`.
-    var isAvailable: Bool { Bundle.main.bundleIdentifier != nil }
+    let isAvailable: Bool
 
     private var available: Bool { isAvailable }
+
+    var canNotify: Bool { available && userEnabled && !isSleeping() }
+
+    /// Retract this app's banners and queued alerts; durable completion/message stores are separate.
+    func hideNotifications() {
+        guard available else { return }
+        let center = UNUserNotificationCenter.current()
+        center.removeAllPendingNotificationRequests()
+        center.removeAllDeliveredNotifications()
+    }
 
     /// Whether the user wants notifications shown (defaults to on).
     var userEnabled: Bool {
@@ -26,12 +43,21 @@ final class NotificationManager {
     }
 
     func notify(title: String, body: String) {
-        guard available, userEnabled else { return }
+        guard canNotify else { return }
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body
         // Sound is handled by SoundSettings (configurable per event).
-        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
-        UNUserNotificationCenter.current().add(request)
+        let identifier = UUID().uuidString
+        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: nil)
+        UNUserNotificationCenter.current().add(request) { [isSleeping] _ in
+            Task { @MainActor in
+                // An alert already in flight when the pet goes to sleep must also be retracted.
+                guard isSleeping() else { return }
+                let center = UNUserNotificationCenter.current()
+                center.removePendingNotificationRequests(withIdentifiers: [identifier])
+                center.removeDeliveredNotifications(withIdentifiers: [identifier])
+            }
+        }
     }
 }

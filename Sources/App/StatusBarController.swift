@@ -13,6 +13,19 @@ final class StatusBarController: NSObject, ObservableObject {
     private let popover = NSPopover()
     private var lastSessions: [AgentSession] = []
 
+    func applySleepState(_ sleeping: Bool) {
+        if sleeping {
+            popover.animates = false
+            popover.close()
+            popover.animates = true
+            hideChatBubble()
+            hideAgentBubble()
+        } else {
+            refreshChatBubble()
+            refreshAgentBubble()
+        }
+    }
+
     /// Whether to show the agent count next to the menu bar icon.
     @Published var showCount: Bool {
         didSet {
@@ -179,7 +192,7 @@ final class StatusBarController: NSObject, ObservableObject {
 
     private func refreshChatBubble() {
         let chat = PetController.shared.chatLine
-        guard showChatOnMenuBar, !chat.isEmpty else {
+        guard !PetSleepController.shared.isSleeping, showChatOnMenuBar, !chat.isEmpty else {
             hideChatBubble()
             return
         }
@@ -189,6 +202,7 @@ final class StatusBarController: NSObject, ObservableObject {
     }
 
     private func showChatBubble(_ text: String) {
+        guard !PetSleepController.shared.isSleeping else { return }
         guard let button = statusItem?.button, let buttonWindow = button.window else { return }
 
         let host = NSHostingView(rootView: MenuBarChatBubble(text: text))
@@ -235,7 +249,7 @@ final class StatusBarController: NSObject, ObservableObject {
     private var agentBubbleHost: NSHostingView<AnyView>?
 
     private func refreshAgentBubble() {
-        guard showBubbleOnMenuBar, !popover.isShown else {
+        guard !PetSleepController.shared.isSleeping, showBubbleOnMenuBar, !popover.isShown else {
             hideAgentBubble()
             return
         }
@@ -248,6 +262,7 @@ final class StatusBarController: NSObject, ObservableObject {
     }
 
     private func positionAgentBubble() {
+        guard !PetSleepController.shared.isSleeping else { hideAgentBubble(); return }
         guard let button = statusItem?.button,
               let buttonWindow = button.window else { return }
 

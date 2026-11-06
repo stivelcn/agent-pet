@@ -2754,5 +2754,33 @@
   {
     "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
     "method": "replayIsOfflineAndOnlyClosingSendsHandledReceipt"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetSleepTests.swift",
+    "method": "sleepPersistsAcrossRestartAndRepeatedActionsAreIdempotent"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetSleepTests.swift",
+    "method": "splitWindowsStayHiddenThroughSyncAppearanceChangesAndVisibilityToggle"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetSleepTests.swift",
+    "method": "sleepMutesAlertsWithoutChangingNotificationOrSoundPreferences"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetSleepTests.swift",
+    "method": "unreadCompletionsKeepRecordingAndSurviveSleepAndWake"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetSleepTests.swift",
+    "method": "flameSuppressionKeepsRateUpdatesAndPreferencesWithoutCreatingAnOverlay"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetSleepTests.swift",
+    "method": "chineseSleepAndWakeActionsRenderOffscreen"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "sleepingReceivesAndPersistsAllMessagesWithoutHandlingOrReplayingThemOnWake"
   }
 ]

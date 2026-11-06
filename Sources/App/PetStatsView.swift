@@ -9,6 +9,7 @@ struct PetStatsView: View {
     /// (preserves today's right-click-on-the-single-pet behaviour).
     var windowKey: String = PetWindowPlanner.defaultKey
     var petID: String? = nil
+    @ObservedObject var sleep: PetSleepController = .shared
     @ObservedObject private var care = PetCareController.shared
     @ObservedObject private var pet = PetController.shared
     @ObservedObject private var imagePets = ImagePetStore.shared
@@ -55,6 +56,8 @@ struct PetStatsView: View {
                 PetWindowController.shared.showMessageComposer(forKey: windowKey)
             } label: { Label("Send a pet message", systemImage: "envelope.fill").frame(maxWidth: .infinity) }
             .buttonStyle(.bordered)
+            PetSleepButton(sleep: sleep)
+                .buttonStyle(.bordered)
             footer
         }
         .padding(14)

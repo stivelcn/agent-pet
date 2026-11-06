@@ -105,6 +105,7 @@ struct FloatingPetView: View {
     @ObservedObject private var appLang = AppLanguage.shared
     @ObservedObject private var completions = CompletionNoticeStore.shared
     @ObservedObject private var relay = PetRelayController.shared
+    @ObservedObject private var sleep = PetSleepController.shared
     @ObservedObject private var imagePets = ImagePetStore.shared
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @StateObject private var pairPlayer = PetPairInteractionPlayer()
@@ -170,7 +171,7 @@ struct FloatingPetView: View {
         .environment(\.locale, appLang.locale)
         // An unseen pet runs no animation at all (sprite, dot, typewriter,
         // pulse, elapsed tick); it resumes as soon as the window is visible.
-        .environment(\.animationsEnabled, pet.animationsEnabled && model.isOnScreen)
+        .environment(\.animationsEnabled, pet.animationsEnabled && model.isOnScreen && !sleep.isSleeping)
         .environment(\.petOnScreen, model.isOnScreen)
         .onAppear { receiveInteractions() }
         .onChange(of: relay.incoming) { _, _ in receiveInteractions() }
@@ -186,7 +187,7 @@ struct FloatingPetView: View {
     }
 
     private var canPlayInteractions: Bool {
-        pet.animationsEnabled && model.isOnScreen && !reduceMotion && localPack != nil
+        !sleep.isSleeping && pet.animationsEnabled && model.isOnScreen && !reduceMotion && localPack != nil
     }
 
     @ViewBuilder private var desktopPet: some View {

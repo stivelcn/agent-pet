@@ -442,6 +442,57 @@ struct PetRelayIntegrationTests {
         #expect(restart.mailbox.replayInteraction("visit") == nil)
     }
 
+    @Test func sleepingReceivesAndPersistsAllMessagesWithoutHandlingOrReplayingThemOnWake() async throws {
+        let directory = try folder(); defer { try? FileManager.default.removeItem(at: directory) }
+        let suite = "local.agentpet.tests.sleep-relay.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let sleep = PetSleepController(defaults: defaults)
+        sleep.goToSleep()
+        let api = RelayMockAPI(incoming: false)
+        await api.enableInteractions()
+        let file = directory.appendingPathComponent("messages.json")
+        let relay = PetRelayController(fileURL: file, credentials: RelayMockCredential(), api: api,
+                                       events: false, isSleeping: { sleep.isSleeping })
+        let now = Date().timeIntervalSince1970
+        let messages = [
+            PetRelayMessage(id: "sleep-text", clientID: "sleep-text", pairID: "pair1", senderName: "噜噜", text: "醒来记得查收", createdAt: now),
+            PetRelayMessage(id: "sleep-icon", clientID: "sleep-icon", pairID: "pair1", senderName: "噜噜", icon: .heart, createdAt: now),
+        ] + [PetRelayGesture.hug, .poke].map { gesture in
+            PetRelayMessage(id: "sleep-\(gesture.rawValue)", clientID: "sleep-\(gesture.rawValue)", pairID: "pair1",
+                senderName: "噜噜", createdAt: now, gesture: gesture.rawValue, expiresAt: now + 30,
+                senderPet: PetRelayPetProfile(name: "噜噜", builtinID: "lulu"))
+        }
+        for message in messages {
+            await api.receive(message)
+            await relay.refresh()
+        }
+        #expect(Set(relay.incoming.map(\.id)) == Set(messages.map(\.id)))
+        #expect(relay.mailbox.handled.isEmpty)
+        #expect(relay.consumeInteractionBatch(canAnimate: true).isEmpty)
+        let restartedSleep = PetSleepController(defaults: defaults)
+        #expect(restartedSleep.isSleeping)
+        let restarted = PetRelayController(fileURL: file, credentials: RelayMockCredential(), api: api,
+                                           events: false, isSleeping: { restartedSleep.isSleeping })
+        await restarted.refresh()
+        restartedSleep.wakeUp()
+        #expect(restarted.consumeInteractionBatch(canAnimate: true).isEmpty)
+        #expect(restarted.incoming.count == 4)
+        for id in ["sleep-hug", "sleep-poke"] {
+            for _ in 0..<20 { #expect(restarted.mailbox.replayInteraction(id)?.id == id) }
+        }
+        let acks = try await api.acknowledgements.map { try JSONSerialization.jsonObject(with: $0) as! [String: Any] }
+        #expect(!acks.isEmpty && acks.allSatisfy { $0["kind"] as? String == "delivered" })
+        #expect(await api.payloads.isEmpty)
+        // Newly arriving interactions play normally after waking, while all folded bubbles remain.
+        await api.receive(PetRelayMessage(id: "awake-peek", clientID: "awake-peek", pairID: "pair1", senderName: "噜噜",
+            createdAt: now + 1, gesture: "peek", expiresAt: now + 30,
+            senderPet: PetRelayPetProfile(name: "噜噜", builtinID: "lulu")))
+        await restarted.refresh()
+        #expect(restarted.consumeInteractionBatch(canAnimate: true).map(\.id) == ["awake-peek"])
+        #expect(restarted.incoming.count == 5 && restarted.mailbox.handled.isEmpty)
+    }
+
     @Test func pairedComposerRendersPeerAndActionsOffscreen() async throws {
         _ = NSApplication.shared
         let api = RelayMockAPI(incoming: false)

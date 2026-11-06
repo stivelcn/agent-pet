@@ -10,9 +10,30 @@ import AgentPetCore
 @MainActor
 final class PetWindowController: ObservableObject {
     static let shared = PetWindowController()
+    private let isSleeping: @MainActor () -> Bool
+
+    init(isSleeping: @escaping @MainActor () -> Bool = { PetSleepController.shared.isSleeping }) {
+        self.isSleeping = isSleeping
+    }
 
     @Published var isVisible: Bool = true {
         didSet { applyVisibility(isVisible) }
+    }
+
+    var canPresentPets: Bool { isVisible && !isSleeping() }
+
+    /// Close auxiliary popovers immediately; their mailbox and unsent draft remain intact.
+    func applySleepState(_ sleeping: Bool) {
+        if sleeping {
+            statsPopover?.animates = false
+            statsPopover?.close()
+            preserveMessageDraft = messagePopover?.isShown == true
+            messagePopover?.animates = false
+            messagePopover?.close()
+        } else {
+            isVisible = true
+        }
+        applyVisibility(isVisible)
     }
 
     /// One managed panel + its per-window model and observers/measurement state.
@@ -150,7 +171,8 @@ final class PetWindowController: ObservableObject {
                 key: spec.key, petID: spec.petID, mood: spec.mood,
                 projectName: spec.projectName, count: spec.count, index: index)
             apply(stateFor(spec), to: managed.model)
-            if isVisible { managed.panel.orderFrontRegardless() }
+            if canPresentPets { managed.panel.orderFrontRegardless() }
+            updateOnScreen(managed)
         }
     }
 
@@ -184,6 +206,7 @@ final class PetWindowController: ObservableObject {
         let size = CGSize(width: pet + 24, height: pet + 24)
         let model = PetWindowModel(key: key, petID: petID, mood: mood,
                                    projectName: projectName, count: count)
+        model.isOnScreen = false
         let panel = makePanel(size: size, model: model)
         let managed = ManagedPetWindow(panel: panel, model: model)
         windows[key] = managed
@@ -218,7 +241,8 @@ final class PetWindowController: ObservableObject {
     /// Recomputes whether a pet can be seen; only publishes on change so
     /// SwiftUI is not invalidated by redundant occlusion callbacks.
     private func updateOnScreen(_ managed: ManagedPetWindow) {
-        let visible = !screensAsleep && managed.panel.occlusionState.contains(.visible)
+        let visible = canPresentPets && !screensAsleep && managed.panel.isVisible
+            && managed.panel.occlusionState.contains(.visible)
         if managed.model.isOnScreen != visible { managed.model.isOnScreen = visible }
     }
 
@@ -319,6 +343,7 @@ final class PetWindowController: ObservableObject {
     }
 
     private func showStatsPopover(relativeTo rect: NSRect, of view: NSView, petID: String?, windowKey: String) {
+        guard canPresentPets else { return }
         if let shown = statsPopover, shown.isShown {
             shown.performClose(nil)
             return
@@ -350,12 +375,13 @@ final class PetWindowController: ObservableObject {
     private var messagePopover: NSPopover?
     private var messageComposer: PetRelayComposerModel?
     private var messageWindowKey: String?
+    private var preserveMessageDraft = false
 
     /// A small keyboard-capable popover at the pet, never the settings window.
     /// Native popover placement flips/clamps at screen edges; closing it does not ACK a message.
     func showMessageComposer(forKey key: String = PetWindowPlanner.defaultKey,
                              replyTo: PetRelayMessage? = nil) {
-        guard AppUpdateController.shared.phase != .installing else { return }
+        guard canPresentPets, AppUpdateController.shared.phase != .installing else { return }
         closeStatsPopover()
         if let shown = messagePopover, shown.isShown, messageWindowKey == key,
            messageComposer?.replyTo?.id == replyTo?.id,
@@ -367,7 +393,14 @@ final class PetWindowController: ObservableObject {
         messagePopover?.performClose(nil)
         let managed = ensureWindow(for: key)
         guard let content = managed.panel.contentView else { return }
-        let model = PetRelayComposerModel(relay: .shared, replyTo: replyTo)
+        let model: PetRelayComposerModel
+        if preserveMessageDraft, messageWindowKey == key, let existing = messageComposer,
+           existing.replyTo?.id == replyTo?.id, existing.validContext, !existing.didSend {
+            model = existing
+        } else {
+            model = PetRelayComposerModel(relay: .shared, replyTo: replyTo)
+        }
+        preserveMessageDraft = false
         let popover = NSPopover()
         popover.behavior = .transient
         popover.animates = false
@@ -561,11 +594,12 @@ final class PetWindowController: ObservableObject {
 
     private func applyVisibility(_ visible: Bool) {
         for managed in windows.values {
-            if visible {
+            if visible && !isSleeping() {
                 managed.panel.orderFrontRegardless()
             } else {
                 managed.panel.orderOut(nil)
             }
+            updateOnScreen(managed)
         }
     }
 }

@@ -27,14 +27,17 @@ final class PetRelayController: ObservableObject {
     private var periodicTask: Task<Void, Never>?
     private var socketTask: Task<Void, Never>?
     private let profileProvider: @MainActor () -> PetRelayPetProfile?
+    private let isSleeping: @MainActor () -> Bool
     private var lastGestureAt = Date.distantPast
 
     init(fileURL: URL?, credentials: any PetRelayCredentialStore, api: any PetRelayTransport,
          enabled: Bool = true, events: Bool = true,
-         profileProvider: @escaping @MainActor () -> PetRelayPetProfile? = { nil }) {
+         profileProvider: @escaping @MainActor () -> PetRelayPetProfile? = { nil },
+         isSleeping: @escaping @MainActor () -> Bool = { PetSleepController.shared.isSleeping }) {
         self.fileURL = fileURL; credentialsStore = credentials; self.api = api
         self.enabled = enabled; eventsEnabled = events
         self.profileProvider = profileProvider
+        self.isSleeping = isSleeping
         if let fileURL, FileManager.default.fileExists(atPath: fileURL.path) {
             do { mailbox = try JSONDecoder().decode(PetRelayMailbox.self, from: Data(contentsOf: fileURL)) }
             catch { restoreFailed = true; persistenceError = PetRelayError.storage.localizedDescription }
@@ -120,6 +123,8 @@ final class PetRelayController: ObservableObject {
     private func apply(_ snapshot: PetRelaySnapshot) throws {
         guard snapshot.deviceID == credential?.deviceID else { throw PetRelayError.credentials }
         mailbox.merge(snapshot)
+        // Receiving continues in the nest. Suppress automatic playback durably, keeping replay bubbles unread.
+        if isSleeping() { _ = mailbox.consumeInteractionBatch(at: Date().timeIntervalSince1970, canAnimate: false) }
         guard save() else { throw PetRelayError.storage }
     }
 

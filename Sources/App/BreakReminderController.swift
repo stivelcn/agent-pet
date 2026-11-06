@@ -13,6 +13,9 @@ final class BreakReminderController {
     private let clock = BreakClock()
     private let settings = BreakReminderSettings.shared
     private var timer: Timer?
+    private var reminderSound: NSSound?
+
+    func silence() { reminderSound?.stop(); reminderSound = nil }
 
     private static let tickInterval: TimeInterval = 60
     /// A gap larger than this between ticks means the machine slept / the app
@@ -68,7 +71,10 @@ final class BreakReminderController {
             NotificationManager.shared.notify(
                 title: NSLocalizedString("Time for a break", comment: "break notification"),
                 body: InterfaceText.format("You've worked %d min — rest %d min 😴", mins, brk))
-            NSSound(named: "Purr")?.play()
+            if !PetSleepController.shared.isSleeping {
+                reminderSound = NSSound(named: "Purr")
+                reminderSound?.play()
+            }
             PetController.shared.beginBreakRest(
                 line: InterfaceText.format("Worked %d min — let's rest %d min 😴", mins, brk))
         case .breakOver:

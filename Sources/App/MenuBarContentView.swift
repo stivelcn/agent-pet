@@ -8,6 +8,7 @@ struct MenuContentView: View {
     @ObservedObject private var language = AppLanguage.shared
     @ObservedObject private var daemon = AppDaemon.shared
     @ObservedObject private var petWindow = PetWindowController.shared
+    @ObservedObject var sleep: PetSleepController = .shared
     @ObservedObject private var statusBar = StatusBarController.shared
     @ObservedObject private var pet = PetController.shared
     var dismiss: () -> Void
@@ -201,7 +202,13 @@ struct MenuContentView: View {
 
     private var controls: some View {
         VStack(spacing: 0) {
-            controlRow(icon: "pawprint", label: "Show pet", isOn: $petWindow.isVisible)
+            PetSleepButton(sleep: sleep, dismiss: dismiss)
+                .buttonStyle(.plain)
+                .font(.system(size: 13)).foregroundStyle(.white)
+                .padding(.horizontal, 14).padding(.vertical, 10)
+            if !sleep.isSleeping {
+                controlRow(icon: "pawprint", label: "Show pet", isOn: $petWindow.isVisible)
+            }
             controlRow(icon: "number", label: "Show count on menu bar", isOn: $statusBar.showCount)
             controlRow(icon: "bubble.left", label: "Show chat on menu bar", isOn: $statusBar.showChatOnMenuBar)
             controlRow(icon: "list.bullet.rectangle", label: "Show bubble on menu bar", isOn: $statusBar.showBubbleOnMenuBar)

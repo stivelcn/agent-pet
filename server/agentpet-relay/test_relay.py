@@ -1,13 +1,111 @@
 import json
+import base64
+import hashlib
+import sqlite3
+import struct
 import tempfile
 import unittest
 import uuid
+import time
+import zlib
 from pathlib import Path
 from aiohttp.test_utils import AioHTTPTestCase
 from relay import make_app, random_code, characters
 
 
 class RelayTests(AioHTTPTestCase):
+    async def profiles(self, a, b):
+        for headers, pet in [(a, 'lulu'), (b, 'lumei')]:
+            await self.post('device/pet', headers, {'name': pet, 'builtinID': pet, 'interactionVersion': 1})
+
+    async def test_pet_profiles_visits_reply_and_sender_appearance_snapshot(self):
+        a, b, pair = await self.pair()
+        await self.profiles(a, b)
+        state = await (await self.client.get('/v1/sync', headers=b)).json()
+        self.assertEqual(state['pair']['peerPet']['builtinID'], 'lulu')
+        data = {'pairID': pair, 'clientID': str(uuid.uuid4()), 'gesture': 'poke', 'expiresAt': time.time() + 30}
+        sent = await self.post('messages', a, data, status=201)
+        parent = sent['sent'][0]['id']
+        self.assertEqual(sent['sent'][0]['senderPet']['builtinID'], 'lulu')
+        await self.post('device/pet', a, {'name': 'changed', 'builtinID': 'lumei', 'interactionVersion': 1})
+        inbox = (await (await self.client.get('/v1/sync', headers=b)).json())['incoming']
+        self.assertEqual(inbox[0]['senderPet']['builtinID'], 'lulu')
+        self.assertEqual(inbox[0]['gesture'], 'poke')
+        self.assertTrue(inbox[0]['text'])  # readable fallback on old clients
+        replied = await self.post('messages', b, {'pairID': pair, 'clientID': str(uuid.uuid4()),
+            'gesture': 'hug', 'expiresAt': time.time() + 30, 'replyTo': parent}, status=201)
+        self.assertEqual(replied['incoming'], [])
+        self.assertEqual(replied['sent'][0]['gesture'], 'hug')
+
+    async def test_gesture_expiry_cooldown_legacy_peer_and_idempotency(self):
+        a, b, pair = await self.pair()
+        def payload(**kw):
+            return dict(pairID=pair, clientID=str(uuid.uuid4()), gesture='peek', expiresAt=time.time() + 30, **kw)
+        state = await self.post('messages', a, payload(), status=409)
+        self.assertEqual(state['error'], 'interactions_unavailable')
+        await self.profiles(a, b)
+        bad = payload(); bad['expiresAt'] = time.time() - 1
+        self.assertEqual((await self.post('messages', a, bad, status=409))['error'], 'gesture_expired')
+        bad['expiresAt'] = float('nan')
+        await self.post('messages', a, bad, status=409)
+        original = payload()
+        await self.post('messages', a, original, status=201)
+        self.assertEqual((await self.post('messages', a, payload(), status=429))['error'], 'gesture_cooldown')
+        # Duplicate recognition precedes cooldown and expiry, including after service restart.
+        await self.post('messages', a, original)
+        from unittest.mock import patch
+        with patch('relay.time.time', return_value=time.time() + 40):
+            await self.post('messages', a, original)
+            await self.post('messages', a, dict(original, clientID=str(uuid.uuid4())), status=409)
+        await self.post('messages', a, dict(original, gesture='poke'), status=409)
+        for bad in [{'gesture': []}, {'gesture': 'unknown'}, {'gesture': 'poke', 'text': 'hi'},
+                    {'gesture': 'hug', 'expiresAt': True}, {'gesture': 'peek', 'expiresAt': None}]:
+            value = payload(); value.update(bad)
+            await self.post('messages', a, value, status=400)
+
+    async def test_custom_portrait_is_bounded_validated_and_private_to_pair(self):
+        def chunk(kind, value):
+            return struct.pack('>I', len(value)) + kind + value + struct.pack('>I', zlib.crc32(kind + value) & 0xffffffff)
+        png = b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB', 1, 1, 8, 6, 0, 0, 0))
+        png += chunk(b'IDAT', zlib.compress(b'\x00\xff\x00\x00\xff')) + chunk(b'IEND', b'')
+        encoded = base64.b64encode(png).decode()
+        a, b, pair = await self.pair()
+        profile = {'name': 'Custom', 'thumbnailPNG': encoded, 'interactionVersion': 1}
+        await self.post('device/pet', a, profile)
+        peer = (await (await self.client.get('/v1/sync', headers=b)).json())['pair']['peerPet']
+        self.assertEqual(peer['thumbnailPNG'], encoded)
+        stranger = await self.device('stranger')
+        state = await (await self.client.get('/v1/sync', headers=stranger)).json()
+        self.assertIsNone(state['pair']); self.assertIsNone(state['pet'])
+        for bad in ['not base64', base64.b64encode(b'not png').decode(), encoded[:-8], 'a' * 43693]:
+            await self.post('device/pet', a, dict(profile, thumbnailPNG=bad), status=400)
+        await self.post('device/pet', a, dict(profile, builtinID='../lulu'), status=400)
+        await self.post('device/pet', a, dict(profile, interactionVersion=True), status=400)
+
+    async def test_additive_schema_migration_preserves_legacy_credentials_and_messages(self):
+        from relay import Relay
+        path = str(Path(self.folder.name) / 'legacy.sqlite3')
+        old = sqlite3.connect(path)
+        old.executescript('''
+            CREATE TABLE devices(id TEXT PRIMARY KEY, token_hash TEXT UNIQUE NOT NULL, name TEXT NOT NULL, created REAL NOT NULL);
+            CREATE TABLE messages(id TEXT PRIMARY KEY, client_id TEXT NOT NULL, pair_id TEXT NOT NULL,
+                sender TEXT NOT NULL, recipient TEXT NOT NULL, sender_name TEXT NOT NULL,
+                text TEXT, icon TEXT, reply_to TEXT, created REAL NOT NULL, delivered REAL, handled REAL,
+                UNIQUE(sender,client_id));
+        ''')
+        digest = hashlib.sha256(b'old-token').hexdigest()
+        old.execute('INSERT INTO devices VALUES(?,?,?,?)', ('old', digest, 'old friend', 1))
+        old.execute('INSERT INTO messages(id,client_id,pair_id,sender,recipient,sender_name,text,created) VALUES(?,?,?,?,?,?,?,?)',
+                    ('message', 'client', 'old-pair', 'sender', 'old', 'sender name', 'unread', 1))
+        old.commit(); old.close()
+        for _ in range(2):
+            migrated = Relay(path)
+            state = migrated.snapshot('old')
+            self.assertEqual(state['incoming'][0]['text'], 'unread')
+            self.assertIsNone(state['incoming'][0]['senderPet'])
+            self.assertEqual(migrated.db.execute('SELECT token_hash FROM devices').fetchone()[0], digest)
+            migrated.db.close()
+
     async def get_application(self):
         self.folder = tempfile.TemporaryDirectory()
         return make_app(str(Path(self.folder.name) / "test.sqlite3"))

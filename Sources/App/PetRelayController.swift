@@ -7,7 +7,8 @@ final class PetRelayController: ObservableObject {
     static let shared = PetRelayController(
         fileURL: URL(fileURLWithPath: AgentPetPaths.baseDir).appendingPathComponent("pet-messages.json"),
         credentials: PetRelayKeychain(endpoint: PetRelayAPI.endpoint), api: PetRelayAPI(),
-        enabled: ProcessInfo.processInfo.environment["AGENTPET_RELAY_ENABLED"] != "0")
+        enabled: ProcessInfo.processInfo.environment["AGENTPET_RELAY_ENABLED"] != "0",
+        profileProvider: { PetRelayAppearance.current() })
 
     @Published private(set) var mailbox = PetRelayMailbox()
     @Published private(set) var isBusy = false
@@ -25,11 +26,15 @@ final class PetRelayController: ObservableObject {
     private var started = false
     private var periodicTask: Task<Void, Never>?
     private var socketTask: Task<Void, Never>?
+    private let profileProvider: @MainActor () -> PetRelayPetProfile?
+    private var lastGestureAt = Date.distantPast
 
     init(fileURL: URL?, credentials: any PetRelayCredentialStore, api: any PetRelayTransport,
-         enabled: Bool = true, events: Bool = true) {
+         enabled: Bool = true, events: Bool = true,
+         profileProvider: @escaping @MainActor () -> PetRelayPetProfile? = { nil }) {
         self.fileURL = fileURL; credentialsStore = credentials; self.api = api
         self.enabled = enabled; eventsEnabled = events
+        self.profileProvider = profileProvider
         if let fileURL, FileManager.default.fileExists(atPath: fileURL.path) {
             do { mailbox = try JSONDecoder().decode(PetRelayMailbox.self, from: Data(contentsOf: fileURL)) }
             catch { restoreFailed = true; persistenceError = PetRelayError.storage.localizedDescription }
@@ -48,6 +53,16 @@ final class PetRelayController: ObservableObject {
 
     var incoming: [PetRelayMessage] { mailbox.incoming }
     var pair: PetRelayPair? { mailbox.pair }
+    var supportsInteractions: Bool {
+        mailbox.capabilities?.contains("pet-interactions-v1") == true && pair?.peerPet?.interactionVersion == 1
+    }
+
+    private func syncPetProfile() async throws {
+        guard mailbox.capabilities?.contains("pet-interactions-v1") == true,
+              pair != nil || mailbox.invitation != nil,
+              let profile = profileProvider(), profile != mailbox.pet else { return }
+        try await fetch("v1/device/pet", body: JSONEncoder().encode(profile))
+    }
 
     func start() {
         guard enabled, !restoreFailed, !started else { return }
@@ -138,6 +153,7 @@ final class PetRelayController: ObservableObject {
         do {
             while syncing { try await Task.sleep(for: .milliseconds(30)) }
             try await action()
+            try await syncPetProfile()
             try await flushAcknowledgements()
         } catch {
             if !(error is CancellationError) { self.error = error.localizedDescription }
@@ -182,12 +198,16 @@ final class PetRelayController: ObservableObject {
         defer { syncing = false }
         do {
             try await fetch("v1/sync")
+            try await syncPetProfile()
             try await flushAcknowledgements()
+            let expired = mailbox.outbox.contains { $0.isExpired(at: Date().timeIntervalSince1970) }
+            mailbox.outbox.removeAll { $0.isExpired(at: Date().timeIntervalSince1970) }
+            guard save() else { throw PetRelayError.storage }
             // Never retarget old queued messages after pairing with someone new.
             for draft in mailbox.outbox where draft.pairID == mailbox.pair?.id {
                 try await transmit(draft)
             }
-            error = nil
+            error = expired ? PetRelayError.server("gesture_expired").localizedDescription : nil
         } catch {
             connected = false
             self.error = error.localizedDescription
@@ -218,21 +238,31 @@ final class PetRelayController: ObservableObject {
     }
 
     @discardableResult
-    func send(text: String? = nil, icon: PetRelayIcon? = nil, replyTo: String? = nil, expectedPairID: String? = nil) async -> Bool {
+    func send(text: String? = nil, icon: PetRelayIcon? = nil, replyTo: String? = nil, expectedPairID: String? = nil,
+              gesture: PetRelayGesture? = nil) async -> Bool {
         var accepted = false
         await run {
             guard let pair = mailbox.pair, expectedPairID == nil || expectedPairID == pair.id else {
                 throw PetRelayError.server("not_paired")
             }
             if let text, !PetRelayValidation.validText(text) { throw PetRelayError.server("invalid_text") }
-            guard (text == nil) != (icon == nil) else { throw PetRelayError.server("invalid_text") }
+            guard [text != nil, icon != nil, gesture != nil].filter({ $0 }).count == 1 else {
+                throw PetRelayError.server("invalid_text")
+            }
+            if gesture != nil {
+                guard supportsInteractions else { throw PetRelayError.server("interactions_unavailable") }
+                guard Date().timeIntervalSince(lastGestureAt) >= 3 else { throw PetRelayError.server("gesture_cooldown") }
+                try await syncPetProfile()
+            }
             if let replyTo, !mailbox.incoming.contains(where: { $0.id == replyTo && $0.pairID == pair.id }) {
                 throw PetRelayError.server("not_paired")
             }
             guard mailbox.outbox.count < 20 else { throw PetRelayError.server("rate_limited") }
-            let draft = PetRelayDraft(pairID: pair.id, text: text.map(PetRelayValidation.trimmedText), icon: icon, replyTo: replyTo)
+            let draft = PetRelayDraft(pairID: pair.id, text: text.map(PetRelayValidation.trimmedText), icon: icon, replyTo: replyTo,
+                                     gesture: gesture, expiresAt: gesture == nil ? nil : Date().timeIntervalSince1970 + 30)
             mailbox.outbox.append(draft)
             guard save() else { mailbox.outbox.removeAll { $0.id == draft.id }; throw PetRelayError.storage }
+            if gesture != nil { lastGestureAt = Date() }
             try await transmit(draft)
             accepted = true
         }
@@ -242,9 +272,20 @@ final class PetRelayController: ObservableObject {
     private func transmit(_ draft: PetRelayDraft) async throws {
         struct Payload: Encodable {
             var clientID: String; var pairID: String; var text: String?; var icon: PetRelayIcon?; var replyTo: String?
+            var gesture: PetRelayGesture?; var expiresAt: Double?
         }
-        let payload = Payload(clientID: draft.id, pairID: draft.pairID, text: draft.text, icon: draft.icon, replyTo: draft.replyTo)
-        try await fetch("v1/messages", body: JSONEncoder().encode(payload))
+        guard !draft.isExpired(at: Date().timeIntervalSince1970) else {
+            discardDraft(draft.id)
+            throw PetRelayError.server("gesture_expired")
+        }
+        let payload = Payload(clientID: draft.id, pairID: draft.pairID, text: draft.text, icon: draft.icon, replyTo: draft.replyTo,
+                              gesture: draft.gesture, expiresAt: draft.expiresAt)
+        do { try await fetch("v1/messages", body: JSONEncoder().encode(payload)) }
+        catch PetRelayError.server(let code) where draft.gesture != nil &&
+            ["gesture_expired", "gesture_cooldown", "interactions_unavailable"].contains(code) {
+            discardDraft(draft.id)
+            throw PetRelayError.server(code)
+        }
         mailbox.accept(draft.id)
         guard save() else { throw PetRelayError.storage }
     }
@@ -252,5 +293,13 @@ final class PetRelayController: ObservableObject {
         let before = mailbox
         mailbox.outbox.removeAll { $0.id == id }
         if !save() { mailbox = before }
+    }
+
+    func consumeInteractions(canAnimate: Bool, now: Double = Date().timeIntervalSince1970) -> PetRelayMessage? {
+        let before = mailbox
+        let event = mailbox.consumeInteractions(at: now, canAnimate: canAnimate)
+        guard mailbox != before else { return nil }
+        guard save() else { mailbox = before; return nil }
+        return event
     }
 }

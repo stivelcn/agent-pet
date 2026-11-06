@@ -10,6 +10,7 @@ struct ImagePetPack: Identifiable {
     let clips: [[NSImage]]
     let directory: URL
     var restingFrameDurations: [TimeInterval]? = nil
+    var interactionClips: [PetInteraction: PetInteractionClip] = [:]
     var isBuiltin: Bool { id == "lulu" || id == "lumei" }
 
     var clipCount: Int { clips.count }
@@ -94,7 +95,8 @@ enum SpriteSlicer {
         return ImagePetPack(id: manifest.id,
                             displayName: ["lulu": "噜噜", "lumei": "噜妹"][manifest.id] ?? manifest.displayName,
                             description: manifest.description, clips: clips, directory: directory,
-                            restingFrameDurations: durations)
+                            restingFrameDurations: durations,
+                            interactionClips: PetInteractionLibrary.load(directory: directory))
     }
 
     /// Slices a spritesheet into clips (one per sheet row) using alpha gutter

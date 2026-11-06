@@ -1,14 +1,17 @@
 """AgentPet two-person relay. No access tokens or message bodies are logged."""
 from __future__ import annotations
 import asyncio
+import base64
 import hashlib
 import json
 import os
 import secrets
 import sqlite3
 import string
+import struct
 import time
 import uuid
+import zlib
 from collections import defaultdict, deque
 from pathlib import Path
 
@@ -17,6 +20,60 @@ from aiohttp import web
 
 ICONS = {"heart": "❤️", "water": "💧", "meal": "🍚", "rest": "☕", "hug": "🤗", "look": "👀"}
 INVITE_TTL = 600
+GESTURES = {"poke": "👉 戳了戳你", "hug": "🤗 抱了抱你", "peek": "👀 探头来看你"}
+CAPABILITIES = ["pet-interactions-v1"]
+
+
+def pet_profile(data):
+    name = clean_text(data.get("name"))
+    builtin, thumbnail = data.get("builtinID"), data.get("thumbnailPNG")
+    if builtin is not None and (not isinstance(builtin, str) or builtin not in ("lulu", "lumei")):
+        raise Problem("invalid_pet", 400)
+    if data.get("interactionVersion") != 1 or isinstance(data.get("interactionVersion"), bool):
+        raise Problem("invalid_pet", 400)
+    if thumbnail is not None:
+        try:
+            if not isinstance(thumbnail, str) or len(thumbnail) > 43692:
+                raise ValueError()
+            png = base64.b64decode(thumbnail, validate=True)
+            if len(png) > 32768 or not png.startswith(b'\x89PNG\r\n\x1a\n'):
+                raise ValueError()
+            offset, compressed, header, ended = 8, bytearray(), None, False
+            while offset < len(png):
+                length, kind = struct.unpack('>I4s', png[offset:offset + 8])
+                end = offset + 12 + length
+                if end > len(png):
+                    raise ValueError()
+                chunk = png[offset + 8:end - 4]
+                if zlib.crc32(kind + chunk) & 0xffffffff != struct.unpack('>I', png[end - 4:end])[0]:
+                    raise ValueError()
+                if header is None:
+                    if kind != b'IHDR' or length != 13:
+                        raise ValueError()
+                    width, height, bits, color, compression, filtering, interlace = struct.unpack('>IIBBBBB', chunk)
+                    if not (1 <= width <= 128 and 1 <= height <= 128 and bits == 8
+                            and color in (0, 2, 4, 6) and compression == filtering == interlace == 0):
+                        raise ValueError()
+                    header = (width, height, {0: 1, 2: 3, 4: 2, 6: 4}[color])
+                elif kind == b'IHDR':
+                    raise ValueError()
+                if kind == b'IDAT':
+                    compressed.extend(chunk)
+                if kind == b'IEND':
+                    ended = length == 0 and end == len(png)
+                    break
+                offset = end
+            if not header or not ended:
+                raise ValueError()
+            decoder = zlib.decompressobj()
+            pixels = decoder.decompress(compressed, 131073)
+            width, height, channels = header
+            stride = width * channels + 1
+            if not decoder.eof or len(pixels) != stride * height or any(pixels[i] > 4 for i in range(0, len(pixels), stride)):
+                raise ValueError()
+        except (ValueError, TypeError, struct.error, zlib.error):
+            raise Problem("invalid_pet", 400)
+    return {"name": name, "builtinID": builtin, "thumbnailPNG": thumbnail, "interactionVersion": 1}
 
 
 def characters(value: str) -> int:
@@ -70,6 +127,13 @@ class Relay:
             UNIQUE(sender,client_id));
         CREATE INDEX IF NOT EXISTS message_inbox ON messages(recipient,handled,created);
         """)
+        # Additive and repeatable migration keeps credentials, pairs and unread messages.
+        with self.db:
+            for table, column, kind in [("devices", "pet", "TEXT"), ("messages", "gesture", "TEXT"),
+                                         ("messages", "expires", "REAL"), ("messages", "sender_pet", "TEXT")]:
+                columns = {row[1] for row in self.db.execute(f"PRAGMA table_info({table})")}
+                if column not in columns:
+                    self.db.execute(f"ALTER TABLE {table} ADD COLUMN {column} {kind}")
         self.sockets = defaultdict(set)
         self.limits = {}
 
@@ -90,6 +154,10 @@ class Relay:
     def name(self, device):
         return self.db.execute("SELECT name FROM devices WHERE id=?", (device,)).fetchone()[0]
 
+    def pet(self, device):
+        value = self.db.execute("SELECT pet FROM devices WHERE id=?", (device,)).fetchone()[0]
+        return json.loads(value) if value else None
+
     def invite(self, device):
         return self.db.execute("SELECT * FROM invites WHERE expires>? AND (creator=? OR candidate=?)",
                                (time.time(), device, device)).fetchone()
@@ -99,7 +167,7 @@ class Relay:
         pairing = None
         if pair:
             peer = pair["b"] if pair["a"] == device else pair["a"]
-            pairing = {"id": pair["id"], "peerName": self.name(peer)}
+            pairing = {"id": pair["id"], "peerName": self.name(peer), "peerPet": self.pet(peer)}
         invite = self.invite(device)
         invitation = None
         if invite:
@@ -112,14 +180,15 @@ class Relay:
         sent = self.db.execute("SELECT * FROM messages WHERE sender=? ORDER BY created DESC,id LIMIT 50", (device,))
         return {"deviceID": device, "name": self.name(device), "pair": pairing,
                 "invitation": invitation, "incoming": [self.message(row) for row in inbox],
-                "sent": [self.message(row) for row in sent]}
+                "sent": [self.message(row) for row in sent], "pet": self.pet(device), "capabilities": CAPABILITIES}
 
     @staticmethod
     def message(row):
         return {"id": row["id"], "clientID": row["client_id"], "pairID": row["pair_id"],
-                "senderName": row["sender_name"], "text": row["text"], "icon": row["icon"],
+                "senderName": row["sender_name"], "text": row["text"] or GESTURES.get(row["gesture"]), "icon": row["icon"],
                 "replyTo": row["reply_to"], "createdAt": row["created"],
-                "deliveredAt": row["delivered"], "handledAt": row["handled"]}
+                "deliveredAt": row["delivered"], "handledAt": row["handled"], "gesture": row["gesture"],
+                "expiresAt": row["expires"], "senderPet": json.loads(row["sender_pet"]) if row["sender_pet"] else None}
 
     async def notify(self, *devices):
         for device in set(devices):
@@ -181,7 +250,7 @@ async def body(request):
 
 
 async def health(request):
-    return web.json_response({"ok": True, "service": "agentpet-relay", "protocol": 1})
+    return web.json_response({"ok": True, "service": "agentpet-relay", "protocol": 2, "capabilities": CAPABILITIES})
 
 
 async def register(request):
@@ -191,7 +260,7 @@ async def register(request):
     name = clean_text(data.get("name", "Pet friend"))
     device, token = str(uuid.uuid4()), secrets.token_urlsafe(32)
     with r.db:
-        r.db.execute("INSERT INTO devices VALUES(?,?,?,?)", (device, hashlib.sha256(token.encode()).hexdigest(), name, time.time()))
+        r.db.execute("INSERT INTO devices(id,token_hash,name,created) VALUES(?,?,?,?)", (device, hashlib.sha256(token.encode()).hexdigest(), name, time.time()))
     return web.json_response({"deviceID": device, "token": token}, status=201)
 
 
@@ -204,6 +273,16 @@ async def change_name(request):
     name = clean_text((await body(request)).get("name"))
     with r.db:
         r.db.execute("UPDATE devices SET name=? WHERE id=?", (name, device))
+    await r.notify(*r.related(device))
+    return web.json_response(r.snapshot(device))
+
+
+async def change_pet(request):
+    r, device = request.app["relay"], request["device"]
+    profile = pet_profile(await body(request))
+    r.limit(("pet", device), 30, 60)
+    with r.db:
+        r.db.execute("UPDATE devices SET pet=? WHERE id=?", (json.dumps(profile), device))
     await r.notify(*r.related(device))
     return web.json_response(r.snapshot(device))
 
@@ -286,16 +365,23 @@ async def send(request):
         raise Problem("invalid_request", 400)
     text = clean_text(data["text"]) if data.get("text") is not None else None
     icon = data.get("icon")
+    gesture, expires = data.get("gesture"), data.get("expiresAt")
     if icon is not None and (not isinstance(icon, str) or icon not in ICONS):
         raise Problem("invalid_icon", 400)
-    if (text is None) == (icon is None):
+    if gesture is not None and (not isinstance(gesture, str) or gesture not in GESTURES):
+        raise Problem("invalid_gesture", 400)
+    if sum(x is not None for x in (text, icon, gesture)) != 1:
         raise Problem("invalid_text", 400)
+    if gesture is not None and (not isinstance(expires, (int, float)) or isinstance(expires, bool)):
+        raise Problem("invalid_request", 400)
+    if gesture is None and expires is not None:
+        raise Problem("invalid_request", 400)
     pair_id, reply = data.get("pairID"), data.get("replyTo")
     if not isinstance(pair_id, str) or (reply is not None and not isinstance(reply, str)):
         raise Problem("invalid_request", 400)
     existing = r.db.execute("SELECT * FROM messages WHERE sender=? AND client_id=?", (device, client)).fetchone()
     if existing:
-        if (existing["pair_id"], existing["text"], existing["icon"], existing["reply_to"]) != (pair_id, text, icon, reply):
+        if (existing["pair_id"], existing["text"], existing["icon"], existing["reply_to"], existing["gesture"], existing["expires"]) != (pair_id, text, icon, reply, gesture, expires):
             raise Problem("idempotency_conflict")
         return web.json_response(r.snapshot(device))
     r.limit(("send", device), 30, 60)
@@ -304,6 +390,14 @@ async def send(request):
         if not pair or pair["id"] != pair_id:
             raise Problem("not_paired")
         peer = pair["b"] if pair["a"] == device else pair["a"]
+        now = time.time()
+        if gesture:
+            if not now < expires <= now + 35:
+                raise Problem("gesture_expired")
+            if any(not p or p.get("interactionVersion") != 1 for p in (r.pet(device), r.pet(peer))):
+                raise Problem("interactions_unavailable")
+            if r.db.execute("SELECT 1 FROM messages WHERE sender=? AND gesture IS NOT NULL AND created>? LIMIT 1", (device, now - 3)).fetchone():
+                raise Problem("gesture_cooldown", 429)
         count = r.db.execute("SELECT COUNT(*) FROM messages WHERE recipient=? AND handled IS NULL", (peer,)).fetchone()[0]
         if count >= 200:
             raise Problem("inbox_full")
@@ -312,8 +406,9 @@ async def send(request):
             if not parent:
                 raise Problem("invalid_reply", 400)
         now = time.time()
-        r.db.execute("INSERT INTO messages(id,client_id,pair_id,sender,recipient,sender_name,text,icon,reply_to,created) VALUES(?,?,?,?,?,?,?,?,?,?)",
-                     (str(uuid.uuid4()), client, pair_id, device, peer, r.name(device), text, icon, reply, now))
+        r.db.execute("INSERT INTO messages(id,client_id,pair_id,sender,recipient,sender_name,text,icon,reply_to,created,gesture,expires,sender_pet) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                     (str(uuid.uuid4()), client, pair_id, device, peer, r.name(device), text, icon, reply, now, gesture, expires,
+                      json.dumps(r.pet(device)) if r.pet(device) else None))
         if reply:
             r.db.execute("UPDATE messages SET delivered=COALESCE(delivered,?),handled=COALESCE(handled,?) WHERE id=?", (now, now, reply))
     await r.notify(device, peer)
@@ -360,11 +455,12 @@ async def events(request):
 
 
 def make_app(database):
-    app = web.Application(middlewares=[errors, authenticate], client_max_size=8192)
+    app = web.Application(middlewares=[errors, authenticate], client_max_size=49152)
     app["relay"] = Relay(database)
     app.add_routes([web.get("/healthz", health), web.post("/v1/devices", register),
                     web.get("/v1/sync", sync), web.get("/v1/events", events),
                     web.post("/v1/device/name", change_name), web.post("/v1/pairing/create", create),
+                    web.post("/v1/device/pet", change_pet),
                     web.post("/v1/pairing/join", join), web.post("/v1/pairing/confirm", confirm),
                     web.post("/v1/pairing/disconnect", disconnect), web.post("/v1/messages", send),
                     web.post("/v1/messages/ack", acknowledge)])

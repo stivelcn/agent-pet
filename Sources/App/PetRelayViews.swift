@@ -8,6 +8,7 @@ struct PetRelaySettingsView: View {
     @State private var nickname = ""
     @State private var code = ""
     @State private var confirmDisconnect = false
+    @State private var showInteractionPreview = false
 
     var body: some View {
         ScrollView {
@@ -25,10 +26,23 @@ struct PetRelaySettingsView: View {
                 }
                 Text("Pair two pets to send short messages and little gestures. Unread bubbles stay until you close or reply to them.")
                     .font(.caption).foregroundStyle(.secondary)
+                Button { showInteractionPreview = true } label: {
+                    Label("Preview pet interactions", systemImage: "sparkles")
+                }
+                .buttonStyle(.bordered)
+                .accessibilityIdentifier("pet-interaction-preview")
                 if let error = relay.persistenceError ?? relay.error {
                     Text(error).font(.caption).foregroundStyle(.orange).textSelection(.enabled)
                 }
                 if let pair = relay.pair {
+                    HStack(spacing: 12) {
+                        PetRelayAvatar(profile: pair.peerPet, size: 88)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(verbatim: pair.peerPet?.name ?? pair.peerName).font(.headline)
+                            Text(pair.peerPet == nil ? "Pet appearance unavailable" : "Your paired pet")
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
+                    }
                     HStack {
                         Label(pair.peerName, systemImage: "link").font(.headline)
                         Spacer()
@@ -46,7 +60,7 @@ struct PetRelaySettingsView: View {
                     pairing
                 }
                 Divider()
-                Text("Only your chosen nickname and messages are sent. No pet levels, usage data or AI configuration is uploaded. This relay uses HTTPS, not end-to-end encryption. A sleeping or closed app receives messages after reconnecting.")
+                Text("Pairing shares your nickname, pet name, appearance and messages. Imported pets share a small portrait. No pet levels, usage data or AI configuration is uploaded. This relay uses HTTPS, not end-to-end encryption. Offline visits stay as messages without replaying old animations.")
                     .font(.caption2).foregroundStyle(.secondary)
             }
             .padding(20)
@@ -59,6 +73,7 @@ struct PetRelaySettingsView: View {
         .confirmationDialog("Unpair these pets?", isPresented: $confirmDisconnect) {
             Button("Unpair", role: .destructive) { Task { await relay.disconnect() } }
         } message: { Text("Unread messages remain until you close them. You can pair again with a new code.") }
+        .sheet(isPresented: $showInteractionPreview) { PetInteractionPreviewView() }
     }
 
     private var pairing: some View {
@@ -186,7 +201,7 @@ struct PetMessageBubble: View {
                         replyButton(message)
                     }
                 }
-                if let error = relay.persistenceError { Text(error).font(.caption2).foregroundStyle(.orange) }
+                if let error = relay.persistenceError ?? relay.error { Text(error).font(.caption2).foregroundStyle(.orange) }
             }
             .foregroundStyle(foreground)
             .padding(12).frame(width: expansion.isExpanded ? 320 : 270)
@@ -197,9 +212,12 @@ struct PetMessageBubble: View {
         }
     }
     private func content(_ message: PetRelayMessage) -> some View {
-        Text(verbatim: message.content)
-            .font(.system(size: message.icon != nil ? 32 : settings.fontSize.primaryPt))
-            .fixedSize(horizontal: false, vertical: true)
+        HStack(spacing: 8) {
+            if message.senderPet != nil { PetRelayAvatar(profile: message.senderPet, size: 40) }
+            Text(verbatim: message.displayContent)
+                .font(.system(size: message.icon != nil ? 32 : settings.fontSize.primaryPt))
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
     private func closeButton(_ message: PetRelayMessage) -> some View {
         Button { relay.dismiss(message.id) } label: { Image(systemName: "xmark").font(.caption.bold()) }
@@ -207,10 +225,20 @@ struct PetMessageBubble: View {
             .accessibilityIdentifier("relay-dismiss-message")
     }
     private func replyButton(_ message: PetRelayMessage) -> some View {
-        Button("Reply") { PetWindowController.shared.showMessageComposer(replyTo: message) }
-            .buttonStyle(.bordered).controlSize(.small)
-            .accessibilityIdentifier("relay-reply-message")
-            .disabled(message.pairID != relay.pair?.id)
+        HStack(spacing: 6) {
+            Button("Reply") { PetWindowController.shared.showMessageComposer(replyTo: message) }
+                .accessibilityIdentifier("relay-reply-message")
+            if let gesture = message.interaction {
+                Button(InterfaceText.format(gesture == .hug ? "Hug back" : "Poke back")) {
+                    Task { await relay.send(replyTo: message.id, expectedPairID: message.pairID,
+                                            gesture: gesture == .hug ? .hug : .poke) }
+                }
+                .disabled(!relay.supportsInteractions || relay.isBusy)
+                .accessibilityIdentifier("relay-quick-reply")
+            }
+        }
+        .buttonStyle(.bordered).controlSize(.small)
+        .disabled(message.pairID != relay.pair?.id)
     }
     private var foreground: Color {
         switch settings.theme { case .light: .black; case .dark: .white; case .system: .primary }

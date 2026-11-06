@@ -1103,3 +1103,40 @@
 "User data could not be saved. Installation was stopped." = "用户数据未能安全保存，已停止安装。";
 "Please wait for pet messaging to finish before installing." = "传话正在处理，请稍后再安装更新。";
 "Please send or close your unsent pet message before installing." = "请先发送或关闭尚未发出的传话，再安装更新。";
+
+/* Local interaction preview */
+"Interaction preview" = "互动预览";
+"Preview pet interactions" = "预览宠物互动";
+"Poke" = "戳戳";
+"Poked reaction" = "被戳";
+"Hug" = "抱抱";
+"Peek" = "探头";
+"Interaction artwork is unavailable." = "暂时无法加载互动素材。";
+"Preview locally. Each action plays once, then returns to idle." = "仅在本机预览，每个动作播放一次后回到待机。";
+"Turn on animations and turn off Reduce Motion to preview actions." = "开启动画并关闭“减弱动态效果”后，可预览互动动作。";
+
+"Pet appearance unavailable" = "对方尚未同步宠物形象";
+
+"Your paired pet" = "与你配对的小伙伴";
+
+"Pet visit" = "小伙伴来访";
+
+"Pet visit: poke" = "戳了戳你";
+
+"Pet visit: hug" = "抱了抱你";
+
+"Pet visit: peek" = "探头来看你";
+
+"This visit will retry for up to 30 seconds, then expire." = "这次来访会在 30 秒内重试，过期后不会补发。";
+
+"Poke back" = "戳回去";
+
+"Hug back" = "抱回去";
+
+"Pet interactions need an updated relay and both pets online at least once." = "互动需要新版中转服务，双方更新应用并联网同步一次后即可使用。";
+
+"Give your friend a moment. Try another interaction in a few seconds." = "让小伙伴缓一缓，过几秒再互动吧。";
+
+"This interaction expired. Send a new one when connected." = "这次互动已过期，联网后可以再发一次。";
+
+"Pairing shares your nickname, pet name, appearance and messages. Imported pets share a small portrait. No pet levels, usage data or AI configuration is uploaded. This relay uses HTTPS, not end-to-end encryption. Offline visits stay as messages without replaying old animations." = "配对会分享你的昵称、宠物名字、形象和消息；导入的宠物仅分享小尺寸头像。不上传等级、用量或 AI 配置。中转使用 HTTPS，非端到端加密。离线来访会保留为消息，不补播过期动画。";

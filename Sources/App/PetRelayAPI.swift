@@ -27,6 +27,9 @@ enum PetRelayError: Error, LocalizedError {
             case "inbox_full": "Your friend's unread inbox is full. Please wait for them to respond."
             case "not_paired": "This pairing is no longer active. The message was not sent to anyone else."
             case "unauthorized": "The server did not accept this device's pairing credential."
+            case "interactions_unavailable": "Pet interactions need an updated relay and both pets online at least once."
+            case "gesture_cooldown": "Give your friend a moment. Try another interaction in a few seconds."
+            case "gesture_expired": "This interaction expired. Send a new one when connected."
             default: "The message relay is temporarily unavailable. Your unread messages are safe."
             }
         }

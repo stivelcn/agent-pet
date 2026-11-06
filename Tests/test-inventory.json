@@ -2654,5 +2654,73 @@
   {
     "file": "Tests/AgentPetAppTests/IterationViewTests.swift",
     "method": "updateSectionRendersInTheSettingsForm"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetInteractionTests.swift",
+    "method": "bothPetsHaveFourBoundedClipsAndKeepTheirOriginalIdle"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetInteractionTests.swift",
+    "method": "missingAndMalformedSidecarsDoNotBreakIdlePacks"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetInteractionTests.swift",
+    "method": "staleCompletionsCannotStopNewActionsAndDisabledMotionStaysIdle"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetInteractionTests.swift",
+    "method": "oneShotCompletesOnceAndCanRestartWithANewIdentity"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetInteractionTests.swift",
+    "method": "tearingDownAnActionCancelsItsCompletion"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetInteractionTests.swift",
+    "method": "previewRendersBothPetsWithoutChangingTheSelectedAppearance"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetRelayTests.swift",
+    "method": "legacyMailboxAndFutureGesturesRemainDecodable"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetRelayTests.swift",
+    "method": "visitsConsumeDurablyOnceAndKeepUnreadForReply"
+  },
+  {
+    "file": "Tests/AgentPetCoreTests/PetRelayTests.swift",
+    "method": "expiredHiddenAndFormerPartnerVisitsNeverReplay"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "profileSyncIsCapabilityGatedAndOnlyUploadsChanges"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "remoteGestureReplyEncodesExpiryAndCooldownKeepsOtherUnread"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "legacyPeerCannotReceiveGesturesAndFailedReplyKeepsOriginal"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "expiredOutgoingVisitIsNotRetriedAndComposerCanSendAgain"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "consumedVisitIsSavedBeforeDisplayAndCannotReplayAfterRestart"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetInteractionTests.swift",
+    "method": "remotePortraitsUseBoundedPNGAndShippedBuiltinInsteadOfLocalOverrides"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "pairedComposerRendersPeerAndActionsOffscreen"
+  },
+  {
+    "file": "Tests/AgentPetAppTests/PetRelayIntegrationTests.swift",
+    "method": "isolatedLocalRelayRoundTripSynchronizesBothPetsAndReplies"
   }
 ]

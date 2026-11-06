@@ -47,6 +47,7 @@ private let ELAPSED_SECONDS_LIMIT = 60
 struct PetView: View {
     @ObservedObject var model: PetWindowModel
     var size: CGFloat = 120
+    var interactionPlayer: PetInteractionPlayer? = nil
     @ObservedObject private var imagePets = ImagePetStore.shared
     @ObservedObject private var pet = PetController.shared
 
@@ -58,8 +59,13 @@ struct PetView: View {
 
     @ViewBuilder private var content: some View {
         if let id = model.petID, let pack = imagePets.pack(id: id) {
-            ImageSpriteView(frames: pack.restingFrames,
-                            fps: pet.spriteFPS(forMood: model.mood), size: size, frameDurations: pack.restingFrameDurations)
+            if let interactionPlayer {
+                PetInteractionSpriteView(pack: pack, player: interactionPlayer, size: size,
+                                         idleFPS: pet.spriteFPS(forMood: model.mood))
+            } else {
+                ImageSpriteView(frames: pack.restingFrames,
+                                fps: pet.spriteFPS(forMood: model.mood), size: size, frameDurations: pack.restingFrameDurations)
+            }
         } else {
             VStack(spacing: 5) {
                 Image(systemName: "pawprint.fill")
@@ -99,6 +105,9 @@ struct FloatingPetView: View {
     @ObservedObject private var appLang = AppLanguage.shared
     @ObservedObject private var completions = CompletionNoticeStore.shared
     @ObservedObject private var relay = PetRelayController.shared
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @StateObject private var interactionPlayer = PetInteractionPlayer()
+    @State private var visitor: PetRelayMessage?
 
     private var completionNotices: [CompletionNotice] {
         completions.notices(forWindow: model.key, split: pet.splitPet,
@@ -111,6 +120,9 @@ struct FloatingPetView: View {
 
     var body: some View {
         VStack(spacing: 2) {
+            if let visitor {
+                alignedToPet(PetRelayVisitView(message: visitor).id(visitor.id))
+            }
             // Messages are independent of task/chat visibility and appear on the home pet only.
             if model.key == PetWindowPlanner.defaultKey && !relay.incoming.isEmpty {
                 alignedToPet(PetMessageBubble())
@@ -130,7 +142,8 @@ struct FloatingPetView: View {
                                             projectName: pet.splitPet ? model.projectName : nil))
                 }
             }
-            PetView(model: model, size: pet.petPoint)
+            PetView(model: model, size: pet.petPoint,
+                    interactionPlayer: model.key == PetWindowPlanner.defaultKey ? interactionPlayer : nil)
                 .gesture(petDragOrTap)
                 // Kept under its on-screen spot when the window is pushed back
                 // onto the screen (offset doesn't change the measured size).
@@ -159,6 +172,31 @@ struct FloatingPetView: View {
         // pulse, elapsed tick); it resumes as soon as the window is visible.
         .environment(\.animationsEnabled, pet.animationsEnabled && model.isOnScreen)
         .environment(\.petOnScreen, model.isOnScreen)
+        .onAppear { receiveInteractions() }
+        .onChange(of: relay.incoming) { _, _ in receiveInteractions() }
+        .onChange(of: model.isOnScreen) { _, _ in receiveInteractions() }
+        .onChange(of: pet.animationsEnabled) { _, _ in receiveInteractions() }
+        .onChange(of: reduceMotion) { _, _ in receiveInteractions() }
+        .onChange(of: model.petID) { _, _ in visitor = nil; interactionPlayer.stop() }
+        .onChange(of: relay.pair?.id) { _, _ in visitor = nil; interactionPlayer.stop() }
+        .task(id: visitor?.id) {
+            guard visitor != nil else { return }
+            do { try await Task.sleep(for: .seconds(2.1)) } catch { return }
+            visitor = nil
+        }
+        .onDisappear { visitor = nil; interactionPlayer.stop() }
+    }
+
+    private func receiveInteractions() {
+        guard model.key == PetWindowPlanner.defaultKey else { return }
+        let canAnimate = pet.animationsEnabled && model.isOnScreen && !reduceMotion
+        if !canAnimate { visitor = nil; interactionPlayer.stop() }
+        guard let event = relay.consumeInteractions(canAnimate: canAnimate) else { return }
+        visitor = event
+        if let id = model.petID, let pack = ImagePetStore.shared.pack(id: id) {
+            let reaction: PetInteraction = event.interaction == .hug ? .hug : event.interaction == .poke ? .poked : .peek
+            interactionPlayer.play(reaction, in: pack, animationsEnabled: canAnimate)
+        }
     }
 
     // Layout width of the bubble incl. padding (unaffected by offset/scale, so

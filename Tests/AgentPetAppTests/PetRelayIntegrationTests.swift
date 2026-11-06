@@ -1,4 +1,6 @@
 import Foundation
+import AppKit
+import SwiftUI
 import Testing
 import AgentPetCore
 @testable import agentpet
@@ -15,6 +17,10 @@ private actor RelayMockAPI: PetRelayTransport {
     }
     func setFail(_ value: Bool) { fail = value }
     func setFailSend(_ value: Bool) { failSend = value }
+    func enableInteractions() {
+        state.capabilities = ["pet-interactions-v1"]
+        state.pair?.peerPet = PetRelayPetProfile(name: "噜噜", builtinID: "lulu")
+    }
     func unpair() { state.pair = nil }
     func newPair() { state.pair = PetRelayPair(id: "pair2", peerName: "New friend") }
     func register(name: String) async throws -> PetRelayCredentials {
@@ -25,6 +31,9 @@ private actor RelayMockAPI: PetRelayTransport {
         paths.append(path)
         if fail || (path == "v1/messages" && failSend) { throw URLError(.notConnectedToInternet) }
         let data = body.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] } ?? [:]
+        if path == "v1/device/pet", let body {
+            state.pet = try JSONDecoder().decode(PetRelayPetProfile.self, from: body)
+        }
         if path == "v1/messages/ack", let ids = data["ids"] as? [String] {
             if data["kind"] as? String == "handled" { state.incoming.removeAll { ids.contains($0.id) } }
             else {
@@ -37,7 +46,8 @@ private actor RelayMockAPI: PetRelayTransport {
                 let reply = data["replyTo"] as? String
                 state.sent.insert(PetRelayMessage(id: UUID().uuidString, clientID: clientID, pairID: pairID,
                     senderName: "噜妹", text: data["text"] as? String, icon: (data["icon"] as? String).flatMap(PetRelayIcon.init(rawValue:)),
-                    replyTo: reply, createdAt: 3), at: 0)
+                    replyTo: reply, createdAt: 3, gesture: data["gesture"] as? String,
+                    expiresAt: data["expiresAt"] as? Double, senderPet: state.pet), at: 0)
                 if let reply { state.incoming.removeAll { $0.id == reply } }
             }
         }
@@ -56,6 +66,10 @@ private actor RelayEventProbe {
     init(present: Bool = true) { value = present ? PetRelayCredentials(deviceID: "device1", token: "isolated-test-token") : nil }
     func load() throws -> PetRelayCredentials? { value }
     func save(_ credentials: PetRelayCredentials) throws { value = credentials }
+}
+
+@MainActor private final class RelayProfileFixture {
+    var value = PetRelayPetProfile(name: "噜噜", builtinID: "lulu")
 }
 
 @MainActor
@@ -301,6 +315,125 @@ struct PetRelayIntegrationTests {
         let api = PetRelayAPI()
         #expect(api.url("v1/sync").absoluteString == "https://imagepro.ycgod.online/agentpet-relay/v1/sync")
     }
+
+    @Test func profileSyncIsCapabilityGatedAndOnlyUploadsChanges() async {
+        let api = RelayMockAPI(incoming: false)
+        let profile = PetRelayPetProfile(name: "噜妹", builtinID: "lumei")
+        let relay = PetRelayController(fileURL: nil, credentials: RelayMockCredential(), api: api, events: false,
+                                       profileProvider: { profile })
+        await relay.refresh()
+        #expect(!(await api.paths).contains("v1/device/pet"))
+        await api.enableInteractions()
+        await relay.refresh()
+        await relay.refresh()
+        #expect((await api.paths).filter { $0 == "v1/device/pet" }.count == 1)
+        #expect(relay.mailbox.pet == profile)
+        #expect(relay.pair?.peerPet?.builtinID == "lulu")
+    }
+
+    @Test func remoteGestureReplyEncodesExpiryAndCooldownKeepsOtherUnread() async throws {
+        let api = RelayMockAPI()
+        await api.enableInteractions()
+        let relay = controller(api)
+        await relay.refresh()
+        let composer = PetRelayComposerModel(relay: relay, replyTo: relay.incoming.first)
+        #expect(await composer.sendGesture(.poke))
+        #expect(relay.incoming.isEmpty)
+        let payload = try #require(await api.payloads.first)
+        let data = try #require(try JSONSerialization.jsonObject(with: payload) as? [String: Any])
+        #expect(data["gesture"] as? String == "poke")
+        #expect(data["replyTo"] as? String == "m1")
+        #expect((data["expiresAt"] as? Double ?? 0) > Date().timeIntervalSince1970)
+        #expect(data["text"] == nil && data["icon"] == nil)
+        #expect(!(await relay.send(gesture: .hug)))
+        #expect(await api.payloads.count == 1)
+    }
+
+    @Test func legacyPeerCannotReceiveGesturesAndFailedReplyKeepsOriginal() async {
+        let api = RelayMockAPI()
+        let relay = controller(api)
+        await relay.refresh()
+        #expect(!(await relay.send(gesture: .poke)))
+        #expect(relay.mailbox.outbox.isEmpty)
+        await api.enableInteractions()
+        await relay.refresh()
+        await api.setFailSend(true)
+        #expect(!(await relay.send(replyTo: "m1", expectedPairID: "pair1", gesture: .hug)))
+        #expect(relay.incoming.map(\.id) == ["m1"])
+        #expect(relay.mailbox.outbox.first?.gesture == .hug)
+        await api.newPair()
+        await api.setFailSend(false)
+        await relay.refresh()
+        #expect(await api.payloads.isEmpty)
+        #expect(relay.incoming.map(\.id) == ["m1"])
+    }
+
+    @Test func expiredOutgoingVisitIsNotRetriedAndComposerCanSendAgain() async throws {
+        let directory = try folder(); defer { try? FileManager.default.removeItem(at: directory) }
+        let api = RelayMockAPI()
+        await api.enableInteractions()
+        var box = PetRelayMailbox()
+        box.outbox = [PetRelayDraft(pairID: "pair1", replyTo: "m1", gesture: .poke, expiresAt: 1)]
+        let file = directory.appendingPathComponent("messages.json")
+        try JSONEncoder().encode(box).write(to: file)
+        let relay = controller(api, file: file)
+        await relay.refresh()
+        #expect(relay.mailbox.outbox.isEmpty)
+        #expect(await api.payloads.isEmpty)
+        #expect(relay.incoming.count == 1)
+        #expect(relay.error == PetRelayError.server("gesture_expired").localizedDescription)
+        let composer = PetRelayComposerModel(relay: relay)
+        #expect(composer.canSend)
+    }
+
+    @Test func consumedVisitIsSavedBeforeDisplayAndCannotReplayAfterRestart() async throws {
+        let directory = try folder(); defer { try? FileManager.default.removeItem(at: directory) }
+        var box = PetRelayMailbox()
+        let now = Date().timeIntervalSince1970
+        box.merge(PetRelaySnapshot(deviceID: "device1", name: "me", pair: PetRelayPair(id: "pair1", peerName: "friend"),
+            incoming: [PetRelayMessage(id: "v", clientID: "v", pairID: "pair1", senderName: "friend", createdAt: now,
+                                      gesture: "hug", expiresAt: now + 30)]))
+        let file = directory.appendingPathComponent("messages.json")
+        try JSONEncoder().encode(box).write(to: file)
+        let relay = controller(RelayMockAPI(), file: file)
+        #expect(relay.consumeInteractions(canAnimate: true)?.interaction == .hug)
+        let restart = controller(RelayMockAPI(), file: file)
+        #expect(restart.consumeInteractions(canAnimate: true) == nil)
+        #expect(restart.incoming.count == 1)
+    }
+
+    @Test func pairedComposerRendersPeerAndActionsOffscreen() async throws {
+        _ = NSApplication.shared
+        let api = RelayMockAPI(incoming: false)
+        await api.enableInteractions()
+        let relay = controller(api)
+        await relay.refresh()
+        try withChineseSnapshot {
+            #expect(NSLocalizedString("Poke", comment: "") == "戳戳")
+            #expect(NSLocalizedString("Hug", comment: "") == "抱抱")
+            #expect(NSLocalizedString("Peek", comment: "") == "探头")
+            let view = PetRelayComposerView(model: PetRelayComposerModel(relay: relay), onClose: {})
+                .environment(\.animationsEnabled, false)
+            let host = NSHostingView(rootView: view)
+            let size = host.fittingSize
+            #expect(size.width == 300)
+            #expect(size.height > 200 && size.height < 500)
+            host.frame = NSRect(origin: .zero, size: size)
+            let window = NSWindow(contentRect: host.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+            window.contentView = host
+            host.layoutSubtreeIfNeeded()
+            let bitmap = try #require(host.bitmapImageRepForCachingDisplay(in: host.bounds))
+            host.cacheDisplay(in: host.bounds, to: bitmap)
+            if let directory = ProcessInfo.processInfo.environment["AGENTPET_UI_SNAPSHOT_DIR"] {
+                let url = URL(fileURLWithPath: directory)
+                try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+                try #require(bitmap.representation(using: .png, properties: [:]))
+                    .write(to: url.appendingPathComponent("paired-interactions.png"))
+            }
+            #expect(!window.isVisible)
+            window.contentView = nil
+        }
+    }
     /// Explicit opt-in only; uses two throwaway identities, never the real app's
     /// Keychain, preferences, care archive, or message mailbox.
     @Test func liveHTTPSRoundTripWhenExplicitlyEnabled() async throws {
@@ -345,6 +478,51 @@ struct PetRelayIntegrationTests {
         struct Ack: Encodable { var ids: [String]; var kind: String }
         _ = try await api.fetch("v1/messages/ack", token: a.token, body: JSONEncoder().encode(Ack(ids: [replyID], kind: "handled")))
         _ = try await api.fetch("v1/pairing/disconnect", token: a.token, body: Data("{}".utf8))
+    }
+
+    @Test func isolatedLocalRelayRoundTripSynchronizesBothPetsAndReplies() async throws {
+        guard let address = ProcessInfo.processInfo.environment["AGENTPET_RELAY_TEST_URL"],
+              let url = URL(string: address), url.host == "127.0.0.1", url.scheme == "http" else { return }
+        let api = PetRelayAPI(baseURL: url)
+        let profileA = RelayProfileFixture()
+        let a = PetRelayController(fileURL: nil, credentials: RelayMockCredential(present: false), api: api, events: false,
+                                   profileProvider: { profileA.value })
+        let b = PetRelayController(fileURL: nil, credentials: RelayMockCredential(present: false), api: api, events: false,
+                                   profileProvider: { PetRelayPetProfile(name: "噜妹", builtinID: "lumei") })
+        await a.createInvitation(name: "QA-A")
+        let code = try #require(a.mailbox.invitation?.code)
+        await b.join(code: code, name: "QA-B")
+        await a.refresh()
+        await a.confirm()
+        await b.refresh()
+        #expect(a.pair?.peerPet?.builtinID == "lumei")
+        #expect(b.pair?.peerPet?.builtinID == "lulu")
+        #expect(a.supportsInteractions && b.supportsInteractions)
+        #expect(await a.send(gesture: .poke))
+        await b.refresh()
+        let message = try #require(b.incoming.first)
+        #expect(message.interaction == .poke)
+        #expect(message.senderPet?.builtinID == "lulu")
+        #expect(b.consumeInteractions(canAnimate: true)?.id == message.id)
+        #expect(b.consumeInteractions(canAnimate: true) == nil)
+        #expect(b.incoming.count == 1)
+        let frame = try #require(PetRelayAppearance.pack(for: profileA.value)?.restingFrames.first)
+        let portrait = try #require(PetRelayAppearance.thumbnail(frame))
+        profileA.value = PetRelayPetProfile(name: "导入的宠物", thumbnailPNG: portrait)
+        await a.refresh()
+        await b.refresh()
+        #expect(b.pair?.peerPet?.builtinID == nil)
+        #expect(b.pair?.peerPet?.thumbnailPNG == portrait)
+        #expect(PetRelayAppearance.portrait(for: b.pair?.peerPet) != nil)
+        #expect(b.incoming.first?.senderPet?.builtinID == "lulu")
+        #expect(await b.send(replyTo: message.id, expectedPairID: message.pairID, gesture: .hug))
+        await a.refresh()
+        #expect(b.incoming.isEmpty)
+        #expect(a.incoming.first?.interaction == .hug)
+        #expect(a.mailbox.sent.first?.handledAt != nil)
+        await a.disconnect()
+        await b.refresh()
+        #expect(b.pair == nil)
     }
 
 }

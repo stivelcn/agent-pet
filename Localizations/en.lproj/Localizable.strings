@@ -1103,3 +1103,40 @@
 "User data could not be saved. Installation was stopped." = "User data could not be saved. Installation was stopped.";
 "Please wait for pet messaging to finish before installing." = "Please wait for pet messaging to finish before installing.";
 "Please send or close your unsent pet message before installing." = "Please send or close your unsent pet message before installing.";
+
+/* Local interaction preview */
+"Interaction preview" = "Interaction preview";
+"Preview pet interactions" = "Preview pet interactions";
+"Poke" = "Poke";
+"Poked reaction" = "Poked reaction";
+"Hug" = "Hug";
+"Peek" = "Peek";
+"Interaction artwork is unavailable." = "Interaction artwork is unavailable.";
+"Preview locally. Each action plays once, then returns to idle." = "Preview locally. Each action plays once, then returns to idle.";
+"Turn on animations and turn off Reduce Motion to preview actions." = "Turn on animations and turn off Reduce Motion to preview actions.";
+
+"Pet appearance unavailable" = "Pet appearance unavailable";
+
+"Your paired pet" = "Your paired pet";
+
+"Pet visit" = "Pet visit";
+
+"Pet visit: poke" = "Poked you";
+
+"Pet visit: hug" = "Gave you a hug";
+
+"Pet visit: peek" = "Peeked in on you";
+
+"This visit will retry for up to 30 seconds, then expire." = "This visit will retry for up to 30 seconds, then expire.";
+
+"Poke back" = "Poke back";
+
+"Hug back" = "Hug back";
+
+"Pet interactions need an updated relay and both pets online at least once." = "Pet interactions need an updated relay and both pets online at least once.";
+
+"Give your friend a moment. Try another interaction in a few seconds." = "Give your friend a moment. Try another interaction in a few seconds.";
+
+"This interaction expired. Send a new one when connected." = "This interaction expired. Send a new one when connected.";
+
+"Pairing shares your nickname, pet name, appearance and messages. Imported pets share a small portrait. No pet levels, usage data or AI configuration is uploaded. This relay uses HTTPS, not end-to-end encryption. Offline visits stay as messages without replaying old animations." = "Pairing shares your nickname, pet name, appearance and messages. Imported pets share a small portrait. No pet levels, usage data or AI configuration is uploaded. This relay uses HTTPS, not end-to-end encryption. Offline visits stay as messages without replaying old animations.";

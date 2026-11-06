@@ -15,6 +15,9 @@ struct ImageSpriteView: View {
     let fps: Double
     var size: CGFloat = 110
     var frameDurations: [TimeInterval]? = nil
+    var loops = true
+    var onCompletion: (() -> Void)? = nil
+    var playbackID: UUID? = nil
     @Environment(\.animationsEnabled) private var animationsEnabled
 
     var body: some View {
@@ -22,7 +25,9 @@ struct ImageSpriteView: View {
             if frames.isEmpty {
                 Image(systemName: "pawprint.fill").font(.system(size: 36))
             } else {
-                SpriteLayer(frames: frames, fps: fps, size: size, frameDurations: frameDurations, animate: animationsEnabled)
+                SpriteLayer(frames: frames, fps: fps, size: size, frameDurations: frameDurations,
+                            animate: animationsEnabled, loops: loops, onCompletion: onCompletion,
+                            playbackID: playbackID)
                     .frame(width: size, height: size)
             }
         }
@@ -37,10 +42,14 @@ private struct SpriteLayer: NSViewRepresentable {
     let size: CGFloat
     let frameDurations: [TimeInterval]?
     var animate: Bool = true
+    var loops: Bool
+    var onCompletion: (() -> Void)?
+    var playbackID: UUID?
 
     func makeNSView(context: Context) -> SpriteLayerNSView {
         let view = SpriteLayerNSView()
-        view.configure(frames: frames, fps: fps, animate: animate, frameDurations: frameDurations)
+        view.configure(frames: frames, fps: fps, animate: animate, frameDurations: frameDurations,
+                       loops: loops, onCompletion: onCompletion, playbackID: playbackID)
         return view
     }
 
@@ -49,7 +58,8 @@ private struct SpriteLayer: NSViewRepresentable {
         // bubble's perpetual animations run, can be ~display-rate). `configure`
         // is idempotent: it only rebuilds frames / restarts the timer when the
         // frames or fps actually change, so this never churns the timer.
-        view.configure(frames: frames, fps: fps, animate: animate, frameDurations: frameDurations)
+        view.configure(frames: frames, fps: fps, animate: animate, frameDurations: frameDurations,
+                       loops: loops, onCompletion: onCompletion, playbackID: playbackID)
     }
 
     static func dismantleNSView(_ view: SpriteLayerNSView, coordinator: ()) {
@@ -68,6 +78,9 @@ final class SpriteLayerNSView: NSView {
     private var timer: Timer?
     private var frameDurations: [TimeInterval]?
     private var timerGeneration = 0
+    private var loops = true
+    private var onCompletion: (() -> Void)?
+    private var playbackID: UUID?
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -82,7 +95,8 @@ final class SpriteLayerNSView: NSView {
     required init?(coder: NSCoder) { fatalError("init(coder:) not used") }
 
     func configure(frames: [NSImage], fps: Double, animate: Bool = true,
-                   frameDurations: [TimeInterval]? = nil) {
+                   frameDurations: [TimeInterval]? = nil, loops: Bool = true,
+                   onCompletion: (() -> Void)? = nil, playbackID: UUID? = nil) {
         let framesChanged = frames.count != sourceFrames.count
             || !zip(frames, sourceFrames).allSatisfy { $0 === $1 }
         if framesChanged {
@@ -99,7 +113,13 @@ final class SpriteLayerNSView: NSView {
         self.fps = fps
         let animateChanged = animate != self.animate
         self.animate = animate
-        if framesChanged || fpsChanged || animateChanged || timingChanged {
+        let loopingChanged = loops != self.loops
+        self.loops = loops
+        self.onCompletion = onCompletion
+        let playbackChanged = playbackID != self.playbackID
+        self.playbackID = playbackID
+        if framesChanged || fpsChanged || animateChanged || timingChanged || loopingChanged || playbackChanged {
+            if loopingChanged || playbackChanged { index = 0 }
             restartTimer()
         }
     }
@@ -127,6 +147,13 @@ final class SpriteLayerNSView: NSView {
         let t = Timer(timeInterval: frameDuration(at: index), repeats: false) { [weak self] _ in
             Task { @MainActor [weak self] in
                 guard let self, self.timerGeneration == generation else { return }
+                if !self.loops, self.index == self.cgFrames.count - 1 {
+                    self.timer = nil
+                    let completion = self.onCompletion
+                    self.onCompletion = nil
+                    completion?()
+                    return
+                }
                 self.index = (self.index + 1) % self.cgFrames.count
                 self.showCurrent()
                 self.scheduleNextFrame()

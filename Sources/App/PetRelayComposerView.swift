@@ -21,7 +21,7 @@ struct PetRelayComposerView: View {
             HStack(spacing: 7) {
                 Image(systemName: model.replyTo == nil ? "envelope.fill" : "arrowshape.turn.up.left.fill")
                     .foregroundStyle(.pink)
-                Text(model.replyTo == nil ? "Send a pet message" : "Reply")
+                Text(InterfaceText.format(model.replyTo == nil ? "Send a pet message" : "Reply"))
                     .font(.system(size: 12, weight: .semibold))
                 if let name = model.peerName {
                     Text(verbatim: name).font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(1)
@@ -32,15 +32,15 @@ struct PetRelayComposerView: View {
                     .help("Close composer").accessibilityIdentifier("relay-close-composer")
             }
             if let message = model.replyTo {
-                Text(verbatim: message.content)
+                Text(verbatim: message.displayContent)
                     .font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(2)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(8).background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
             }
             if model.pairID == nil {
-                Text("Pair your pets first, then send messages right here.")
+                Text(InterfaceText.format("Pair your pets first, then send messages right here."))
                     .font(.caption).foregroundStyle(.secondary)
-                Button("Open pairing settings") {
+                Button(InterfaceText.format("Open pairing settings")) {
                     onClose()
                     SettingsWindowController.shared.show(tab: .relay)
                 }
@@ -59,8 +59,31 @@ struct PetRelayComposerView: View {
 
     private var composer: some View {
         VStack(alignment: .leading, spacing: 9) {
+            if model.validContext {
+                HStack(spacing: 8) {
+                    PetRelayAvatar(profile: relay.pair?.peerPet, size: 56)
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(verbatim: relay.pair?.peerPet?.name ?? model.peerName ?? "")
+                            .font(.caption.bold()).lineLimit(1)
+                        HStack(spacing: 6) {
+                            ForEach(PetRelayGesture.allCases) { gesture in
+                                Button(InterfaceText.format(gesture.labelKey)) {
+                                    Task { if await model.sendGesture(gesture) { onClose() } }
+                                }
+                                .controlSize(.small).disabled(!model.canSend || !relay.supportsInteractions)
+                                .accessibilityIdentifier("relay-send-" + gesture.rawValue)
+                            }
+                        }
+                    }
+                }
+                if !relay.supportsInteractions {
+                    Text(InterfaceText.format("Pet interactions need an updated relay and both pets online at least once."))
+                        .font(.caption2).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                }
+                Divider()
+            }
             HStack(spacing: 8) {
-                TextField("Say something…", text: $model.text)
+                TextField(InterfaceText.format("Say something…"), text: $model.text)
                     .textFieldStyle(.roundedBorder).font(.system(size: 13))
                     .focused($inputFocused)
                     .disabled(!model.validContext || model.waitingForRetry || model.submitting)
@@ -74,7 +97,7 @@ struct PetRelayComposerView: View {
                 .help("Send").accessibilityLabel("Send").accessibilityIdentifier("relay-send-message")
             }
             HStack {
-                Text("Enter to send · Esc to close").font(.system(size: 10)).foregroundStyle(.secondary)
+                Text(InterfaceText.format("Enter to send · Esc to close")).font(.system(size: 10)).foregroundStyle(.secondary)
                 Spacer()
                 Text("\(PetRelayValidation.trimmedText(model.text).count)/20")
                     .font(.system(size: 10, design: .monospaced))
@@ -91,24 +114,26 @@ struct PetRelayComposerView: View {
                 }
             }
             if model.waitingForRetry {
-                Text("Saved for retry. This message will send automatically after reconnecting.")
+                Text(InterfaceText.format(relay.mailbox.outbox.first(where: { $0.id == model.queuedDraftID })?.gesture == nil
+                     ? "Saved for retry. This message will send automatically after reconnecting."
+                     : "This visit will retry for up to 30 seconds, then expire."))
                     .font(.caption2).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                Button("Cancel retry") { model.cancelRetry(); inputFocused = true }
+                Button(InterfaceText.format("Cancel retry")) { model.cancelRetry(); inputFocused = true }
                     .controlSize(.small).disabled(relay.isBusy || model.submitting)
             } else if !model.validContext && !model.didSend {
-                Text("This conversation changed. Close this box and open a new message from your pet.")
+                Text(InterfaceText.format("This conversation changed. Close this box and open a new message from your pet."))
                     .font(.caption2).foregroundStyle(.orange).fixedSize(horizontal: false, vertical: true)
             }
             if !otherDrafts.isEmpty {
                 Divider()
-                Text("Pending sends").font(.caption2).foregroundStyle(.secondary)
+                Text(InterfaceText.format("Pending sends")).font(.caption2).foregroundStyle(.secondary)
                 ScrollView {
                     VStack(spacing: 6) {
                         ForEach(otherDrafts) { draft in
                             HStack {
                                 Text(verbatim: draft.content).font(.caption).lineLimit(1)
                                 Spacer()
-                                Button("Cancel retry") { relay.discardDraft(draft.id) }
+                                Button(InterfaceText.format("Cancel retry")) { relay.discardDraft(draft.id) }
                                     .controlSize(.mini).disabled(relay.isBusy || model.submitting)
                             }
                         }

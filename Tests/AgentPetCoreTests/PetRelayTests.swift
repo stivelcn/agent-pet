@@ -95,4 +95,49 @@ struct PetRelayTests {
         #expect(PetRelayIcon.heart.rawValue == "heart")
         #expect(Set(PetRelayIcon.allCases.map(\.labelKey)).count == 6)
     }
+
+    @Test func legacyMailboxAndFutureGesturesRemainDecodable() throws {
+        let old = Data(#"{"name":"old","incoming":[],"sent":[],"outbox":[{"id":"draft","pairID":"old","text":"hi"}],"handled":[],"delivered":[]}"#.utf8)
+        let box = try JSONDecoder().decode(PetRelayMailbox.self, from: old)
+        #expect(box.playedInteractions == nil)
+        #expect(box.pet == nil)
+        #expect(!box.outbox[0].isExpired(at: 100))
+        let future = PetRelayMessage(id: "f", clientID: "f", pairID: "p", senderName: "friend",
+                                     createdAt: 1, gesture: "future-action")
+        let decoded = try JSONDecoder().decode(PetRelayMessage.self, from: JSONEncoder().encode(future))
+        #expect(decoded.gesture == "future-action")
+        #expect(decoded.interaction == nil)
+    }
+
+    @Test func visitsConsumeDurablyOnceAndKeepUnreadForReply() throws {
+        var box = PetRelayMailbox()
+        let visit = PetRelayMessage(id: "visit", clientID: "v", pairID: "pair1", senderName: "噜噜",
+                                   createdAt: 95, gesture: "poke", expiresAt: 125)
+        box.merge(snapshot([visit]))
+        #expect(box.consumeInteractions(at: 100, canAnimate: true)?.id == "visit")
+        #expect(box.incoming.count == 1)
+        #expect(box.handled.isEmpty)
+        var restart = try JSONDecoder().decode(PetRelayMailbox.self, from: JSONEncoder().encode(box))
+        restart.merge(snapshot([visit]))
+        #expect(restart.consumeInteractions(at: 101, canAnimate: true) == nil)
+    }
+
+    @Test func expiredHiddenAndFormerPartnerVisitsNeverReplay() {
+        for hidden in [false, true] {
+            var box = PetRelayMailbox()
+            let visit = PetRelayMessage(id: "visit", clientID: "v", pairID: "pair1", senderName: "噜噜",
+                                       createdAt: hidden ? 95 : 1, gesture: "hug", expiresAt: hidden ? 125 : 30)
+            box.merge(snapshot([visit]))
+            #expect(box.consumeInteractions(at: 100, canAnimate: !hidden) == nil)
+            #expect(box.consumeInteractions(at: 101, canAnimate: true) == nil)
+            #expect(box.incoming.count == 1)
+        }
+        var box = PetRelayMailbox()
+        let old = PetRelayMessage(id: "old", clientID: "old", pairID: "old-pair", senderName: "old",
+                                 createdAt: 95, gesture: "peek", expiresAt: 125)
+        box.merge(snapshot([old]))
+        #expect(box.consumeInteractions(at: 100, canAnimate: true) == nil)
+        #expect(PetRelayDraft(pairID: "p", gesture: .poke, expiresAt: 99).isExpired(at: 100))
+        #expect(PetRelayDraft(pairID: "p", text: "hello").isExpired(at: 100) == false)
+    }
 }

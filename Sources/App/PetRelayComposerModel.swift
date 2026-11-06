@@ -35,7 +35,7 @@ final class PetRelayComposerModel: ObservableObject {
         accepted || (queuedDraftID.map { id in relay.mailbox.sent.contains { $0.clientID == id } } ?? false)
     }
     var canSend: Bool {
-        validContext && !submitting && !relay.isBusy && queuedDraftID == nil && !accepted
+        validContext && !submitting && !relay.isBusy && !waitingForRetry && !didSend
     }
     var canSendText: Bool { canSend && PetRelayValidation.validText(text) }
 
@@ -49,11 +49,16 @@ final class PetRelayComposerModel: ObservableObject {
         guard canSend else { return false }
         return await submit(icon: icon)
     }
-    private func submit(text: String? = nil, icon: PetRelayIcon? = nil) async -> Bool {
+    func sendGesture(_ gesture: PetRelayGesture) async -> Bool {
+        guard canSend, relay.supportsInteractions else { return false }
+        return await submit(gesture: gesture)
+    }
+    private func submit(text: String? = nil, icon: PetRelayIcon? = nil, gesture: PetRelayGesture? = nil) async -> Bool {
         submitting = true
         defer { submitting = false }
+        queuedDraftID = nil
         let before = Set(relay.mailbox.outbox.map(\.id))
-        let sent = await relay.send(text: text, icon: icon, replyTo: replyTo?.id, expectedPairID: pairID)
+        let sent = await relay.send(text: text, icon: icon, replyTo: replyTo?.id, expectedPairID: pairID, gesture: gesture)
         if sent {
             accepted = true
             self.text = ""

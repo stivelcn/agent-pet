@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "spritesheetPath": "interactions.png",
+  "cellWidth": 192,
+  "cellHeight": 208,
+  "clips": {
+    "poke": {
+      "row": 0,
+      "frameDurationsMS": [
+        180,
+        220,
+        300,
+        700,
+        340,
+        260
+      ]
+    },
+    "poked": {
+      "row": 1,
+      "frameDurationsMS": [
+        180,
+        220,
+        300,
+        700,
+        340,
+        260
+      ]
+    },
+    "hug": {
+      "row": 2,
+      "frameDurationsMS": [
+        180,
+        220,
+        300,
+        700,
+        340,
+        260
+      ]
+    },
+    "peek": {
+      "row": 3,
+      "frameDurationsMS": [
+        180,
+        220,
+        300,
+        700,
+        340,
+        260
+      ]
+    }
+  }
+}
